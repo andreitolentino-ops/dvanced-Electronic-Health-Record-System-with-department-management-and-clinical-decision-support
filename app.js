@@ -184,6 +184,7 @@ if($('btnNew')) $('btnNew').addEventListener('click', ()=>{
   qsa('form').forEach(f => f.reset());
   vitalsRows = []; uploadedLabs = [];
   renderVitalsTable(); renderLabFiles();
+  updateUploadButtonState();
   // show patient info tab
   const btn = document.querySelector('.navbtn[data-target="tab-info"]');
   if(btn) btn.click();
@@ -206,6 +207,8 @@ const saveMap = {
 
 qsa('[data-save]').forEach(btn => {
   btn.addEventListener('click', async (ev) => {
+    // prevent default form submission which would reload the page
+    if(ev && typeof ev.preventDefault === 'function') ev.preventDefault();
     const key = btn.dataset.save;
     const fid = saveMap[key];
     if(!fid) return;
@@ -229,6 +232,8 @@ qsa('[data-save]').forEach(btn => {
     if(key === 'info' && (!data.name || !data.initialDiagnosis)) {
       return toast('Please enter patient name and initial diagnosis', 'error');
     }
+    // require sign-in to save
+    if(!currentUser) return toast('Sign in to save', 'error');
     if(isSaving) return toast('Save already in progress', 'info');
     isSaving = true; btn.disabled = true;
     try{
@@ -248,6 +253,8 @@ async function saveTabData(tabKey, data){
     // create new
     const docRef = await db.collection('patients').add({ ...data, createdAt: nowTs(), ...meta });
     selectedPatientId = docRef.id;
+    // newly created patient - enable upload
+    updateUploadButtonState();
   } else {
     // merge
     await db.collection('patients').doc(selectedPatientId).set({ ...data, ...meta }, { merge: true });
@@ -257,20 +264,75 @@ async function saveTabData(tabKey, data){
 }
 
 // -------------------- Lab uploads --------------------
-if($('uploadLabBtn')) $('uploadLabBtn').addEventListener('click', async ()=>{
+if($('uploadLabBtn')) $('uploadLabBtn').addEventListener('click', async (ev)=>{
+  ev && ev.preventDefault && ev.preventDefault();
+  // guard: require a selected patient before uploading
+  if(!selectedPatientId) return toast('Save patient first before uploading lab files', 'error');
   const fileEl = $('labFileInput'); if(!fileEl || !fileEl.files || fileEl.files.length===0) return toast('Select a file to upload', 'error');
   const file = fileEl.files[0];
+
+  // client-side validation
+  const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+  const allowedTypes = ['application/pdf'];
+  if(file.type && file.type.startsWith('image/')) allowedTypes.push(file.type);
+  // simple check: allow images and pdf
+  const isImage = file.type && file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if(!isImage && !isPdf) return toast('Only image files and PDFs are allowed', 'error');
+  if(file.size > MAX_BYTES) return toast('File is too large (max 10 MB)', 'error');
+
+  const uplBtn = $('uploadLabBtn');
+  const progWrap = $('uploadProgress');
+  const progBar = $('uploadProgressBar');
+  const progText = $('uploadProgressText');
+
   try{
-    const path = `labs/${selectedPatientId || 'temp'}/${Date.now()}_${file.name}`;
+    // prepare UI
+    if(uplBtn) { uplBtn.setAttribute('disabled','disabled'); uplBtn.classList.add('opacity-50'); }
+    if(progWrap) progWrap.classList.remove('hidden');
+    if(progBar) { progBar.style.width = '0%'; }
+    if(progText) progText.textContent = '0%';
+
+    const path = `labs/${selectedPatientId}/${Date.now()}_${file.name}`;
     const ref = storage.ref(path);
-    const snap = await ref.put(file);
-    const url = await ref.getDownloadURL();
+    const uploadTask = ref.put(file);
+
+    // monitor progress
+    const progressPromise = new Promise((resolve, reject) => {
+      uploadTask.on('state_changed', snapshot => {
+        const pct = snapshot.totalBytes ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100) : 0;
+        if(progBar) progBar.style.width = pct + '%';
+        if(progText) progText.textContent = pct + '%';
+      }, err => {
+        reject(err);
+      }, async () => {
+        try{
+          const url = await ref.getDownloadURL();
+          resolve(url);
+        }catch(e){ reject(e); }
+      });
+    });
+
+    const url = await progressPromise;
     uploadedLabs.push({ name: file.name, url, type: file.type || '' });
     renderLabFiles();
     fileEl.value = '';
     toast('File uploaded', 'success');
-  }catch(e){ console.error(e); toast('Upload failed', 'error'); }
+  }catch(e){ console.error(e); toast('Upload failed: ' + (e.message||e.code), 'error'); }
+  finally{
+    if(uplBtn) { uplBtn.removeAttribute('disabled'); uplBtn.classList.remove('opacity-50'); }
+    // hide progress after short delay
+    setTimeout(()=>{ const progWrap = $('uploadProgress'); if(progWrap) progWrap.classList.add('hidden'); }, 800);
+  }
 });
+
+// enable/disable upload button depending on whether there's a saved patient
+function updateUploadButtonState(){
+  const upl = $('uploadLabBtn');
+  if(!upl) return;
+  if(selectedPatientId) { upl.removeAttribute('disabled'); upl.classList.remove('opacity-50'); }
+  else { upl.setAttribute('disabled','disabled'); upl.classList.add('opacity-50'); }
+}
 
 function renderLabFiles(){
   const list = $('labFilesList'); if(!list) return;
@@ -384,6 +446,7 @@ window.editPatient = function(index){
   vitalsRows = Array.isArray(p.vitals) ? p.vitals.slice() : [];
   uploadedLabs = Array.isArray(p.labFiles) ? p.labFiles.slice() : [];
   renderVitalsTable(); renderLabFiles();
+  updateUploadButtonState();
   // switch to info tab
   const btn = document.querySelector('.navbtn[data-target="tab-info"]'); if(btn) btn.click();
   toast('Loaded patient for editing', 'info');
