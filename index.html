@@ -3,16 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ONE CARE SYSTEM — Modern Blue</title>
+  <title>ONE CARE SYSTEM — Modern Blue (Merged)</title>
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="bg-slate-50 text-slate-700 min-h-screen antialiased transition-colors duration-300">
 
-  <!-- HEADER -->
+  <!-- Header -->
   <header class="fixed inset-x-0 top-0 h-20 flex items-center justify-between px-6 bg-gradient-to-r from-sky-700 to-indigo-800 text-white z-40 shadow-lg">
     <div class="flex items-center gap-4">
       <div class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-xl">🩺</div>
@@ -30,7 +29,7 @@
     </div>
   </header>
 
-  <!-- BREADCRUMB -->
+  <!-- Breadcrumb -->
   <div id="breadcrumb" class="max-w-7xl mx-auto mt-24 px-6 hidden md:block">
     <nav class="text-sm text-slate-500" aria-label="Breadcrumb">
       <ol class="list-reset flex items-center gap-2">
@@ -41,10 +40,10 @@
     </nav>
   </div>
 
-  <!-- MAIN -->
+  <!-- Main -->
   <main class="pt-4 px-6 pb-12">
     <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
-      <!-- SIDEBAR -->
+      <!-- Sidebar -->
       <aside class="col-span-12 md:col-span-3 lg:col-span-2 sticky top-28">
         <div class="p-4 rounded-2xl glass soft-shadow">
           <nav class="flex flex-col gap-2" id="mainNav">
@@ -63,11 +62,25 @@
         </div>
       </aside>
 
-      <!-- CONTENT -->
-      <section class="col-span-12 md:col-span-9 lg:col-span-10">
+      <!-- Content area -->
+      <section class="col-span-12 md:col-span-9 lg:col-span-10 space-y-6">
+        <!-- Dashboard -->
         <div id="tab-dashboard" class="panel p-6 rounded-2xl glass soft-shadow">
-          <h2 class="text-2xl font-bold mb-2">Dashboard</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold">Dashboard</h2>
+              <p class="text-sm text-slate-500">Overview & quick actions</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-sm text-slate-500">Records: <span id="count" class="font-extrabold">0</span></div>
+              <select id="sortSelect" class="px-3 py-2 rounded-lg border border-slate-200">
+                <option value="updatedAt_desc">Sort: Recent</option>
+                <option value="name_asc">Sort: Name A–Z</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="p-4 rounded-xl glass soft-shadow text-center">
               <div class="text-sm text-slate-500">Total Patients</div>
               <div id="totalPatients" class="text-3xl font-bold">0</div>
@@ -81,13 +94,226 @@
               <div id="outPatients" class="text-3xl font-bold">0</div>
             </div>
           </div>
+
           <div id="patientsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"></div>
         </div>
+
+        <!-- Begin full tab forms (copied from your original file and restyled) -->
+
+        <!-- 1 • Patient Information -->
+        <div id="tab-info" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">1 • Patient Information</h3>
+          <form id="form-info" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-semibold">Full name *</label>
+              <input id="info_name" name="name" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Last, First Middle" required />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Civil Status</label>
+              <select id="info_civilStatus" name="civilStatus" class="mt-1 w-full rounded-lg px-3 py-2 border">
+                <option value="">--</option><option>Single</option><option>Married</option><option>Widowed</option><option>Divorced</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Date of Birth</label>
+              <input id="info_dob" name="dob" type="date" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Age</label>
+              <input id="info_age" name="age" type="number" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Gender</label>
+              <select id="info_gender" name="gender" class="mt-1 w-full rounded-lg px-3 py-2 border">
+                <option value="">--</option><option>Male</option><option>Female</option><option>Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Contact number</label>
+              <input id="info_contact" name="contact" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
+              <input id="info_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="text-sm font-semibold">Address</label>
+              <input id="info_address" name="address" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div class="sm:col-span-2 flex gap-2 mt-2">
+              <button type="button" id="saveInfoBtn" data-save="info" class="px-4 py-2 bg-sky-600 text-white rounded-lg font-semibold">💾 Save Info</button>
+              <button type="button" id="clearInfo" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2 • Identification & Insurance -->
+        <div id="tab-id" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">2 • Identification & Insurance</h3>
+          <form id="form-id" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label class="text-sm font-semibold">Government ID Type</label><input id="id_govIdType" name="govIdType" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Driver's License / Passport"/></div>
+            <div><label class="text-sm font-semibold">Government ID No.</label><input id="id_govIdNo" name="govIdNo" class="mt-1 w-full rounded-lg px-3 py-2 border"/></div>
+            <div><label class="text-sm font-semibold">PhilHealth No.</label><input id="id_philhealth" name="philhealth" class="mt-1 w-full rounded-lg px-3 py-2 border"/></div>
+            <div class="sm:col-span-2 flex gap-2 mt-2"><button class="px-4 py-2 bg-sky-600 text-white rounded-lg" data-save="id">💾 Save ID & Insurance</button><button id="clearID" class="px-4 py-2 bg-white rounded-lg border">Clear</button></div>
+          </form>
+        </div>
+
+        <!-- 3 • Medical History -->
+        <div id="tab-history" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">3 • Medical History</h3>
+          <form id="form-history">
+            <label class="text-sm">Present Illness / Chief Complaint</label>
+            <textarea name="presentIllness" class="w-full rounded-lg p-3 border" placeholder="Present illness / chief complaint"></textarea>
+            <div class="mt-3 flex gap-2">
+              <button data-save="history" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Medical History</button>
+              <button id="clearHistory" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 4 • Assessment -->
+        <div id="tab-assessment" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">4 • Assessment</h3>
+          <form id="form-assessment">
+            <textarea name="assessment_notes" class="w-full rounded-lg p-3 border" placeholder="Assessment notes"></textarea>
+            <div class="mt-3 flex gap-2">
+              <button data-save="assessment" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Assessment</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 5 • Labs -->
+        <div id="tab-labs" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">5 • Laboratory & Diagnostics</h3>
+          <form id="form-labs">
+            <label class="text-sm">Ordered Tests / Imaging</label>
+            <textarea name="orderedTests" class="w-full rounded-lg p-3 border" placeholder="Ordered tests / imaging"></textarea>
+            <div class="mt-3 flex items-center gap-2">
+              <input accept="image/*,.pdf" id="labFileInput" type="file"/>
+              <button id="uploadLabBtn" type="button" class="ml-2 px-3 py-1 rounded-lg bg-white border">⬆️ Upload</button>
+            </div>
+            <div id="labFilesList" class="mt-3 flex flex-wrap gap-2"></div>
+            <div class="mt-3">
+              <button data-save="labs" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Labs</button>
+              <button id="clearLabs" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 6 • Medication Orders -->
+        <div id="tab-meds" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">6 • Medication Orders</h3>
+          <form id="form-meds">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm" id="medTable">
+                <thead><tr><th>Drug</th><th>Dosage</th><th>Route</th><th>Freq</th><th>Action</th></tr></thead>
+                <tbody id="medTableBody">
+                  <tr>
+                    <td><input name="drug" class="w-full rounded border px-2 py-1"/></td>
+                    <td><input name="dosage" class="w-full rounded border px-2 py-1"/></td>
+                    <td><input name="route" class="w-full rounded border px-2 py-1"/></td>
+                    <td><input name="frequency" class="w-full rounded border px-2 py-1"/></td>
+                    <td><button type="button" class="btn-remove-row px-2 py-1 rounded bg-white border">🗑️</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button type="button" id="addMedRow" class="px-4 py-2 bg-white rounded-lg border">➕ Add Row</button>
+              <button data-save="meds" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Orders</button>
+              <button id="clearMeds" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 7 • Vitals -->
+        <div id="tab-vitals" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">7 • Vitals & Monitoring</h3>
+          <form id="form-vitals">
+            <div class="grid grid-cols-2 gap-3">
+              <input name="v_date" id="v_date" type="date" class="rounded-lg p-2 border"/>
+              <input name="v_time" id="v_time" type="time" class="rounded-lg p-2 border"/>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button id="btnAddVitals" type="button" class="px-4 py-2 bg-white rounded-lg border">➕ Add Vitals Row</button>
+              <button data-save="vitals" class="px-4 py-2 bg-white rounded-lg border">💾 Save Vitals</button>
+              <button id="clearVitals" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+            <div id="vitalsTableWrap" class="mt-3 max-h-48 overflow-auto border rounded p-2">
+              <table class="w-full text-sm"><thead><tr><th>Date</th><th>Time</th><th>Temp</th><th>P</th><th>BP</th><th>By</th><th>Action</th></tr></thead><tbody id="vitalsTableBody"></tbody></table>
+            </div>
+          </form>
+        </div>
+
+        <!-- 8 • Nurse Notes -->
+        <div id="tab-nurse" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">8 • Nurse Notes (FDAR)</h3>
+          <form id="form-nurse">
+            <label class="text-sm">F - Focus / Findings</label>
+            <textarea name="nurse_f" class="w-full rounded-lg p-3 border" placeholder="F - Focus / Findings"></textarea>
+            <label class="text-sm mt-2">D - Data</label>
+            <textarea name="nurse_d" class="w-full rounded-lg p-3 border" placeholder="D - Data"></textarea>
+            <div class="mt-3">
+              <button data-save="nurse" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Nurse Notes</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 9 • Doctor Notes -->
+        <div id="tab-doctor" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">9 • Doctor Notes</h3>
+          <form id="form-doctor">
+            <label class="text-sm">Doctor's notes</label>
+            <textarea id="doctorNotes" name="doctorNotes" class="w-full rounded-lg p-3 border"></textarea>
+            <div class="mt-3 flex gap-2">
+              <button class="px-4 py-2 bg-sky-600 text-white rounded-lg" data-save="doctor">💾 Save Doctor Notes</button>
+              <button id="clearDoctor" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 10 • Discharge Plan -->
+        <div id="tab-plan" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">10 • Discharge Plan</h3>
+          <form id="form-plan">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div><label>Final Diagnosis</label><input name="dis_finalDx" class="w-full rounded border px-2 py-1"/></div>
+              <div><label>Condition on Discharge</label><input name="dis_condition" class="w-full rounded border px-2 py-1"/></div>
+            </div>
+            <div class="mt-3">
+              <label>Medications on Discharge</label>
+              <textarea name="dis_meds" class="w-full rounded border p-2"></textarea>
+            </div>
+            <div class="mt-3">
+              <label>Discharge Instructions</label>
+              <textarea name="dis_instructions" class="w-full rounded border p-2" style="min-height:120px"></textarea>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button data-save="plan" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Discharge Plan</button>
+              <button id="clearPlan" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- End tab forms -->
+
       </section>
     </div>
   </main>
 
-  <!-- LOGIN MODAL -->
+  <!-- Modal for patient detail (kept from original) -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6">
+    <div id="modalBody" class="w-full max-w-3xl rounded-2xl glass soft-shadow p-4"></div>
+    <button class="absolute top-6 right-6 btn-ghost" onclick="closeModal()">✕</button>
+  </div>
+
+  <!-- Login modal -->
   <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-60 hidden">
     <div class="w-full max-w-md p-6 rounded-2xl glass soft-shadow text-slate-800">
       <div class="flex items-center gap-4 mb-4">
@@ -109,11 +335,16 @@
     </div>
   </div>
 
-  <!-- FIREBASE SDK -->
+  <!-- Toast container (toasts are injected by JS) -->
+  <div id="toastContainer" aria-live="polite" class="fixed right-6 bottom-6 z-50"></div>
+
+  <!-- Firebase SDKs (v8) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+  <!-- app.js will be loaded separately -->
   <script src="app.js"></script>
 </body>
 </html>
