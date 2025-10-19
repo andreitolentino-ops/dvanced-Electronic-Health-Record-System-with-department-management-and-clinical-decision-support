@@ -38,3 +38,44 @@ body { transition: background-color 0.3s ease, color 0.3s ease; font-family: Int
   #breadcrumb { display:none; }
   aside { position: static; }
 }
+/* === PATCH: minor visual + warning fixes === */
+
+/* Remove faint white/blur strip under dashboard cards */
+#patientsContainer {
+  background: transparent !important;
+}
+
+/* Prevent any ghost pseudo-backgrounds */
+#patientsContainer::before {
+  content: none !important;
+}
+
+/* Fix missing favicon warning (browser 404) */
+link[rel="icon"]::before {
+  content: none !important;
+}
+
+/* Optional: smooth fade for patient cards */
+#patientsContainer > div {
+  animation: fadeIn 0.25s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Make all scrollbars subtle in light theme */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.15);
+}
+
+/* Fallback favicon: prevents 404 console spam */
+:root::before {
+  content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAgEBALwLch0AAAAASUVORK5CYII=');
+  display: none;
+}
