@@ -381,7 +381,34 @@ function setupBMIandIV(){
   const w = document.querySelector('#form-info input[name="weight"]');
   const h = document.querySelector('#form-info input[name="height"]');
   const bmi = document.querySelector('#form-info input[name="bmi"]');
-  [w,h].forEach(el => { if(el) el.addEventListener('input', ()=> { if(!w || !h || !bmi) return; const W = parseFloat(w.value), H = parseFloat(h.value); if(!isFinite(W) || !isFinite(H) || H<=0) { bmi.value=''; return; } bmi.value = (W / Math.pow(H/100,2)).toFixed(1); }); });
+  // helper to compute and display BMI and category
+  function computeAndDisplayBMI(){
+    if(!w || !h || !bmi) return;
+    const W = parseFloat(w.value);
+    const H = parseFloat(h.value);
+    const catEl = document.getElementById('info_bmiCategory');
+    if(!isFinite(W) || !isFinite(H) || H <= 0) {
+      bmi.value = '';
+      if(catEl) { catEl.textContent = ''; catEl.className = ''; }
+      return;
+    }
+    const val = (W / Math.pow(H/100,2));
+    const rounded = val.toFixed(1);
+    bmi.value = rounded;
+    // determine category
+    const num = parseFloat(rounded);
+    let label = '';
+    let cls = '';
+    if(num < 18.5) { label = 'Underweight'; cls = 'text-sky-600'; }
+    else if(num < 25.0) { label = 'Normal'; cls = 'text-emerald-600'; }
+    else if(num < 30.0) { label = 'Overweight'; cls = 'text-amber-600'; }
+    else { label = 'Obese'; cls = 'text-rose-600'; }
+    if(catEl) { catEl.textContent = label; catEl.className = cls + ' font-semibold'; }
+  }
+
+  [w,h].forEach(el => { if(el) el.addEventListener('input', computeAndDisplayBMI); });
+  // expose for external callers (e.g. when filling form programmatically)
+  window.computeAndDisplayBMI = computeAndDisplayBMI;
 
   // IV calc - optional fields ids ivVolume, ivTime, ivDropFactor, ivFlowRate
   const vol = $('ivVolume'), time = $('ivTime'), drop = $('ivDropFactor'), out = $('ivFlowRate');
@@ -447,6 +474,8 @@ window.editPatient = function(index){
   uploadedLabs = Array.isArray(p.labFiles) ? p.labFiles.slice() : [];
   renderVitalsTable(); renderLabFiles();
   updateUploadButtonState();
+  // compute BMI category if values present
+  try{ if(window.computeAndDisplayBMI) window.computeAndDisplayBMI(); }catch(e){}
   // switch to info tab
   const btn = document.querySelector('.navbtn[data-target="tab-info"]'); if(btn) btn.click();
   toast('Loaded patient for editing', 'info');
