@@ -105,45 +105,129 @@
           <h3 class="text-xl font-bold mb-3">1 • Patient Information</h3>
           <form id="form-info" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-semibold">Full name *</label>
-              <input id="info_name" name="name" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Last, First Middle" required />
+              <label for="info_mrn" class="text-sm font-semibold">Medical Record No. (MRN)</label>
+              <input id="info_mrn" name="mrn" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Hospital MRN / registry number" />
             </div>
             <div>
-              <label class="text-sm font-semibold">Civil Status</label>
+              <label for="info_patientStatus" class="text-sm font-semibold">Patient Class</label>
+              <select id="info_patientStatus" name="patientStatus" class="mt-1 w-full rounded-lg px-3 py-2 border">
+                <option value="Outpatient">Outpatient</option>
+                <option value="Inpatient">Inpatient</option>
+                <option value="Emergency">Emergency</option>
+                <option value="Observation">Observation</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="info_admissionDate" class="text-sm font-semibold">Admission Date</label>
+              <input id="info_admissionDate" name="admissionDate" type="date" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+            <div>
+              <label for="info_admissionTime" class="text-sm font-semibold">Admission Time</label>
+              <input id="info_admissionTime" name="admissionTime" type="time" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label for="info_physician" class="text-sm font-semibold">Attending Physician</label>
+              <input id="info_physician" name="physician" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Dr. Name / Service" />
+            </div>
+            <div>
+              <label for="info_referralSource" class="text-sm font-semibold">Referral Source / Arrival</label>
+              <input id="info_referralSource" name="referralSource" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Referral clinic / transfer from" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="info_name" class="text-sm font-semibold">Full name *</label>
+              <input id="info_name" name="name" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Last, First Middle" required />
+            </div>
+
+            <div>
+              <label for="info_otherName" class="text-sm font-semibold">Other / Maiden name</label>
+              <input id="info_otherName" name="otherName" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label for="info_civilStatus" class="text-sm font-semibold">Civil Status</label>
               <select id="info_civilStatus" name="civilStatus" class="mt-1 w-full rounded-lg px-3 py-2 border">
                 <option value="">--</option><option>Single</option><option>Married</option><option>Widowed</option><option>Divorced</option>
               </select>
             </div>
 
             <div>
-              <label class="text-sm font-semibold">Date of Birth</label>
+              <label for="info_dob" class="text-sm font-semibold">Date of Birth</label>
               <input id="info_dob" name="dob" type="date" class="mt-1 w-full rounded-lg px-3 py-2 border" />
             </div>
             <div>
-              <label class="text-sm font-semibold">Age</label>
+              <label for="info_age" class="text-sm font-semibold">Age</label>
               <input id="info_age" name="age" type="number" class="mt-1 w-full rounded-lg px-3 py-2 border" />
             </div>
 
             <div>
-              <label class="text-sm font-semibold">Gender</label>
+              <label for="info_gender" class="text-sm font-semibold">Sex</label>
               <select id="info_gender" name="gender" class="mt-1 w-full rounded-lg px-3 py-2 border">
                 <option value="">--</option><option>Male</option><option>Female</option><option>Other</option>
               </select>
             </div>
 
             <div>
-              <label class="text-sm font-semibold">Contact number</label>
+              <label for="info_contact" class="text-sm font-semibold">Contact number</label>
               <input id="info_contact" name="contact" class="mt-1 w-full rounded-lg px-3 py-2 border" />
             </div>
 
-            <div class="sm:col-span-2">
-              <label class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
-              <input id="info_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
+            <div>
+              <label for="info_email" class="text-sm font-semibold">Email</label>
+              <input id="info_email" name="email" type="email" class="mt-1 w-full rounded-lg px-3 py-2 border" />
             </div>
 
             <div class="sm:col-span-2">
-              <label class="text-sm font-semibold">Address</label>
+              <label for="info_address" class="text-sm font-semibold">Home Address</label>
               <input id="info_address" name="address" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label for="info_language" class="text-sm font-semibold">Primary Language</label>
+              <input id="info_language" name="primaryLanguage" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+            <div>
+              <label for="info_ethnicity" class="text-sm font-semibold">Ethnicity / Religion</label>
+              <input id="info_ethnicity" name="ethnicity" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label for="info_occupation" class="text-sm font-semibold">Occupation</label>
+              <input id="info_occupation" name="occupation" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+            <div>
+              <label for="info_employer" class="text-sm font-semibold">Employer</label>
+              <input id="info_employer" name="employer" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="text-sm font-semibold">Emergency Contact</label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
+                <input id="info_emg_name" name="emg_name" placeholder="Name" class="rounded-lg px-3 py-2 border" />
+                <input id="info_emg_relation" name="emg_relation" placeholder="Relation" class="rounded-lg px-3 py-2 border" />
+                <input id="info_emg_phone" name="emg_phone" placeholder="Phone" class="rounded-lg px-3 py-2 border" />
+              </div>
+            </div>
+
+            <div>
+              <label for="info_allergies" class="text-sm font-semibold">Allergies</label>
+              <input id="info_allergies" name="allergies" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="List allergies (drug, food, latex)" />
+            </div>
+            <div>
+              <label for="info_chronic" class="text-sm font-semibold">Chronic Conditions</label>
+              <input id="info_chronic" name="chronicConditions" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., HTN, DM, COPD" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="info_surgeries" class="text-sm font-semibold">Past Surgeries / Significant Medical History</label>
+              <textarea id="info_surgeries" name="pastSurgeries" class="w-full rounded-lg p-3 border" placeholder="Past surgeries, dates, complications"></textarea>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="info_initialDiagnosis" class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
+              <input id="info_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
             </div>
 
             <div class="sm:col-span-2 flex gap-2 mt-2">
