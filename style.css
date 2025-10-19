@@ -3,103 +3,17 @@
   --gold: #fbbf24;
 }
 
-/* Basic glass + helpers */
-body { transition: background-color 0.3s ease, color 0.3s ease; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-.glass { background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.12); }
-.dark .glass { background: rgba(6,10,18,0.6); border: 1px solid rgba(255,255,255,0.06); }
-.soft-shadow { box-shadow: 0 10px 30px rgba(2,6,23,0.08); }
-.rounded-2xl { border-radius: 16px; }
-
-.btn-primary { background: var(--accent); color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 600; }
-.btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.06); padding: 8px 12px; border-radius: 10px; }
+body { transition: background-color 0.3s ease, color 0.3s ease; }
+.glass { background: rgba(255,255,255,0.65); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); }
+.dark .glass { background: rgba(6,10,18,0.55); }
+.soft-shadow { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.btn-primary { background: var(--accent); color: white; padding: 8px 14px; border-radius: 10px; font-weight: 600; }
+.btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.08); padding: 8px 14px; border-radius: 10px; }
 .header-logo { font-weight: 800; letter-spacing: 0.4px; }
 
-/* Panels */
-.panel { background: transparent; }
-
-/* Modal */
-#modal { display:flex; align-items:center; justify-content:center; }
-#modal .glass { width: 100%; max-width: 960px; }
-
-/* Toasts */
-#toastContainer { display:flex; flex-direction:column; gap:8px; }
-.toast { color:#fff; padding:10px 14px; border-radius:10px; box-shadow:0 8px 20px rgba(2,6,23,0.12); opacity:0; transform: translateY(8px); transition:opacity 200ms ease, transform 200ms ease; }
-.toast.show { opacity:1; transform: translateY(0); }
-
-/* Print */
 @media print {
-  header, #breadcrumb, #loginModal, #darkToggle, #btnLogout, #btnNew, #toastContainer { display: none !important; }
+  header, #breadcrumb, #loginModal, #darkToggle, #btnLogout, #btnNew { display: none !important; }
   body { background: white !important; color: black !important; }
-  .glass { background: white !important; box-shadow:none !important; border:none !important; }
-}
-
-/* Small responsive tweaks */
-@media (max-width: 900px) {
-  #breadcrumb { display:none; }
-  aside { position: static; }
-}
-/* === PATCH: minor visual + warning fixes === */
-
-/* Remove faint white/blur strip under dashboard cards */
-#patientsContainer {
-  background: transparent !important;
-}
-
-/* Prevent any ghost pseudo-backgrounds */
-#patientsContainer::before {
-  content: none !important;
-}
-
-/* Fix missing favicon warning (browser 404) */
-link[rel="icon"]::before {
-  content: none !important;
-}
-
-/* Optional: smooth fade for patient cards */
-#patientsContainer > div {
-  animation: fadeIn 0.25s ease-in-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Make all scrollbars subtle in light theme */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.1);
-  border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgba(255,255,255,0.15);
-}
-
-/* Fallback favicon: prevents 404 console spam */
-:root::before {
-  content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAgEBALwLch0AAAAASUVORK5CYII=');
-  display: none;
-}
-/* === WHITE STRIP FIX (strong override) === */
-#patientsContainer {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-  position: relative;
-}
-
-#patientsContainer::before,
-#patientsContainer::after {
-  content: none !important;
-  display: none !important;
-}
-
-.panel {
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.dark .panel {
-  background: rgba(10,20,40,0.45);
+  .panel { background: white !important; box-shadow: none !important; }
+  .print-header { display: block; text-align: center; margin-bottom: 12px; }
 }
