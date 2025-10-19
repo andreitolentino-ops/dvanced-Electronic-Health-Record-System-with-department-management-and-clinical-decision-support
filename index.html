@@ -241,20 +241,106 @@
         <div id="tab-id" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">2 • Identification & Insurance</h3>
           <form id="form-id" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label class="text-sm font-semibold">Government ID Type</label><input id="id_govIdType" name="govIdType" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Driver's License / Passport"/></div>
-            <div><label class="text-sm font-semibold">Government ID No.</label><input id="id_govIdNo" name="govIdNo" class="mt-1 w-full rounded-lg px-3 py-2 border"/></div>
-            <div><label class="text-sm font-semibold">PhilHealth No.</label><input id="id_philhealth" name="philhealth" class="mt-1 w-full rounded-lg px-3 py-2 border"/></div>
-            <div class="sm:col-span-2 flex gap-2 mt-2"><button type="button" class="px-4 py-2 bg-sky-600 text-white rounded-lg" data-save="id">💾 Save ID & Insurance</button><button type="button" id="clearID" class="px-4 py-2 bg-white rounded-lg border">Clear</button></div>
+            <div>
+              <label class="text-sm font-semibold">Primary Government ID</label>
+              <select id="id_govIdType" name="govIdType" class="mt-1 w-full rounded-lg px-3 py-2 border">
+                <option value="">Select ID</option>
+                <option>Driver's License</option>
+                <option>Passport</option>
+                <option>National ID</option>
+                <option>Voter ID</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Government ID No.</label>
+              <input id="id_govIdNo" name="govIdNo" class="mt-1 w-full rounded-lg px-3 py-2 border"/>
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Insurance Provider</label>
+              <input id="id_insProvider" name="insuranceProvider" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Insurer name" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Policy / Member No.</label>
+              <input id="id_policyNo" name="policyNo" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Coverage Type</label>
+              <select id="id_coverageType" name="coverageType" class="mt-1 w-full rounded-lg px-3 py-2 border">
+                <option value="Private">Private</option>
+                <option value="Government">Government / PhilHealth</option>
+                <option value="HMO">HMO</option>
+                <option value="None">None / Self-pay</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Guarantor / Responsible Party</label>
+              <input id="id_guarantor" name="guarantor" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Name / relation" />
+            </div>
+
+            <div>
+              <label class="text-sm font-semibold">Employer (for billing)</label>
+              <input id="id_employer" name="insuranceEmployer" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">Notes / Special Authorizations</label>
+              <input id="id_notes" name="insuranceNotes" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            </div>
+
+            <div class="sm:col-span-2 flex gap-2 mt-2">
+              <button type="button" class="px-4 py-2 bg-sky-600 text-white rounded-lg" data-save="id">💾 Save ID & Insurance</button>
+              <button type="button" id="clearID" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            </div>
           </form>
         </div>
 
         <!-- 3 • Medical History -->
         <div id="tab-history" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">3 • Medical History</h3>
-          <form id="form-history">
-            <label class="text-sm">Present Illness / Chief Complaint</label>
-            <textarea name="presentIllness" class="w-full rounded-lg p-3 border" placeholder="Present illness / chief complaint"></textarea>
-            <div class="mt-3 flex gap-2">
+          <form id="form-history" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="text-sm">Chief Complaint</label>
+              <input name="chiefComplaint" class="w-full rounded-lg p-3 border" placeholder="Main reason for visit" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="text-sm">History of Present Illness</label>
+              <textarea name="historyPresentIllness" class="w-full rounded-lg p-3 border" placeholder="Onset, progression, associated symptoms"></textarea>
+            </div>
+
+            <div>
+              <label class="text-sm">Past Medical History</label>
+              <input name="pastMedicalHistory" class="w-full rounded-lg p-2 border" placeholder="List chronic illnesses" />
+            </div>
+            <div>
+              <label class="text-sm">Past Surgical History</label>
+              <input name="pastSurgicalHistory" class="w-full rounded-lg p-2 border" placeholder="Surgeries and dates" />
+            </div>
+
+            <div>
+              <label class="text-sm">Current Medications</label>
+              <input name="currentMedications" class="w-full rounded-lg p-2 border" placeholder="Name, dose, frequency" />
+            </div>
+            <div>
+              <label class="text-sm">Allergies / Reactions</label>
+              <input name="allergySummary" class="w-full rounded-lg p-2 border" placeholder="Agent and reaction" />
+            </div>
+
+            <div>
+              <label class="text-sm">Social History</label>
+              <input name="socialHistory" class="w-full rounded-lg p-2 border" placeholder="Smoking / alcohol / occupation" />
+            </div>
+            <div>
+              <label class="text-sm">Family History</label>
+              <input name="familyHistory" class="w-full rounded-lg p-2 border" placeholder="Significant hereditary conditions" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="text-sm">Review of Systems (brief)</label>
+              <textarea name="reviewOfSystems" class="w-full rounded-lg p-3 border" placeholder="Constitutional, Cardio, Resp., GI, GU, Neuro etc."></textarea>
+            </div>
+
+            <div class="sm:col-span-2 mt-2 flex gap-2">
               <button type="button" data-save="history" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Medical History</button>
               <button type="button" id="clearHistory" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
             </div>
@@ -264,9 +350,29 @@
         <!-- 4 • Assessment -->
         <div id="tab-assessment" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">4 • Assessment</h3>
-          <form id="form-assessment">
-            <textarea name="assessment_notes" class="w-full rounded-lg p-3 border" placeholder="Assessment notes"></textarea>
-            <div class="mt-3 flex gap-2">
+          <form id="form-assessment" class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-sm">Problem / Diagnosis</label>
+                <input name="assessment_problem" class="w-full rounded-lg p-2 border" placeholder="Primary problem or diagnosis" />
+              </div>
+              <div>
+                <label class="text-sm">ICD-10 / Code (optional)</label>
+                <input name="assessment_code" class="w-full rounded-lg p-2 border" placeholder="ICD-10 code" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm">Assessment Notes</label>
+              <textarea name="assessment_notes" class="w-full rounded-lg p-3 border" placeholder="Clinical impression, differential diagnoses, severity"></textarea>
+            </div>
+
+            <div>
+              <label class="text-sm">Plan / Orders</label>
+              <textarea name="assessment_plan" class="w-full rounded-lg p-3 border" placeholder="Investigations, consults, treatments planned"></textarea>
+            </div>
+
+            <div class="mt-2">
               <button type="button" data-save="assessment" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Assessment</button>
             </div>
           </form>
@@ -275,9 +381,18 @@
         <!-- 5 • Labs -->
         <div id="tab-labs" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">5 • Laboratory & Diagnostics</h3>
-          <form id="form-labs">
-            <label class="text-sm">Ordered Tests / Imaging</label>
-            <textarea name="orderedTests" class="w-full rounded-lg p-3 border" placeholder="Ordered tests / imaging"></textarea>
+          <form id="form-labs" class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input name="lab_test" placeholder="Test / Imaging (e.g., CBC, Chest X-ray)" class="rounded-lg p-2 border" />
+              <select name="lab_priority" class="rounded-lg p-2 border"><option>Routine</option><option>Urgent</option><option>Stat</option></select>
+              <input name="lab_specimen" placeholder="Specimen (blood, urine, swab)" class="rounded-lg p-2 border" />
+            </div>
+
+            <div>
+              <label class="text-sm">Indication / Clinical Notes</label>
+              <textarea name="lab_indication" class="w-full rounded-lg p-3 border" placeholder="Why the test was ordered"></textarea>
+            </div>
+
             <div class="mt-3 flex items-center gap-2">
               <input accept="image/*,.pdf" id="labFileInput" type="file"/>
               <button type="button" id="uploadLabBtn" class="ml-2 px-3 py-1 rounded-lg bg-white border">⬆️ Upload</button>
@@ -288,8 +403,10 @@
               </div>
               <div id="uploadProgressText" class="text-sm text-slate-500 mt-1">0%</div>
             </div>
+
             <div id="labFilesList" class="mt-3 flex flex-wrap gap-2"></div>
-            <div class="mt-3">
+
+            <div class="mt-3 flex gap-2">
               <button type="button" data-save="labs" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Labs</button>
               <button type="button" id="clearLabs" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
             </div>
@@ -302,13 +419,17 @@
           <form id="form-meds">
             <div class="overflow-x-auto">
               <table class="w-full text-sm" id="medTable">
-                <thead><tr><th>Drug</th><th>Dosage</th><th>Route</th><th>Freq</th><th>Action</th></tr></thead>
+                <thead><tr><th>Drug</th><th>Dosage</th><th>Route</th><th>Frequency</th><th>Start</th><th>Duration</th><th>PRN</th><th>Prescriber</th><th>Action</th></tr></thead>
                 <tbody id="medTableBody">
                   <tr>
                     <td><input name="drug" class="w-full rounded border px-2 py-1"/></td>
                     <td><input name="dosage" class="w-full rounded border px-2 py-1"/></td>
                     <td><input name="route" class="w-full rounded border px-2 py-1"/></td>
                     <td><input name="frequency" class="w-full rounded border px-2 py-1"/></td>
+                    <td><input name="startDate" type="date" class="w-full rounded border px-2 py-1"/></td>
+                    <td><input name="duration" placeholder="e.g., 5 days" class="w-full rounded border px-2 py-1"/></td>
+                    <td><select name="prn" class="w-full rounded border px-2 py-1"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+                    <td><input name="prescriber" class="w-full rounded border px-2 py-1"/></td>
                     <td><button type="button" class="btn-remove-row px-2 py-1 rounded bg-white border">🗑️</button></td>
                   </tr>
                 </tbody>
@@ -326,9 +447,17 @@
         <div id="tab-vitals" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">7 • Vitals & Monitoring</h3>
           <form id="form-vitals">
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <input name="v_date" id="v_date" type="date" class="rounded-lg p-2 border"/>
               <input name="v_time" id="v_time" type="time" class="rounded-lg p-2 border"/>
+              <input name="v_temp" id="v_temp" placeholder="Temp (°C)" class="rounded-lg p-2 border" />
+              <input name="v_pulse" id="v_pulse" placeholder="Pulse (bpm)" class="rounded-lg p-2 border" />
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+              <input name="v_rr" id="v_rr" placeholder="Resp Rate" class="rounded-lg p-2 border" />
+              <input name="v_spo2" id="v_spo2" placeholder="SpO2 (%)" class="rounded-lg p-2 border" />
+              <input name="v_bp" id="v_bp" placeholder="BP (e.g., 120/80)" class="rounded-lg p-2 border" />
+              <input name="v_by" id="v_by" placeholder="Recorded by" class="rounded-lg p-2 border" />
             </div>
             <div class="mt-3 flex gap-2">
               <button type="button" id="btnAddVitals" class="px-4 py-2 bg-white rounded-lg border">➕ Add Vitals Row</button>
@@ -336,7 +465,7 @@
               <button type="button" id="clearVitals" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
             </div>
             <div id="vitalsTableWrap" class="mt-3 max-h-48 overflow-auto border rounded p-2">
-              <table class="w-full text-sm"><thead><tr><th>Date</th><th>Time</th><th>Temp</th><th>P</th><th>BP</th><th>By</th><th>Action</th></tr></thead><tbody id="vitalsTableBody"></tbody></table>
+              <table class="w-full text-sm"><thead><tr><th>Date</th><th>Time</th><th>Temp</th><th>P</th><th>RR</th><th>BP</th><th>SpO2</th><th>By</th><th>Action</th></tr></thead><tbody id="vitalsTableBody"></tbody></table>
             </div>
           </form>
         </div>
@@ -344,11 +473,28 @@
         <!-- 8 • Nurse Notes -->
         <div id="tab-nurse" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">8 • Nurse Notes (FDAR)</h3>
-          <form id="form-nurse">
-            <label class="text-sm">F - Focus / Findings</label>
-            <textarea name="nurse_f" class="w-full rounded-lg p-3 border" placeholder="F - Focus / Findings"></textarea>
-            <label class="text-sm mt-2">D - Data</label>
-            <textarea name="nurse_d" class="w-full rounded-lg p-3 border" placeholder="D - Data"></textarea>
+          <form id="form-nurse" class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input name="nurse_date" type="date" class="rounded-lg p-2 border" />
+              <input name="nurse_time" type="time" class="rounded-lg p-2 border" />
+              <input name="nurse_by" placeholder="Nurse name / initials" class="rounded-lg p-2 border" />
+            </div>
+            <div>
+              <label class="text-sm">F - Focus / Findings</label>
+              <textarea name="nurse_f" class="w-full rounded-lg p-3 border" placeholder="Focus / Findings"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">D - Data</label>
+              <textarea name="nurse_d" class="w-full rounded-lg p-3 border" placeholder="Objective data / vitals / observations"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">A - Action / Intervention</label>
+              <textarea name="nurse_a" class="w-full rounded-lg p-3 border" placeholder="Interventions performed"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">R - Response</label>
+              <textarea name="nurse_r" class="w-full rounded-lg p-3 border" placeholder="Patient response to interventions"></textarea>
+            </div>
             <div class="mt-3">
               <button type="button" data-save="nurse" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Nurse Notes</button>
             </div>
@@ -358,9 +504,27 @@
         <!-- 9 • Doctor Notes -->
         <div id="tab-doctor" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">9 • Doctor Notes</h3>
-          <form id="form-doctor">
-            <label class="text-sm">Doctor's notes</label>
-            <textarea id="doctorNotes" name="doctorNotes" class="w-full rounded-lg p-3 border"></textarea>
+          <form id="form-doctor" class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input name="doc_date" type="date" class="rounded-lg p-2 border" />
+              <input name="doc_time" type="time" class="rounded-lg p-2 border" />
+            </div>
+            <div>
+              <label class="text-sm">Subjective</label>
+              <textarea name="doc_subjective" class="w-full rounded-lg p-3 border" placeholder="Patient's report / symptoms"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">Objective</label>
+              <textarea name="doc_objective" class="w-full rounded-lg p-3 border" placeholder="Exam findings, vitals, labs"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">Assessment</label>
+              <textarea name="doc_assessment" class="w-full rounded-lg p-3 border" placeholder="Clinical impression / diagnosis"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">Plan</label>
+              <textarea name="doc_plan" class="w-full rounded-lg p-3 border" placeholder="Investigations, consults, treatment plan"></textarea>
+            </div>
             <div class="mt-3 flex gap-2">
               <button type="button" class="px-4 py-2 bg-sky-600 text-white rounded-lg" data-save="doctor">💾 Save Doctor Notes</button>
               <button type="button" id="clearDoctor" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
@@ -371,18 +535,32 @@
         <!-- 10 • Discharge Plan -->
         <div id="tab-plan" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <h3 class="text-xl font-bold mb-3">10 • Discharge Plan</h3>
-          <form id="form-plan">
+          <form id="form-plan" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div><label>Final Diagnosis</label><input name="dis_finalDx" class="w-full rounded border px-2 py-1"/></div>
-              <div><label>Condition on Discharge</label><input name="dis_condition" class="w-full rounded border px-2 py-1"/></div>
+              <div>
+                <label class="text-sm">Discharge Date</label>
+                <input name="discharge_date" type="date" class="w-full rounded border px-2 py-1"/>
+              </div>
+              <div>
+                <label class="text-sm">Discharge Time</label>
+                <input name="discharge_time" type="time" class="w-full rounded border px-2 py-1"/>
+              </div>
             </div>
-            <div class="mt-3">
-              <label>Medications on Discharge</label>
-              <textarea name="dis_meds" class="w-full rounded border p-2"></textarea>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div><label class="text-sm">Final Diagnosis</label><input name="dis_finalDx" class="w-full rounded border px-2 py-1"/></div>
+              <div><label class="text-sm">Condition on Discharge</label><input name="dis_condition" class="w-full rounded border px-2 py-1"/></div>
             </div>
-            <div class="mt-3">
-              <label>Discharge Instructions</label>
-              <textarea name="dis_instructions" class="w-full rounded border p-2" style="min-height:120px"></textarea>
+            <div>
+              <label class="text-sm">Medications on Discharge</label>
+              <textarea name="dis_meds" class="w-full rounded border p-2" placeholder="Drugs, dose, frequency"></textarea>
+            </div>
+            <div>
+              <label class="text-sm">Follow-up Appointments</label>
+              <input name="dis_followup" class="w-full rounded border p-2" placeholder="Date / Clinic / Notes" />
+            </div>
+            <div>
+              <label class="text-sm">Discharge Instructions / Education</label>
+              <textarea name="dis_instructions" class="w-full rounded border p-2" style="min-height:120px" placeholder="Diet, activity, wound care, warning signs"></textarea>
             </div>
             <div class="mt-3 flex gap-2">
               <button type="button" data-save="plan" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Discharge Plan</button>
