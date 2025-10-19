@@ -349,27 +349,103 @@
 
         <!-- 4 • Assessment -->
         <div id="tab-assessment" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">4 • Assessment</h3>
+          <h3 class="text-xl font-bold mb-3">4 • Assessment & Plan</h3>
           <form id="form-assessment" class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-sm">Primary Problem / Working Dx</label>
+                <input name="assessment_workingDx" class="w-full rounded-lg p-2 border" placeholder="Primary working diagnosis" />
+              </div>
+              <div>
+                <label class="text-sm">Onset</label>
+                <input name="assessment_onset" class="w-full rounded-lg p-2 border" placeholder="e.g., 2 days ago" />
+              </div>
+              <div>
+                <label class="text-sm">Duration / Course</label>
+                <input name="assessment_duration" class="w-full rounded-lg p-2 border" placeholder="hours / days / chronic" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-sm">Severity</label>
+                <select name="assessment_severity" class="w-full rounded-lg p-2 border"><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+              </div>
+              <div>
+                <label class="text-sm">Acuity</label>
+                <select name="assessment_acuity" class="w-full rounded-lg p-2 border"><option>Acute</option><option>Chronic</option><option>Acute on chronic</option></select>
+              </div>
+              <div>
+                <label class="text-sm">Status</label>
+                <select name="assessment_status" class="w-full rounded-lg p-2 border"><option>Active</option><option>Resolved</option><option>Under observation</option></select>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm">Pertinent Exam Findings</label>
+              <textarea name="assessment_examFindings" class="w-full rounded-lg p-3 border" placeholder="Key physical exam findings relevant to this assessment"></textarea>
+            </div>
+
+            <div>
+              <label class="text-sm">Differential Diagnoses</label>
+              <textarea name="assessment_differential" class="w-full rounded-lg p-3 border" placeholder="List differential diagnoses in order of likelihood"></textarea>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="text-sm">Problem / Diagnosis</label>
-                <input name="assessment_problem" class="w-full rounded-lg p-2 border" placeholder="Primary problem or diagnosis" />
+                <label class="text-sm">ICD-10 / SNOMED Code</label>
+                <input name="assessment_code" class="w-full rounded-lg p-2 border" placeholder="Optional code" />
               </div>
               <div>
-                <label class="text-sm">ICD-10 / Code (optional)</label>
-                <input name="assessment_code" class="w-full rounded-lg p-2 border" placeholder="ICD-10 code" />
+                <label class="text-sm">Priority</label>
+                <select name="assessment_priority" class="w-full rounded-lg p-2 border"><option>Routine</option><option>Urgent</option><option>Stat</option></select>
               </div>
             </div>
 
             <div>
-              <label class="text-sm">Assessment Notes</label>
-              <textarea name="assessment_notes" class="w-full rounded-lg p-3 border" placeholder="Clinical impression, differential diagnoses, severity"></textarea>
+              <label class="text-sm">Investigations / Orders</label>
+              <textarea name="assessment_investigations" class="w-full rounded-lg p-3 border" placeholder="Lab tests, imaging, other investigations to order (specimen, priority)"></textarea>
             </div>
 
             <div>
-              <label class="text-sm">Plan / Orders</label>
-              <textarea name="assessment_plan" class="w-full rounded-lg p-3 border" placeholder="Investigations, consults, treatments planned"></textarea>
+              <label class="text-sm">Consults / Referrals</label>
+              <input name="assessment_consults" class="w-full rounded-lg p-2 border" placeholder="Requested consults (e.g., Cardiology)" />
+            </div>
+
+            <div>
+              <label class="text-sm">Treatment / Procedures Ordered</label>
+              <textarea name="assessment_treatmentOrders" class="w-full rounded-lg p-3 border" placeholder="Medications, fluids, procedures, O2, wound care"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-sm">Disposition / Plan</label>
+                <select name="assessment_disposition" class="w-full rounded-lg p-2 border"><option>Admit</option><option>Discharge</option><option>Transfer</option><option>Observation</option></select>
+              </div>
+              <div>
+                <label class="text-sm">Follow-up / Next Step</label>
+                <input name="assessment_followup" class="w-full rounded-lg p-2 border" placeholder="Follow-up date, clinic, or action" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm">Additional Notes / Safety Netting</label>
+              <textarea name="assessment_notes" class="w-full rounded-lg p-3 border" placeholder="Warnings, red flags, phone advice"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div>
+                <label class="text-sm">Signed by</label>
+                <input name="assessment_signedBy" class="w-full rounded-lg p-2 border" placeholder="Provider name" />
+              </div>
+              <div>
+                <label class="text-sm">Signature / ID</label>
+                <input name="assessment_signature" class="w-full rounded-lg p-2 border" placeholder="Provider ID or initials" />
+              </div>
+              <div>
+                <label class="text-sm">Signed at</label>
+                <input name="assessment_signedAt" type="datetime-local" class="w-full rounded-lg p-2 border" />
+              </div>
             </div>
 
             <div class="mt-2">
