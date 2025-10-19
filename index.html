@@ -163,6 +163,24 @@
             </div>
 
             <div>
+              <label for="info_weight" class="text-sm font-semibold">Weight (kg)</label>
+              <input id="info_weight" name="weight" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 72.5" />
+            </div>
+            <div>
+              <label for="info_height" class="text-sm font-semibold">Height (cm)</label>
+              <input id="info_height" name="height" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 175" />
+            </div>
+
+            <div>
+              <label for="info_bmi" class="text-sm font-semibold">BMI</label>
+              <input id="info_bmi" name="bmi" type="text" readonly class="mt-1 w-full rounded-lg px-3 py-2 border bg-slate-50" placeholder="Auto-calculated" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold">BMI Category</label>
+              <div id="info_bmiCategory" class="mt-1 text-sm text-slate-600">—</div>
+            </div>
+
+            <div>
               <label for="info_gender" class="text-sm font-semibold">Sex</label>
               <select id="info_gender" name="gender" class="mt-1 w-full rounded-lg px-3 py-2 border">
                 <option value="">--</option><option>Male</option><option>Female</option><option>Other</option>
