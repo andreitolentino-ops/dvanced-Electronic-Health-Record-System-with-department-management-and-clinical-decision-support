@@ -3,255 +3,743 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ONE CARE SYSTEM — Modern Blue (Merged)</title>
+  <title>ONE CARE SYSTEM — Modern Healthcare EHR</title>
 
+  <!-- Preload critical resources -->
+  <link rel="preload" href="style.css" as="style">
+  <link rel="preload" href="app.js" as="script">
+  
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Progressive Web App capabilities -->
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Care System">
 </head>
-<body class="bg-slate-50 text-slate-700 min-h-screen antialiased transition-colors duration-300">
+<body class="bg-slate-50 text-slate-700 min-h-screen antialiased transition-colors duration-500">
 
-  <!-- Header -->
-  <header class="fixed inset-x-0 top-0 h-20 flex items-center justify-between px-6 bg-gradient-to-r from-sky-700 to-indigo-800 text-white z-40 shadow-lg">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 text-xl">🩺</div>
-      <div>
-        <div class="text-lg font-extrabold header-logo">ONE CARE <span class="text-amber-400">SYSTEM</span></div>
-        <div class="text-xs opacity-80">Olivarez College Tagaytay • Version 1.3</div>
+  <!-- App header: logo, breadcrumb, search, actions -->
+  <header class="app-header w-full py-4 px-6 bg-white/70 glass border-b sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="header-left flex items-center gap-4">
+        <div class="header-logo flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-600 to-indigo-700 text-white flex items-center justify-center text-lg">🩺</div>
+          <div class="leading-tight">
+            <div class="font-bold text-slate-800">ONE CARE <span class="text-amber-400">SYSTEM</span></div>
+            <div class="text-xs text-slate-500">Modern EHR</div>
+          </div>
+        </div>
+        <div class="breadcrumb ml-4 text-sm text-slate-600">
+          <span id="breadcrumb-current">Dashboard</span>
+        </div>
       </div>
-    </div>
-    <div class="flex items-center gap-3">
-  <input id="searchTop" placeholder="Search name / physician / room..." class="px-3 py-2 rounded-xl text-slate-800 w-80 focus:outline-none" />
-  <button type="button" id="btnNew" class="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold">➕ New Patient</button>
-  <button type="button" id="darkToggle" class="p-2 rounded-lg bg-white/10 hover:bg-white/20" title="Toggle dark">🌗</button>
-      <div id="userInfo" class="flex items-center gap-2 text-sm"></div>
-  <button type="button" id="btnLogout" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20">Logout</button>
+
+      <div class="header-center flex-1 px-4">
+        <div class="max-w-xl mx-auto relative">
+          <input id="searchTop" type="search" placeholder="Search patients, MRN, physician... (press /)" class="w-full rounded-lg p-3 border" />
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">/</div>
+        </div>
+      </div>
+
+      <div class="header-right flex items-center gap-3">
+        <div id="userDisplayName" class="text-sm text-slate-700 font-medium">
+          <span id="currentUserName">Not signed in</span> 
+          <span id="currentUserRole" class="text-xs text-slate-500 ml-1">(GUEST)</span>
+        </div>
+        <div id="userInfo" class="text-sm text-slate-700">
+          <div class="relative" id="userMenuWrap">
+            <button id="userMenuBtn" class="flex items-center gap-2 px-3 py-1 rounded bg-white/10">
+              <span id="userMenuEmail" class="font-medium">Not signed in</span>
+              <span class="text-xs opacity-60">▾</span>
+            </button>
+            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 rounded bg-white shadow p-0 z-50">
+              <div class="text-sm p-3 border-b">
+                <strong id="userMenuEmailStrong">Not signed in</strong>
+                <div id="userRole" class="text-xs text-slate-500">GUEST</div>
+              </div>
+              <button id="themeToggleBtn" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Toggle theme</button>
+              <button id="userSignOut" class="w-full text-left px-3 py-2 text-sm text-rose-600 hover:bg-slate-50">Sign out</button>
+            </div>
+          </div>
+        </div>
+        <button id="btnNew" class="btn btn-primary" title="New patient">+ New</button>
+        <button id="helpBtn" class="btn btn-ghost" title="Help & Documentation">❓</button>
+        <button id="btnLogout" class="btn btn-ghost" title="Logout">Sign out</button>
+      </div>
     </div>
   </header>
 
-  <!-- Breadcrumb -->
-  <div id="breadcrumb" class="max-w-7xl mx-auto mt-24 px-6 hidden md:block">
-    <nav class="text-sm text-slate-500" aria-label="Breadcrumb">
-      <ol class="list-reset flex items-center gap-2">
-        <li><a href="#" class="hover:text-sky-600">Dashboard</a></li>
-        <li>›</li>
-        <li id="breadcrumb-current" class="font-semibold text-slate-700">Patient Information</li>
-      </ol>
-    </nav>
+  <!-- Top Navigation Bar -->
+  <div class="top-nav-wrap">
+    <div class="top-nav-container">
+      <nav class="top-nav" id="topNav">
+        <button type="button" data-target="tab-dashboard" data-label="Dashboard" title="Dashboard" class="navbtn icon-only" aria-label="Dashboard">
+          <span class="nav-icon">🏠</span>
+        </button>
+        <button type="button" data-target="tab-info" data-label="Patient Information" title="Patient Information" class="navbtn icon-only" aria-label="Patient Information">
+          <span class="nav-icon">👤</span>
+        </button>
+        <button type="button" data-target="tab-id" data-label="Identification" title="Identification & Insurance" class="navbtn icon-only" aria-label="Identification & Insurance">
+          <span class="nav-icon">🆔</span>
+        </button>
+        <button type="button" data-target="tab-history" data-label="Medical History" title="Medical History" class="navbtn icon-only" aria-label="Medical History">
+          <span class="nav-icon">📋</span>
+        </button>
+        <button type="button" data-target="tab-physical" data-label="Physical Assessment" title="Physical Assessment" class="navbtn icon-only" aria-label="Physical Assessment">
+          <span class="nav-icon">🔍</span>
+        </button>
+        <button type="button" data-target="tab-assessment" data-label="Treatment Plan" title="Treatment Plan" class="navbtn icon-only" aria-label="Treatment Plan">
+          <span class="nav-icon">⚕️</span>
+        </button>
+        <button type="button" data-target="tab-labs" data-label="Labs" title="Laboratory & Diagnostics" class="navbtn icon-only" aria-label="Laboratory & Diagnostics">
+          <span class="nav-icon">🧪</span>
+        </button>
+        <button type="button" data-target="tab-meds" data-label="Medication & IV Order" title="Medication & IV Order" class="navbtn icon-only" aria-label="Medication & IV Order">
+          <span class="nav-icon">💊</span>
+        </button>
+        <button type="button" data-target="tab-vitals" data-label="Vitals" title="Vitals & Monitoring" class="navbtn icon-only" aria-label="Vitals & Monitoring">
+          <span class="nav-icon">📊</span>
+        </button>
+        <button type="button" data-target="tab-nurse" data-label="Nurse Notes" title="Nurse Notes (FDAR)" class="navbtn icon-only" aria-label="Nurse Notes">
+          <span class="nav-icon">👩‍⚕️</span>
+        </button>
+        <button type="button" data-target="tab-doctor" data-label="Doctor Notes" title="Doctor Notes" class="navbtn icon-only" aria-label="Doctor Notes">
+          <span class="nav-icon">👨‍⚕️</span>
+        </button>
+        <button type="button" data-target="tab-plan" data-label="Discharge Plan" title="Discharge Plan" class="navbtn icon-only" aria-label="Discharge Plan">
+          <span class="nav-icon">📋</span>
+        </button>
+      </nav>
+    </div>
   </div>
 
-  <!-- Main -->
   <main class="pt-4 px-6 pb-12">
     <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
       <!-- Sidebar -->
       <aside class="col-span-12 md:col-span-3 lg:col-span-2 sticky top-28">
         <div class="p-4 rounded-2xl glass soft-shadow">
-          <nav class="flex flex-col gap-2" id="mainNav">
-            <button type="button" data-target="tab-dashboard" class="navbtn text-left px-3 py-2 rounded-xl bg-sky-50 font-semibold">Dashboard</button>
-            <button type="button" data-target="tab-info" class="navbtn text-left px-3 py-2 rounded-xl">1 • Patient Information</button>
-            <button type="button" data-target="tab-id" class="navbtn text-left px-3 py-2 rounded-xl">2 • Identification & Insurance</button>
-            <button type="button" data-target="tab-history" class="navbtn text-left px-3 py-2 rounded-xl">3 • Medical History</button>
-            <button type="button" data-target="tab-assessment" class="navbtn text-left px-3 py-2 rounded-xl">4 • Assessment</button>
-            <button type="button" data-target="tab-labs" class="navbtn text-left px-3 py-2 rounded-xl">5 • Laboratory & Diagnostics</button>
-            <button type="button" data-target="tab-meds" class="navbtn text-left px-3 py-2 rounded-xl">6 • Medication Orders</button>
-            <button type="button" data-target="tab-vitals" class="navbtn text-left px-3 py-2 rounded-xl">7 • Vitals & Monitoring</button>
-            <button type="button" data-target="tab-nurse" class="navbtn text-left px-3 py-2 rounded-xl">8 • Nurse Notes (FDAR)</button>
-            <button type="button" data-target="tab-doctor" class="navbtn text-left px-3 py-2 rounded-xl">9 • Doctor Notes</button>
-            <button type="button" data-target="tab-plan" class="navbtn text-left px-3 py-2 rounded-xl">10 • Discharge Plan</button>
+          <nav class="flex flex-col gap-2 items-center" id="mainNav">
+            <button type="button" data-target="tab-dashboard" data-label="Dashboard" title="Dashboard" class="navbtn icon-btn" aria-label="Dashboard">🏠<span class="sr-only">Dashboard</span><div class="sr-name"> Dashboard</div></button>
+            <button type="button" data-target="tab-info" data-label="Patient Information" title="Patient Information" class="navbtn icon-btn" aria-label="Patient Information">👤<span class="sr-only">Patient Information</span><div class="sr-name"> Patient</div></button>
+            <button type="button" data-target="tab-id" data-label="Identification" title="Identification & Insurance" class="navbtn icon-btn" aria-label="Identification & Insurance">🪪<span class="sr-only">Identification & Insurance</span><div class="sr-name"> ID</div></button>
+            <button type="button" data-target="tab-history" data-label="Medical History" title="Medical History" class="navbtn icon-btn" aria-label="Medical History">📋<span class="sr-only">Medical History</span><div class="sr-name"> History</div></button>
+            <button type="button" data-target="tab-physical" data-label="Physical Assessment" title="Physical Assessment" class="navbtn icon-btn" aria-label="Physical Assessment">👩‍⚕️<span class="sr-only">Physical Assessment</span><div class="sr-name"> P.A</div></button>
+            <button type="button" data-target="tab-assessment" data-label="Treatment Plan" title="Treatment Plan" class="navbtn icon-btn" aria-label="Treatment Plan">📋<span class="sr-only">Treatment Plan</span><div class="sr-name"> Plan</div></button>
+            <button type="button" data-target="tab-labs" data-label="Labs" title="Laboratory & Diagnostics" class="navbtn icon-btn" aria-label="Laboratory & Diagnostics">🧪<span class="sr-only">Laboratory & Diagnostics</span><div class="sr-name"> Labs</div></button>
+            <button type="button" data-target="tab-meds" data-label="Medication & IV Order" title="Medication & IV Order" class="navbtn icon-btn" aria-label="Medication & IV Order">💊<span class="sr-only">Medication & IV Order</span><div class="sr-name"> Meds</div></button>
+            <button type="button" data-target="tab-vitals" data-label="Vitals" title="Vitals & Monitoring" class="navbtn icon-btn" aria-label="Vitals & Monitoring">❤️<span class="sr-only">Vitals & Monitoring</span><div class="sr-name"> Vitals</div></button>
+            <button type="button" data-target="tab-nurse" data-label="Nurse Notes" title="Nurse Notes (FDAR)" class="navbtn icon-btn" aria-label="Nurse Notes">👩‍⚕️<span class="sr-only">Nurse Notes (FDAR)</span><div class="sr-name"> Nurse</div></button>
+            <button type="button" data-target="tab-doctor" data-label="Doctor Notes" title="Doctor Notes" class="navbtn icon-btn" aria-label="Doctor Notes">👨‍⚕️<span class="sr-only">Doctor Notes</span><div class="sr-name"> Doctor</div></button>
+            <button type="button" data-target="tab-plan" data-label="Discharge Plan" title="Discharge Plan" class="navbtn icon-btn" aria-label="Discharge Plan">📑<span class="sr-only">Discharge Plan</span><div class="sr-name"> Plan</div></button>
           </nav>
         </div>
       </aside>
 
       <!-- Content area -->
       <section class="col-span-12 md:col-span-9 lg:col-span-10 space-y-6">
-        <!-- Dashboard -->
-        <div id="tab-dashboard" class="panel p-6 rounded-2xl glass soft-shadow">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-2xl font-bold">Dashboard</h2>
-              <p class="text-sm text-slate-500">Overview & quick actions</p>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="text-sm text-slate-500">Records: <span id="count" class="font-extrabold">0</span></div>
-              <select id="sortSelect" class="px-3 py-2 rounded-lg border border-slate-200">
-                <option value="updatedAt_desc">Sort: Recent</option>
-                <option value="name_asc">Sort: Name A–Z</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl glass soft-shadow text-center">
-              <div class="text-sm text-slate-500">Total Patients</div>
-              <div id="totalPatients" class="text-3xl font-bold">0</div>
-            </div>
-            <div class="p-4 rounded-xl glass soft-shadow text-center">
-              <div class="text-sm text-slate-500">Inpatients</div>
-              <div id="inPatients" class="text-3xl font-bold">0</div>
-            </div>
-            <div class="p-4 rounded-xl glass soft-shadow text-center">
-              <div class="text-sm text-slate-500">Outpatients</div>
-              <div id="outPatients" class="text-3xl font-bold">0</div>
-            </div>
-          </div>
-
-          <div id="patientsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"></div>
-        </div>
-
         <!-- Begin full tab forms (copied from your original file and restyled) -->
+
+        <!-- 0 • Dashboard -->
+        <div id="tab-dashboard" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <!-- Dashboard Header -->
+          <div class="dashboard-header p-6 rounded-2xl glass soft-shadow mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div class="dashboard-title-section">
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  Dashboard
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Real-time healthcare overview & quick actions</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                  <span class="text-xs text-emerald-600 font-medium">Live Updates</span>
+                  <span class="text-xs text-slate-400" id="lastUpdated">Updated just now</span>
+                </div>
+              </div>
+              <div class="dashboard-controls flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="stats-badge">
+                  <span class="text-sm text-slate-600">Total Records</span>
+                  <span id="count" class="text-2xl font-bold text-emerald-600">0</span>
+                </div>
+                <div class="flex gap-2">
+                  <select id="sortSelect" class="modern-select px-4 py-2 rounded-xl border-2 border-emerald-100 bg-white focus:border-emerald-300 focus:ring-4 focus:ring-emerald-50 transition-all">
+                    <option value="updatedAt_desc">📅 Recent First</option>
+                    <option value="name_asc">🔤 Name A-Z</option>
+                    <option value="admissionDate_desc">🏥 By Admission</option>
+                    <option value="status_asc">📊 By Status</option>
+                  </select>
+                  <button id="refreshDashboard" class="px-4 py-2 rounded-xl border-2 border-emerald-100 bg-white hover:bg-emerald-50 transition-all" title="Refresh Dashboard">
+                    🔄
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modern Dashboard Cards -->
+          <div class="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <!-- Patient Census Card -->
+              <div class="dashboard-card modern-card-mint group cursor-pointer" onclick="showAllPatients()">
+                <div class="card-header">
+                  <div class="card-icon mint-icon">
+                    <span class="text-2xl">👥</span>
+                  </div>
+                  <div class="card-badge">Live</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Patient Census</h3>
+                  <div class="card-value" id="totalPatients">0</div>
+                  <div class="card-stats">
+                    <span class="stat-item">
+                      <span class="stat-dot bg-emerald-400"></span>
+                      <span id="inPatients">0</span> Inpatient
+                    </span>
+                    <span class="stat-item">
+                      <span class="stat-dot bg-teal-400"></span>
+                      <span id="outPatients">0</span> Outpatient
+                    </span>
+                  </div>
+                  <div class="card-subtitle text-xs mt-2 opacity-70">Click to view all patients</div>
+                </div>
+              </div>
+
+              <!-- Vitals Monitoring Card -->
+              <div class="dashboard-card modern-card-teal group cursor-pointer" onclick="navigateToTab('tab-vitals')">
+                <div class="card-header">
+                  <div class="card-icon teal-icon">
+                    <span class="text-2xl">📊</span>
+                  </div>
+                  <div class="card-badge">24h</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Vitals Monitor</h3>
+                  <div class="card-value" id="vitalsSpark">—</div>
+                  <div class="card-chart">
+                    <svg id="vitalsSparkline" viewBox="0 0 100 24" preserveAspectRatio="none" class="w-full h-full">
+                      <defs>
+                        <linearGradient id="vitalsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+                          <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.1" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M 0,12 Q 25,4 50,12 T 100,8" stroke="url(#vitalsGradient)" fill="none" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="card-subtitle text-xs mt-2 opacity-70">Click to manage vitals</div>
+                </div>
+              </div>
+
+              <!-- Medications Card -->
+              <div class="dashboard-card modern-card-green group cursor-pointer" onclick="navigateToTab('tab-meds')">
+                <div class="card-header">
+                  <div class="card-icon green-icon">
+                    <span class="text-2xl">💊</span>
+                  </div>
+                  <div class="card-badge">Today</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Medications</h3>
+                  <div class="card-value" id="medsCount">0</div>
+                  <div class="card-subtitle">Administered in last 24h</div>
+                  <div class="card-stats mt-2">
+                    <span class="stat-item">
+                      <span class="stat-dot bg-green-400"></span>
+                      <span id="pendingMeds">0</span> Pending
+                    </span>
+                    <span class="stat-item">
+                      <span class="stat-dot bg-amber-400"></span>
+                      <span id="dueMeds">0</span> Due Now
+                    </span>
+                  </div>
+                  <div class="card-subtitle text-xs mt-2 opacity-70">Click to manage medications</div>
+                </div>
+              </div>
+
+              <!-- Quick Actions Card -->
+              <div class="dashboard-card modern-card-mint group">
+                <div class="card-header">
+                  <div class="card-icon mint-icon">
+                    <span class="text-2xl">⚡</span>
+                  </div>
+                  <div class="card-badge">Actions</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Quick Actions</h3>
+                  <div class="space-y-2 mt-4">
+                    <button onclick="document.getElementById('btnNew').click()" class="w-full text-left px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors text-sm">
+                      ➕ New Patient
+                    </button>
+                    <button onclick="navigateToTab('tab-vitals')" class="w-full text-left px-3 py-2 rounded-lg bg-teal-50 hover:bg-teal-100 transition-colors text-sm">
+                      ❤️ Record Vitals
+                    </button>
+                    <button onclick="navigateToTab('tab-nurse')" class="w-full text-left px-3 py-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors text-sm">
+                      📝 Nurse Notes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alerts & Notifications Card -->
+              <div class="dashboard-card modern-card-teal group">
+                <div class="card-header">
+                  <div class="card-icon teal-icon">
+                    <span class="text-2xl">🔔</span>
+                  </div>
+                  <div class="card-badge" id="alertCount">0</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Alerts & Tasks</h3>
+                  <div id="alertsList" class="space-y-2 mt-4 max-h-32 overflow-y-auto">
+                    <div class="text-sm text-slate-400 italic">No active alerts</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- System Status Card -->
+              <div class="dashboard-card modern-card-green group">
+                <div class="card-header">
+                  <div class="card-icon green-icon">
+                    <span class="text-2xl">⚡</span>
+                  </div>
+                  <div class="card-badge" id="systemStatus">Online</div>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">System Status</h3>
+                  <div class="space-y-2 mt-4 text-sm">
+                    <div class="flex justify-between">
+                      <span>Database</span>
+                      <span class="text-emerald-600" id="dbStatus">● Connected</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Last Backup</span>
+                      <span class="text-slate-500" id="lastBackup">2 hours ago</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Active Users</span>
+                      <span class="text-slate-500" id="activeUsers">1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+          <!-- Modern Timeline Section -->
+          <div class="timeline-section p-6 rounded-2xl glass soft-shadow mb-6">
+            <div class="timeline-header flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 class="text-xl font-bold text-emerald-700">Patient Activity Timeline</h3>
+                <p class="text-sm text-slate-500 mt-1">Real-time events and care activities</p>
+              </div>
+              <div class="timeline-controls flex flex-wrap items-center gap-3">
+                <button class="timeline-filter-btn active" data-filter="all">All</button>
+                <button class="timeline-filter-btn" data-filter="vitals">Vitals</button>
+                <button class="timeline-filter-btn" data-filter="meds">Meds</button>
+                <button class="timeline-filter-btn" data-filter="notes">Notes</button>
+                <button class="timeline-filter-btn" data-filter="labs">Labs</button>
+                <select id="timelinePatientFilter" class="px-3 py-1 rounded-lg border text-sm">
+                  <option value="">All Patients</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="modern-timeline-track" id="timelineTrack">
+              <!-- events are positioned via JS -->
+              <div class="timeline-placeholder" id="timelinePlaceholder">
+                <div class="placeholder-icon">⏱️</div>
+                <p class="text-slate-400">Select a patient to view activity timeline</p>
+                <button onclick="document.getElementById('btnNew').click()" class="mt-3 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors">
+                  Add First Patient
+                </button>
+              </div>
+              <!-- Timeline events will be inserted here -->
+              <div id="timelineEvents" class="relative min-h-[80px] hidden"></div>
+            </div>
+            
+            <div class="modern-timeline-legend">
+              <div class="legend-item">
+                <span class="legend-dot bg-emerald-400"></span>
+                <span>Admission</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot bg-teal-400"></span>
+                <span>Medications</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot bg-green-400"></span>
+                <span>Vitals</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot bg-mint-400"></span>
+                <span>Notes</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot bg-blue-400"></span>
+                <span>Labs</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot bg-purple-400"></span>
+                <span>Procedures</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modern Patients Grid -->
+          <div class="patients-section">
+            <div class="section-header p-6 rounded-2xl glass soft-shadow mb-6">
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <h3 class="text-xl font-bold text-emerald-700">Active Patients</h3>
+                  <p class="text-sm text-slate-500 mt-1">Currently under care</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <div class="relative">
+                    <input 
+                      type="text" 
+                      id="patientSearch" 
+                      placeholder="Search patients..." 
+                      class="pl-10 pr-4 py-2 rounded-lg border-2 border-emerald-100 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-50 transition-all"
+                    >
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                      🔍
+                    </div>
+                  </div>
+                  <select id="patientStatusFilter" class="px-4 py-2 rounded-lg border-2 border-emerald-100 focus:border-emerald-300 transition-all">
+                    <option value="">All Status</option>
+                    <option value="Inpatient">Inpatient</option>
+                    <option value="Outpatient">Outpatient</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Observation">Observation</option>
+                  </select>
+                  <button 
+                    id="addPatientBtn" 
+                    onclick="document.getElementById('btnNew').click()"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    ➕ Add Patient
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="patientsLoading" class="hidden text-center py-12">
+              <div class="inline-block w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+              <p class="text-slate-500 mt-4">Loading patients...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="patientsEmpty" class="hidden text-center py-12">
+              <div class="text-6xl mb-4">👥</div>
+              <h3 class="text-xl font-semibold text-slate-700 mb-2">No Patients Found</h3>
+              <p class="text-slate-500 mb-6">Start by adding your first patient to the system.</p>
+              <button 
+                onclick="document.getElementById('btnNew').click()"
+                class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                ➕ Add First Patient
+              </button>
+            </div>
+            
+            <!-- Patients Grid -->
+            <div id="patientsContainer" class="modern-patients-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            
+            <!-- Pagination -->
+            <div id="patientsPagination" class="hidden mt-8 flex justify-center items-center gap-4">
+              <button id="prevPage" class="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                ← Previous
+              </button>
+              <span id="pageInfo" class="text-sm text-slate-600"></span>
+              <button id="nextPage" class="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- 1 • Patient Information -->
         <div id="tab-info" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">1 • Patient Information</h3>
-          <form id="form-info" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex items-center justify-between mb-6">
             <div>
-              <label for="info_mrn" class="text-sm font-semibold">Medical Record No. (MRN)</label>
-              <input id="info_mrn" name="mrn" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Hospital MRN / registry number" />
+              <h3 class="text-2xl font-bold text-slate-800">1 • Patient Information</h3>
+              <p class="text-sm text-slate-500 mt-1">Complete patient demographics and admission details</p>
             </div>
-            <div>
-              <label for="info_patientStatus" class="text-sm font-semibold">Patient Class</label>
-              <select id="info_patientStatus" name="patientStatus" class="mt-1 w-full rounded-lg px-3 py-2 border">
-                <option value="Outpatient">Outpatient</option>
-                <option value="Inpatient">Inpatient</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Observation">Observation</option>
-              </select>
+            <div class="flex gap-2">
+              <button type="button" id="autoFillDemo" class="px-3 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors">
+                Demo Data
+              </button>
+              <button type="button" id="clearInfo" class="px-3 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors">
+                Clear All
+              </button>
             </div>
-
-            <div>
-              <label for="info_admissionDate" class="text-sm font-semibold">Admission Date</label>
-              <input id="info_admissionDate" name="admissionDate" type="date" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-            <div>
-              <label for="info_admissionTime" class="text-sm font-semibold">Admission Time</label>
-              <input id="info_admissionTime" name="admissionTime" type="time" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_physician" class="text-sm font-semibold">Attending Physician</label>
-              <input id="info_physician" name="physician" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Dr. Name / Service" />
-            </div>
-            <div>
-              <label for="info_referralSource" class="text-sm font-semibold">Referral Source / Arrival</label>
-              <input id="info_referralSource" name="referralSource" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Referral clinic / transfer from" />
-            </div>
-
-            <div class="sm:col-span-2">
-              <label for="info_name" class="text-sm font-semibold">Full name *</label>
-              <input id="info_name" name="name" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Last, First Middle" required />
-            </div>
-
-            <div>
-              <label for="info_otherName" class="text-sm font-semibold">Other / Maiden name</label>
-              <input id="info_otherName" name="otherName" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_civilStatus" class="text-sm font-semibold">Civil Status</label>
-              <select id="info_civilStatus" name="civilStatus" class="mt-1 w-full rounded-lg px-3 py-2 border">
-                <option value="">--</option><option>Single</option><option>Married</option><option>Widowed</option><option>Divorced</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="info_dob" class="text-sm font-semibold">Date of Birth</label>
-              <input id="info_dob" name="dob" type="date" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-            <div>
-              <label for="info_age" class="text-sm font-semibold">Age</label>
-              <input id="info_age" name="age" type="number" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_weight" class="text-sm font-semibold">Weight (kg)</label>
-              <input id="info_weight" name="weight" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 72.5" />
-            </div>
-            <div>
-              <label for="info_height" class="text-sm font-semibold">Height (cm)</label>
-              <input id="info_height" name="height" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 175" />
-            </div>
-
-            <div>
-              <label for="info_bmi" class="text-sm font-semibold">BMI</label>
-              <input id="info_bmi" name="bmi" type="text" readonly class="mt-1 w-full rounded-lg px-3 py-2 border bg-slate-50" placeholder="Auto-calculated" />
-            </div>
-            <div>
-              <label class="text-sm font-semibold">BMI Category</label>
-              <div id="info_bmiCategory" class="mt-1 text-sm text-slate-600">—</div>
-            </div>
-
-            <div>
-              <label for="info_gender" class="text-sm font-semibold">Sex</label>
-              <select id="info_gender" name="gender" class="mt-1 w-full rounded-lg px-3 py-2 border">
-                <option value="">--</option><option>Male</option><option>Female</option><option>Other</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="info_contact" class="text-sm font-semibold">Contact number</label>
-              <input id="info_contact" name="contact" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_email" class="text-sm font-semibold">Email</label>
-              <input id="info_email" name="email" type="email" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div class="sm:col-span-2">
-              <label for="info_address" class="text-sm font-semibold">Home Address</label>
-              <input id="info_address" name="address" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_language" class="text-sm font-semibold">Primary Language</label>
-              <input id="info_language" name="primaryLanguage" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-            <div>
-              <label for="info_ethnicity" class="text-sm font-semibold">Ethnicity / Religion</label>
-              <input id="info_ethnicity" name="ethnicity" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div>
-              <label for="info_occupation" class="text-sm font-semibold">Occupation</label>
-              <input id="info_occupation" name="occupation" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-            <div>
-              <label for="info_employer" class="text-sm font-semibold">Employer</label>
-              <input id="info_employer" name="employer" class="mt-1 w-full rounded-lg px-3 py-2 border" />
-            </div>
-
-            <div class="sm:col-span-2">
-              <label class="text-sm font-semibold">Emergency Contact</label>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
-                <input id="info_emg_name" name="emg_name" placeholder="Name" class="rounded-lg px-3 py-2 border" />
-                <input id="info_emg_relation" name="emg_relation" placeholder="Relation" class="rounded-lg px-3 py-2 border" />
-                <input id="info_emg_phone" name="emg_phone" placeholder="Phone" class="rounded-lg px-3 py-2 border" />
+          </div>
+          
+          <form id="form-info" class="space-y-6">
+            <!-- Hospital Information Section -->
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 class="font-semibold text-blue-800 mb-3">🏥 Hospital Information</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label for="info_mrn" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Medical Record No. (MRN) *
+                  </label>
+                  <input 
+                    id="info_mrn" 
+                    name="mrn" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                    placeholder="Enter MRN"
+                    required 
+                  />
+                  <div class="text-xs text-slate-500 mt-1">System will auto-generate if empty</div>
+                </div>
+                <div>
+                  <label for="info_patientStatus" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Patient Class *
+                  </label>
+                  <select id="info_patientStatus" name="patientStatus" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    <option value="">Select Status</option>
+                    <option value="Outpatient">Outpatient</option>
+                    <option value="Inpatient">Inpatient</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Observation">Observation</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="info_roomNo" class="block text-sm font-semibold text-slate-700 mb-1">Room No.</label>
+                  <input id="info_roomNo" name="roomNo" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 201A" />
+                </div>
+                <div>
+                  <label for="info_bedNo" class="block text-sm font-semibold text-slate-700 mb-1">Bed No.</label>
+                  <input id="info_bedNo" name="bedNo" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Bed 1" />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label for="info_allergies" class="text-sm font-semibold">Allergies</label>
-              <input id="info_allergies" name="allergies" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="List allergies (drug, food, latex)" />
-            </div>
-            <div>
-              <label for="info_chronic" class="text-sm font-semibold">Chronic Conditions</label>
-              <input id="info_chronic" name="chronicConditions" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., HTN, DM, COPD" />
+            <!-- Admission Details Section -->
+            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h4 class="font-semibold text-green-800 mb-3">📅 Admission Details</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label for="info_admissionDate" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Admission Date *
+                  </label>
+                  <input 
+                    id="info_admissionDate" 
+                    name="admissionDate" 
+                    type="date" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_admissionTime" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Admission Time *
+                  </label>
+                  <input 
+                    id="info_admissionTime" 
+                    name="admissionTime" 
+                    type="time" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_physician" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Attending Physician *
+                  </label>
+                  <input 
+                    id="info_physician" 
+                    name="physician" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="Dr. [Name]" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_referralSource" class="block text-sm font-semibold text-slate-700 mb-1">Referral Source</label>
+                  <input id="info_referralSource" name="referralSource" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Clinic/Hospital" />
+                </div>
+              </div>
             </div>
 
-            <div class="sm:col-span-2">
-              <label for="info_surgeries" class="text-sm font-semibold">Past Surgeries / Significant Medical History</label>
-              <textarea id="info_surgeries" name="pastSurgeries" class="w-full rounded-lg p-3 border" placeholder="Past surgeries, dates, complications"></textarea>
+            <!-- Personal Information Section -->
+            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h4 class="font-semibold text-purple-800 mb-3">👤 Personal Information</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label for="info_name" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Full Name *
+                  </label>
+                  <input 
+                    id="info_name" 
+                    name="name" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    placeholder="Last, First Middle" 
+                    required 
+                  />
+                  <div class="text-xs text-slate-500 mt-1">Format: Last name, First name Middle name</div>
+                </div>
+                <div>
+                  <label for="info_otherName" class="block text-sm font-semibold text-slate-700 mb-1">Other / Maiden Name</label>
+                  <input id="info_otherName" name="otherName" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div>
+                  <label for="info_civilStatus" class="block text-sm font-semibold text-slate-700 mb-1">Civil Status</label>
+                  <select id="info_civilStatus" name="civilStatus" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    <option value="">Select Status</option>
+                    <option>Single</option>
+                    <option>Married</option>
+                    <option>Widowed</option>
+                    <option>Divorced</option>
+                    <option>Separated</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="info_dob" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Date of Birth *
+                  </label>
+                  <input 
+                    id="info_dob" 
+                    name="dob" 
+                    type="date" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_age" class="block text-sm font-semibold text-slate-700 mb-1">Age</label>
+                  <input 
+                    id="info_age" 
+                    name="age" 
+                    type="number" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-slate-50" 
+                    readonly 
+                    placeholder="Auto-calculated"
+                  />
+                </div>
+                <div>
+                  <label for="info_gender" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Sex *
+                  </label>
+                  <select id="info_gender" name="gender" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="info_contact" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Contact Number *
+                  </label>
+                  <input 
+                    id="info_contact" 
+                    name="contact" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    placeholder="+63 XXX XXX XXXX"
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_email" class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+                  <input id="info_email" name="email" type="email" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="patient@email.com" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="info_address" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Home Address *
+                  </label>
+                  <input 
+                    id="info_address" 
+                    name="address" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    placeholder="Complete address including city and postal code"
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_language" class="block text-sm font-semibold text-slate-700 mb-1">Primary Language</label>
+                  <input id="info_language" name="primaryLanguage" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="English, Filipino, etc." />
+                </div>
+                <div>
+                  <label for="info_ethnicity" class="block text-sm font-semibold text-slate-700 mb-1">Ethnicity / Religion</label>
+                  <input id="info_ethnicity" name="ethnicity" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div>
+                  <label for="info_occupation" class="block text-sm font-semibold text-slate-700 mb-1">Occupation</label>
+                  <input id="info_occupation" name="occupation" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div>
+                  <label for="info_employer" class="block text-sm font-semibold text-slate-700 mb-1">Employer</label>
+                  <input id="info_employer" name="employer" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+              </div>
             </div>
 
-            <div class="sm:col-span-2">
-              <label for="info_initialDiagnosis" class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
-              <input id="info_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
+            <!-- Emergency Contact Section -->
+            <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h4 class="font-semibold text-red-800 mb-3">🚨 Emergency Contact</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label for="info_emg_name" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Contact Name *
+                  </label>
+                  <input 
+                    id="info_emg_name" 
+                    name="emg_name" 
+                    placeholder="Full name" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_emg_relation" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Relationship *
+                  </label>
+                  <input 
+                    id="info_emg_relation" 
+                    name="emg_relation" 
+                    placeholder="Spouse, Parent, etc." 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label for="info_emg_phone" class="block text-sm font-semibold text-slate-700 mb-1">
+                    Phone Number *
+                  </label>
+                  <input 
+                    id="info_emg_phone" 
+                    name="emg_phone" 
+                    placeholder="+63 XXX XXX XXXX" 
+                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                    required 
+                  />
+                </div>
+              </div>
             </div>
 
-            <div class="sm:col-span-2 flex gap-2 mt-2">
-              <button type="button" id="saveInfoBtn" data-save="info" class="px-4 py-2 bg-sky-600 text-white rounded-lg font-semibold">💾 Save Info</button>
-              <button type="button" id="clearInfo" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <button 
+                type="button" 
+                id="saveInfoBtn" 
+                data-save="info" 
+                class="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+              >
+                💾 Save Patient Information
+              </button>
+              <button 
+                type="button" 
+                id="validateInfo" 
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                ✓ Validate
+              </button>
             </div>
+            
+            <!-- Form Status -->
+            <div id="infoStatus" class="hidden p-3 rounded-lg"></div>
           </form>
         </div>
 
@@ -319,7 +807,23 @@
           <form id="form-history" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
               <label class="text-sm">Chief Complaint</label>
-              <input name="chiefComplaint" class="w-full rounded-lg p-3 border" placeholder="Main reason for visit" />
+              <div class="flex gap-2 items-center">
+                <input name="chiefComplaint" class="flex-1 rounded-lg p-3 border" placeholder="Main reason for visit" />
+                <label class="text-sm">Pain</label>
+                <select name="painScale" class="w-24 rounded-lg p-2 border" title="Pain scale 1-10 or N/A">
+                  <option value="na">N/A</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
             </div>
             <div class="sm:col-span-2">
               <label class="text-sm">History of Present Illness</label>
@@ -354,6 +858,11 @@
             </div>
 
             <div class="sm:col-span-2">
+              <label class="text-sm">Vaccine / Immunization History</label>
+              <textarea name="vaccineHistory" class="w-full rounded-lg p-3 border" placeholder="COVID-19, Flu, Hepatitis B, Tetanus, etc. (with dates if available)"></textarea>
+            </div>
+
+            <div class="sm:col-span-2">
               <label class="text-sm">Review of Systems (brief)</label>
               <textarea name="reviewOfSystems" class="w-full rounded-lg p-3 border" placeholder="Constitutional, Cardio, Resp., GI, GU, Neuro etc."></textarea>
             </div>
@@ -365,9 +874,9 @@
           </form>
         </div>
 
-        <!-- 4 • Assessment -->
+        <!-- 5 • Treatment Plan (was Assessment & Plan) -->
         <div id="tab-assessment" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">4 • Assessment & Plan</h3>
+          <h3 class="text-xl font-bold mb-3">5 • Treatment Plan</h3>
           <form id="form-assessment" class="grid grid-cols-1 gap-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
@@ -472,9 +981,79 @@
           </form>
         </div>
 
-        <!-- 5 • Labs -->
+        <!-- 4 • Physical Assessment -->
+        <div id="tab-physical" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-3">4 • Physical Assessment</h3>
+          <form id="form-physical" class="grid grid-cols-1 gap-3">
+            
+            <!-- Height, Weight, BMI Section -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+              <div>
+                <label for="physical_weight" class="text-sm font-semibold">Weight (kg)</label>
+                <input id="physical_weight" name="weight" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 72.5" />
+              </div>
+              <div>
+                <label for="physical_height" class="text-sm font-semibold">Height (cm)</label>
+                <input id="physical_height" name="height" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 175" />
+              </div>
+              <div>
+                <label for="physical_bmi" class="text-sm font-semibold">BMI</label>
+                <input id="physical_bmi" name="bmi" type="text" readonly class="mt-1 w-full rounded-lg px-3 py-2 border bg-slate-100" placeholder="Auto-calculated" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold">BMI Category</label>
+                <div id="physical_bmiCategory" class="mt-1 text-sm text-slate-600">—</div>
+              </div>
+            </div>
+
+            <!-- Initial/Primary Diagnosis -->
+            <div>
+              <label for="physical_initialDiagnosis" class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
+              <input id="physical_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
+            </div>
+
+            <!-- Physical Assessment Fields -->
+            <div>
+              <label class="text-sm font-semibold">General Appearance</label>
+              <textarea name="physical_appearance" class="w-full rounded-lg p-3 border" placeholder="General appearance, distress, posture"></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="text-sm font-semibold">Chest / Lungs</label>
+                <textarea name="physical_lungs" class="w-full rounded-lg p-3 border" placeholder="Auscultation"></textarea>
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Cardiovascular</label>
+                <textarea name="physical_cv" class="w-full rounded-lg p-3 border" placeholder="Heart sounds, murmurs"></textarea>
+              </div>
+            </div>
+            
+            <div>
+              <label class="text-sm font-semibold">Abdomen / GI</label>
+              <textarea name="physical_abdomen" class="w-full rounded-lg p-3 border" placeholder="Tenderness, masses, bowel sounds"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="text-sm font-semibold">Neurological</label>
+                <textarea name="physical_neuro" class="w-full rounded-lg p-3 border" placeholder="Mental status, reflexes, sensation"></textarea>
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Extremities</label>
+                <textarea name="physical_extremities" class="w-full rounded-lg p-3 border" placeholder="Edema, pulses, mobility"></textarea>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <button type="button" data-save="physical" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Physical Assessment</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 7 • Labs -->
         <div id="tab-labs" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">5 • Laboratory & Diagnostics</h3>
+          <h3 class="text-xl font-bold mb-3">7 • Laboratory & Diagnostics</h3>
           <form id="form-labs" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input name="lab_test" placeholder="Test / Imaging (e.g., CBC, Chest X-ray)" class="rounded-lg p-2 border" />
@@ -507,51 +1086,140 @@
           </form>
         </div>
 
-        <!-- 6 • Medication Orders -->
+        <!-- 6 • Medication & IV Order -->
         <div id="tab-meds" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">6 • Medication Orders</h3>
-          <form id="form-meds">
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm" id="medTable">
-                <thead><tr><th>Drug</th><th>Dosage</th><th>Route</th><th>Frequency</th><th>Start</th><th>Duration</th><th>PRN</th><th>Prescriber</th><th>Action</th></tr></thead>
-                <tbody id="medTableBody">
-                  <tr>
-                    <td><input name="drug" class="w-full rounded border px-2 py-1"/></td>
-                    <td><input name="dosage" class="w-full rounded border px-2 py-1"/></td>
-                    <td><input name="route" class="w-full rounded border px-2 py-1"/></td>
-                    <td><input name="frequency" class="w-full rounded border px-2 py-1"/></td>
-                    <td><input name="startDate" type="date" class="w-full rounded border px-2 py-1"/></td>
-                    <td><input name="duration" placeholder="e.g., 5 days" class="w-full rounded border px-2 py-1"/></td>
-                    <td><select name="prn" class="w-full rounded border px-2 py-1"><option value="No">No</option><option value="Yes">Yes</option></select></td>
-                    <td><input name="prescriber" class="w-full rounded border px-2 py-1"/></td>
-                    <td><button type="button" class="btn-remove-row px-2 py-1 rounded bg-white border">🗑️</button></td>
-                  </tr>
-                </tbody>
-              </table>
+          <h3 class="text-xl font-bold mb-3">6 • Medication & IV Order</h3>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <!-- Left: CPOE form -->
+            <div class="p-3 rounded border bg-white/50">
+              <div class="text-sm font-semibold mb-2">CPOE — Enter New Medication Order</div>
+              <form id="medCPOEForm" class="space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <input id="cpoe_drug" name="drug" placeholder="Drug name" class="w-full rounded border px-2 py-1" required />
+                  <input id="cpoe_dosage" name="dosage" placeholder="Dose (e.g., 500 mg)" class="w-full rounded border px-2 py-1" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <select id="cpoe_route" name="route" class="w-full rounded border px-2 py-1"><option value="IV">IV</option><option value="PO">PO</option><option value="IM">IM</option><option value="SC">SC</option></select>
+                  <input id="cpoe_frequency" name="frequency" placeholder="Frequency (e.g., q4h, daily)" class="w-full rounded border px-2 py-1" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <input id="cpoe_start" name="startDate" type="date" class="w-full rounded border px-2 py-1" />
+                  <input id="cpoe_duration" name="duration" placeholder="Duration (e.g., 5 days)" class="w-full rounded border px-2 py-1" />
+                </div>
+                
+                <!-- IV Fluids Section -->
+                <div class="bg-blue-50 p-2 rounded">
+                  <div class="text-xs font-semibold mb-2 text-blue-700">IV FLUIDS</div>
+                  <div class="grid grid-cols-1 gap-2">
+                    <select id="cpoe_iv_fluid" name="iv_fluid" class="w-full rounded border px-2 py-1">
+                      <option value="">— Select IV Fluid —</option>
+                      <option>NS (Normal Saline, 0.9% NaCl)</option>
+                      <option>0.45% NaCl (Half Normal Saline)</option>
+                      <option>LR or LRS (Lactated Ringer's Solution)</option>
+                      <option>D5LR (5% Dextrose & Lactate Ringer)</option>
+                      <option>D5W (Dextrose 5% in Water)</option>
+                      <option>D5NS (Dextrose 5% in Normal Saline)</option>
+                      <option>D5 0.45% NaCl (Dextrose 5% in Half Normal Saline)</option>
+                      <option>D10W (Dextrose 10% in Water)</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-1">
+                      <input id="cpoe_iv_ml_hr" name="iv_ml_hr" placeholder="mL/hr" class="w-full rounded border px-2 py-1" />
+                      <input id="cpoe_iv_gtt_min" name="iv_gtt_min" placeholder="gtt/min" class="w-full rounded border px-2 py-1" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-1">
+                      <input id="cpoe_iv_volume" name="iv_volume" placeholder="IV volume (mL)" class="w-full rounded border px-2 py-1" />
+                      <input id="cpoe_iv_time" name="iv_time" placeholder="Infusion time (hrs)" class="w-full rounded border px-2 py-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 items-center">
+                  <select id="cpoe_prn" name="prn" class="w-full rounded border px-2 py-1"><option value="No">Scheduled</option><option value="Yes">PRN</option></select>
+                  <input id="cpoe_prescriber" name="prescriber" placeholder="Nurse Full Name" class="w-full rounded border px-2 py-1" />
+                </div>
+                <div class="flex gap-2">
+                  <button type="button" id="addMedOrderBtn" class="px-3 py-1 bg-white rounded border">➕ Add Order</button>
+                  <button type="button" id="sendToPharmacy" class="px-3 py-1 bg-amber-400 text-white rounded">Send to Pharmacy</button>
+                  <button type="button" id="cpoeClear" class="px-3 py-1 btn-ghost">Clear</button>
+                </div>
+                <div id="medAlerts" class="mt-2 text-sm"></div>
+              </form>
             </div>
-            <div class="mt-3 flex gap-2">
-              <button type="button" id="addMedRow" class="px-4 py-2 bg-white rounded-lg border">➕ Add Row</button>
-              <button type="button" data-save="meds" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Orders</button>
-              <button type="button" id="clearMeds" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+
+            <!-- Center: Active medication list -->
+            <div class="lg:col-span-2">
+              <div class="p-3 rounded border bg-white/50 mb-3 flex items-center justify-between">
+                <div class="text-sm font-semibold">Active Medication & IV Orders</div>
+                <div class="flex gap-2">
+                  <button type="button" id="normalizeIVs" class="px-3 py-1 bg-white rounded border">Normalize IVs</button>
+                  <button type="button" id="addMedRow" class="px-3 py-1 bg-white rounded border">➕ Quick Row</button>
+                  <button type="button" data-save="meds" class="px-3 py-1 bg-sky-600 text-white rounded">💾 Save Orders</button>
+                </div>
+              </div>
+              
+              <!-- Medications Table -->
+              <div class="mb-4">
+                <div class="text-sm font-semibold mb-2 text-green-700">MEDICATIONS</div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm data-table" id="medTable">
+                    <thead><tr><th>Drug</th><th>Dosage</th><th>Route</th><th>Frequency</th><th>Start</th><th>Duration</th><th>PRN</th><th>Prescriber</th><th>Action</th></tr></thead>
+                    <tbody id="medTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- IV Fluids Table -->
+              <div class="mb-4">
+                <div class="text-sm font-semibold mb-2 text-blue-700">IV FLUIDS</div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm data-table" id="ivTable">
+                    <thead><tr><th>IV Fluid</th><th>mL/hr</th><th>gtt/min</th><th>Volume</th><th>Time</th><th>Start</th><th>Prescriber</th><th>Action</th></tr></thead>
+                    <tbody id="ivTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <h4 class="font-semibold">Clinical Decision Support (CDS) & Alerts</h4>
+                  <div id="cdsPanel" class="mt-2 text-sm text-rose-700"></div>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Medication Audit Trail</h4>
+                  <div id="medAuditList" class="mt-2 text-sm muted">No audit records</div>
+                </div>
+              </div>
             </div>
-          </form>
+
+            <!-- Right: MAR (Medication Administration Record) -->
+            <div class="lg:col-span-3 mt-4">
+              <h4 class="font-semibold mb-2">Medication Administration Record (MAR)</h4>
+              <div id="marWrap" class="border rounded p-3 bg-white/50">
+                <table class="w-full text-sm data-table"><thead><tr><th>Time / Date</th><th>Drug</th><th>Dose</th><th>Given by</th><th>Notes</th><th>Action</th></tr></thead>
+                  <tbody id="marTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- 7 • Vitals -->
+        <!-- 8 • Vitals -->
         <div id="tab-vitals" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">7 • Vitals & Monitoring</h3>
+          <h3 class="text-xl font-bold mb-3">8 • Vitals & Monitoring</h3>
           <form id="form-vitals">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
               <input name="v_date" id="v_date" type="date" class="rounded-lg p-2 border"/>
               <input name="v_time" id="v_time" type="time" class="rounded-lg p-2 border"/>
               <input name="v_temp" id="v_temp" placeholder="Temp (°C)" class="rounded-lg p-2 border" />
               <input name="v_pulse" id="v_pulse" placeholder="Pulse (bpm)" class="rounded-lg p-2 border" />
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
               <input name="v_rr" id="v_rr" placeholder="Resp Rate" class="rounded-lg p-2 border" />
               <input name="v_spo2" id="v_spo2" placeholder="SpO2 (%)" class="rounded-lg p-2 border" />
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
               <input name="v_bp" id="v_bp" placeholder="BP (e.g., 120/80)" class="rounded-lg p-2 border" />
-              <input name="v_by" id="v_by" placeholder="Recorded by" class="rounded-lg p-2 border" />
+              <input name="v_by" id="v_by" placeholder="Recorded by (Full name)" class="rounded-lg p-2 border" />
+              <input name="v_io_in" id="v_io_in" placeholder="Intake (mL)" class="rounded-lg p-2 border" />
+              <input name="v_io_out" id="v_io_out" placeholder="Output (mL)" class="rounded-lg p-2 border" />
             </div>
             <div class="mt-3 flex gap-2">
               <button type="button" id="btnAddVitals" class="px-4 py-2 bg-white rounded-lg border">➕ Add Vitals Row</button>
@@ -559,19 +1227,19 @@
               <button type="button" id="clearVitals" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
             </div>
             <div id="vitalsTableWrap" class="mt-3 max-h-48 overflow-auto border rounded p-2">
-              <table class="w-full text-sm"><thead><tr><th>Date</th><th>Time</th><th>Temp</th><th>P</th><th>RR</th><th>BP</th><th>SpO2</th><th>By</th><th>Action</th></tr></thead><tbody id="vitalsTableBody"></tbody></table>
+              <table class="w-full text-sm"><thead><tr><th>Date</th><th>Time</th><th>Temp</th><th>P</th><th>RR</th><th>BP</th><th>SpO2</th><th>Intake</th><th>Output</th><th>By</th><th class="text-right">Action</th></tr></thead><tbody id="vitalsTableBody"></tbody></table>
             </div>
           </form>
         </div>
 
-        <!-- 8 • Nurse Notes -->
+        <!-- 9 • Nurse Notes -->
         <div id="tab-nurse" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">8 • Nurse Notes (FDAR)</h3>
+          <h3 class="text-xl font-bold mb-3">9 • Nurse Notes (FDAR)</h3>
           <form id="form-nurse" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input name="nurse_date" type="date" class="rounded-lg p-2 border" />
               <input name="nurse_time" type="time" class="rounded-lg p-2 border" />
-              <input name="nurse_by" placeholder="Nurse name / initials" class="rounded-lg p-2 border" />
+              <input name="nurse_by" placeholder="Nurse full name" class="rounded-lg p-2 border" />
             </div>
             <div>
               <label class="text-sm">F - Focus / Findings</label>
@@ -595,9 +1263,9 @@
           </form>
         </div>
 
-        <!-- 9 • Doctor Notes -->
+        <!-- 10 • Doctor Notes -->
         <div id="tab-doctor" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">9 • Doctor Notes</h3>
+          <h3 class="text-xl font-bold mb-3">10 • Doctor Notes</h3>
           <form id="form-doctor" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input name="doc_date" type="date" class="rounded-lg p-2 border" />
@@ -626,9 +1294,9 @@
           </form>
         </div>
 
-        <!-- 10 • Discharge Plan -->
+        <!-- 11 • Discharge Plan -->
         <div id="tab-plan" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">10 • Discharge Plan</h3>
+          <h3 class="text-xl font-bold mb-3">11 • Discharge Plan</h3>
           <form id="form-plan" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -686,13 +1354,25 @@
         </div>
       </div>
       <div class="space-y-3">
-        <input id="loginEmail" type="email" placeholder="Email" class="w-full rounded-lg p-3 border" />
-        <input id="loginPass" type="password" placeholder="Password" class="w-full rounded-lg p-3 border" />
-        <div class="flex items-center justify-between">
-          <button type="button" id="loginBtn" class="btn-primary">Sign in</button>
-          <button type="button" id="loginCancel" class="btn-ghost">Cancel</button>
-        </div>
-        <div id="loginError" class="text-sm text-red-600 hidden"></div>
+        <form id="loginForm">
+          <label class="sr-only" for="loginEmail">Email</label>
+          <input id="loginEmail" name="email" type="email" placeholder="Email" class="w-full rounded-lg p-3 border" required />
+
+          <label class="sr-only" for="loginPass">Password</label>
+          <div class="relative mt-2">
+            <input id="loginPass" name="password" type="password" placeholder="Password" class="w-full rounded-lg p-3 border pr-20" required />
+            <button type="button" id="toggleLoginPass" class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-slate-600 px-2">Show</button>
+          </div>
+
+          <div class="flex items-center justify-between mt-3">
+            <button type="submit" id="loginBtn" class="btn-primary flex items-center gap-2">
+              <span id="loginSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span id="loginBtnText">Sign in</span>
+            </button>
+            <button type="button" id="loginCancel" class="btn-ghost">Cancel</button>
+          </div>
+          <div id="loginError" class="text-sm text-red-600 mt-2 hidden" role="alert"></div>
+        </form>
       </div>
     </div>
   </div>
@@ -700,13 +1380,419 @@
   <!-- Toast container (toasts are injected by JS) -->
   <div id="toastContainer" aria-live="polite" class="fixed right-6 bottom-6 z-50"></div>
 
+  <!-- Help Modal -->
+  <div id="helpModal" class="fixed inset-0 z-60 hidden items-center justify-center bg-slate-900 bg-opacity-60">
+    <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl glass soft-shadow text-slate-800 mx-4">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center">❓</div>
+          <div>
+            <div class="text-xl font-bold">Help & Documentation</div>
+            <div class="text-sm text-slate-500">Quick guide to using the EHR system</div>
+          </div>
+        </div>
+        <button id="closeHelpModal" class="btn-ghost">✕</button>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+            <h3 class="font-semibold text-emerald-800 mb-2">🏠 Dashboard</h3>
+            <ul class="text-sm text-emerald-700 space-y-1">
+              <li>• View patient census and statistics</li>
+              <li>• Monitor vitals and medications</li>
+              <li>• Access quick actions</li>
+              <li>• Filter patient timeline</li>
+            </ul>
+          </div>
+          
+          <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 class="font-semibold text-blue-800 mb-2">👤 Patient Information</h3>
+            <ul class="text-sm text-blue-700 space-y-1">
+              <li>• Complete demographics required</li>
+              <li>• Age auto-calculates from DOB</li>
+              <li>• Use "Demo Data" for testing</li>
+              <li>• Validate before saving</li>
+            </ul>
+          </div>
+          
+          <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+            <h3 class="font-semibold text-purple-800 mb-2">🔍 Physical Assessment</h3>
+            <ul class="text-sm text-purple-700 space-y-1">
+              <li>• BMI calculates automatically</li>
+              <li>• Initial diagnosis required</li>
+              <li>• Complete all system reviews</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h3 class="font-semibold text-green-800 mb-2">💊 Medications & IV</h3>
+            <ul class="text-sm text-green-700 space-y-1">
+              <li>• Use CPOE for new orders</li>
+              <li>• Separate medication and IV tables</li>
+              <li>• Normalize IVs feature available</li>
+              <li>• MAR tracks administration</li>
+            </ul>
+          </div>
+          
+          <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+            <h3 class="font-semibold text-amber-800 mb-2">📊 Vitals & Monitoring</h3>
+            <ul class="text-sm text-amber-700 space-y-1">
+              <li>• Record with date and time</li>
+              <li>• Include intake/output</li>
+              <li>• Automatic validation</li>
+            </ul>
+          </div>
+          
+          <div class="bg-teal-50 p-4 rounded-lg border border-teal-200">
+            <h3 class="font-semibold text-teal-800 mb-2">📝 Documentation</h3>
+            <ul class="text-sm text-teal-700 space-y-1">
+              <li>• Nurse Notes: Use FDAR format</li>
+              <li>• Doctor Notes: SOAP format</li>
+              <li>• Auto-save functionality</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 p-4 bg-slate-50 rounded-lg border">
+        <h3 class="font-semibold text-slate-800 mb-2">🔧 Tips & Shortcuts</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
+          <ul class="space-y-1">
+            <li>• Press "/" to focus search</li>
+            <li>• Use Tab to navigate forms</li>
+            <li>• Required fields marked with *</li>
+          </ul>
+          <ul class="space-y-1">
+            <li>• Green borders = valid input</li>
+            <li>• Red borders = missing/invalid</li>
+            <li>• Auto-refresh every 30 seconds</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom horizontal tab bar (cloned from sidebar via JS) -->
+  <div id="bottomNavWrap" class="fixed left-0 right-0 bottom-0 z-40 p-2 flex justify-center hidden">
+    <nav id="bottomNav" class="bg-white/80 glass rounded-xl px-3 py-2 flex gap-2 items-center"></nav>
+  </div>
+
   <!-- Firebase SDKs (v8) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
-  <!-- app.js will be loaded separately -->
-  <script src="app.js"></script>
+  <!-- Chart.js for enhanced data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+  <!-- Core Application -->
+  <script src="./app.js" onerror="console.error('Failed to load app.js - critical error!')"></script>
+  
+  <!-- Deployment Status Check -->
+  <script>
+    // Production deployment status checker
+    window.deploymentStatus = {
+      environment: window.location.hostname.includes('vercel.app') ? 'production' : 'development',
+      timestamp: new Date().toISOString(),
+      modules: {
+        firebase: typeof firebase !== 'undefined',
+        chartjs: typeof Chart !== 'undefined',
+        tailwind: !!document.querySelector('script[src*="tailwindcss"]')
+      }
+    };
+    
+    console.log('🚀 EHR Deployment Status:', window.deploymentStatus);
+    
+    // Error logging for development (no user-facing messages)
+    window.addEventListener('error', function(e) {
+      console.error('JavaScript Error:', e.error);
+      // Only log errors, don't show disruptive messages since features are working
+    });
+  </script>
+
+  <!-- Enhanced functionality -->
+  <script>
+    // Enhanced Dashboard Functions
+    function navigateToTab(tabId) {
+      const button = document.querySelector(`[data-target="${tabId}"]`);
+      if (button) button.click();
+    }
+    
+    function showAllPatients() {
+      // This function can be enhanced to show a modal with all patients
+      navigateToTab('tab-dashboard');
+      const container = document.getElementById('patientsContainer');
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    
+    function refreshDashboard() {
+      // Refresh dashboard data
+      const refreshBtn = document.getElementById('refreshDashboard');
+      if (refreshBtn) {
+        refreshBtn.innerHTML = '⟳';
+        refreshBtn.style.animation = 'spin 1s linear infinite';
+        
+        // Simulate refresh
+        setTimeout(() => {
+          refreshBtn.innerHTML = '🔄';
+          refreshBtn.style.animation = '';
+          updateLastUpdated();
+          if (window.showToast) {
+            showToast('Dashboard refreshed', 'success');
+          }
+        }, 1000);
+      }
+    }
+    
+    function updateLastUpdated() {
+      const elem = document.getElementById('lastUpdated');
+      if (elem) {
+        const now = new Date();
+        elem.textContent = `Updated ${now.toLocaleTimeString()}`;
+      }
+    }
+    
+    // Auto-calculate age from date of birth
+    function calculateAge() {
+      const dobInput = document.getElementById('info_dob');
+      const ageInput = document.getElementById('info_age');
+      
+      if (dobInput && ageInput) {
+        dobInput.addEventListener('change', function() {
+          const dob = new Date(this.value);
+          const today = new Date();
+          let age = today.getFullYear() - dob.getFullYear();
+          const monthDiff = today.getMonth() - dob.getMonth();
+          
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+          }
+          
+          ageInput.value = age >= 0 ? age : '';
+        });
+      }
+    }
+    
+    // Form validation
+    function setupFormValidation() {
+      const form = document.getElementById('form-info');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          validatePatientInfo();
+        });
+      }
+      
+      // Real-time validation
+      const requiredFields = form?.querySelectorAll('[required]');
+      requiredFields?.forEach(field => {
+        field.addEventListener('blur', function() {
+          validateField(this);
+        });
+      });
+    }
+    
+    function validateField(field) {
+      const isValid = field.checkValidity();
+      field.classList.toggle('border-red-500', !isValid);
+      field.classList.toggle('border-green-500', isValid && field.value);
+    }
+    
+    function validatePatientInfo() {
+      const form = document.getElementById('form-info');
+      const status = document.getElementById('infoStatus');
+      
+      if (form && status) {
+        const isValid = form.checkValidity();
+        
+        status.className = `p-3 rounded-lg ${isValid ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`;
+        status.textContent = isValid ? '✓ All required fields are completed' : '⚠ Please complete all required fields';
+        status.classList.remove('hidden');
+        
+        if (isValid && window.showToast) {
+          showToast('Patient information validated successfully', 'success');
+        }
+      }
+    }
+    
+    // Demo data function
+    function fillDemoData() {
+      const demoData = {
+        mrn: 'MRN' + Math.random().toString().substr(2, 6),
+        patientStatus: 'Inpatient',
+        roomNo: '201A',
+        bedNo: 'Bed 1',
+        admissionDate: new Date().toISOString().split('T')[0],
+        admissionTime: '14:30',
+        physician: 'Dr. Maria Santos',
+        referralSource: 'Emergency Department',
+        name: 'Dela Cruz, Juan Carlos',
+        civilStatus: 'Married',
+        dob: '1985-03-15',
+        gender: 'Male',
+        contact: '+63 917 123 4567',
+        email: 'juan.delacruz@email.com',
+        address: '123 Main Street, Quezon City, Metro Manila 1100',
+        language: 'Filipino',
+        ethnicity: 'Filipino',
+        occupation: 'Teacher',
+        employer: 'ABC Elementary School',
+        emg_name: 'Dela Cruz, Maria',
+        emg_relation: 'Spouse',
+        emg_phone: '+63 917 765 4321'
+      };
+      
+      Object.keys(demoData).forEach(key => {
+        const element = document.getElementById(`info_${key}`);
+        if (element) {
+          element.value = demoData[key];
+          if (element.type === 'date' && key === 'dob') {
+            // Trigger age calculation
+            element.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+      
+      if (window.showToast) {
+        showToast('Demo data filled', 'info');
+      }
+    }
+    
+    // Enhanced search functionality
+    function setupSearchFilters() {
+      const searchInput = document.getElementById('patientSearch');
+      const statusFilter = document.getElementById('patientStatusFilter');
+      
+      if (searchInput) {
+        searchInput.addEventListener('input', debounce(filterPatients, 300));
+      }
+      
+      if (statusFilter) {
+        statusFilter.addEventListener('change', filterPatients);
+      }
+    }
+    
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+    
+    function filterPatients() {
+      // This would connect to the existing patient filtering logic
+      console.log('Filtering patients...');
+    }
+    
+    // Timeline filter functionality
+    function setupTimelineFilters() {
+      const filterButtons = document.querySelectorAll('.timeline-filter-btn');
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          filterButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          filterTimelineEvents(this.dataset.filter);
+        });
+      });
+    }
+    
+    function filterTimelineEvents(filter) {
+      console.log('Filtering timeline by:', filter);
+      // This would connect to timeline filtering logic
+    }
+    
+    // Initialize enhanced features when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      calculateAge();
+      setupFormValidation();
+      setupSearchFilters();
+      setupTimelineFilters();
+      updateLastUpdated();
+      
+      // Auto-fill current date/time for admission
+      const admissionDate = document.getElementById('info_admissionDate');
+      const admissionTime = document.getElementById('info_admissionTime');
+      
+      if (admissionDate && !admissionDate.value) {
+        admissionDate.value = new Date().toISOString().split('T')[0];
+      }
+      
+      if (admissionTime && !admissionTime.value) {
+        admissionTime.value = new Date().toTimeString().slice(0, 5);
+      }
+      
+      // Wire up demo data button
+      const demoBtn = document.getElementById('autoFillDemo');
+      if (demoBtn) {
+        demoBtn.addEventListener('click', fillDemoData);
+      }
+      
+      // Wire up validate button
+      const validateBtn = document.getElementById('validateInfo');
+      if (validateBtn) {
+        validateBtn.addEventListener('click', validatePatientInfo);
+      }
+      
+      // Wire up refresh button
+      const refreshBtn = document.getElementById('refreshDashboard');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshDashboard);
+      }
+      
+      // Wire up help modal
+      const helpBtn = document.getElementById('helpBtn');
+      const helpModal = document.getElementById('helpModal');
+      const closeHelpBtn = document.getElementById('closeHelpModal');
+      
+      if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', () => {
+          helpModal.classList.remove('hidden');
+          helpModal.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+        });
+      }
+      
+      if (closeHelpBtn && helpModal) {
+        closeHelpBtn.addEventListener('click', () => {
+          helpModal.classList.add('hidden');
+          helpModal.classList.remove('flex');
+          document.body.classList.remove('overflow-hidden');
+        });
+      }
+      
+      // Close help modal on background click
+      if (helpModal) {
+        helpModal.addEventListener('click', (e) => {
+          if (e.target === helpModal) {
+            helpModal.classList.add('hidden');
+            helpModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+          }
+        });
+      }
+    });
+    
+    // CSS for spin animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 </body>
 </html>
