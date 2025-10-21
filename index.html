@@ -79,6 +79,9 @@
         <button type="button" data-target="tab-dashboard" data-label="Dashboard" title="Dashboard" class="navbtn icon-only" aria-label="Dashboard">
           <span class="nav-icon">🏠</span>
         </button>
+        <button type="button" data-target="tab-departments" data-label="Departments & Beds" title="Departments & Beds" class="navbtn icon-only" aria-label="Departments & Beds">
+          <span class="nav-icon">🏥</span>
+        </button>
         <button type="button" data-target="tab-info" data-label="Patient Information" title="Patient Information" class="navbtn icon-only" aria-label="Patient Information">
           <span class="nav-icon">👤</span>
         </button>
@@ -123,6 +126,7 @@
         <div class="p-4 rounded-2xl glass soft-shadow">
           <nav class="flex flex-col gap-2 items-center" id="mainNav">
             <button type="button" data-target="tab-dashboard" data-label="Dashboard" title="Dashboard" class="navbtn icon-btn" aria-label="Dashboard">🏠<span class="sr-only">Dashboard</span><div class="sr-name"> Dashboard</div></button>
+            <button type="button" data-target="tab-departments" data-label="Departments & Beds" title="Departments & Beds" class="navbtn icon-btn" aria-label="Departments & Beds">🏥<span class="sr-only">Departments & Beds</span><div class="sr-name"> Departments</div></button>
             <button type="button" data-target="tab-info" data-label="Patient Information" title="Patient Information" class="navbtn icon-btn" aria-label="Patient Information">👤<span class="sr-only">Patient Information</span><div class="sr-name"> Patient</div></button>
             <button type="button" data-target="tab-id" data-label="Identification" title="Identification & Insurance" class="navbtn icon-btn" aria-label="Identification & Insurance">🪪<span class="sr-only">Identification & Insurance</span><div class="sr-name"> ID</div></button>
             <button type="button" data-target="tab-history" data-label="Medical History" title="Medical History" class="navbtn icon-btn" aria-label="Medical History">📋<span class="sr-only">Medical History</span><div class="sr-name"> History</div></button>
@@ -178,6 +182,82 @@
             </div>
           </div>
 
+          <!-- Enhanced Dashboard Overview -->
+          <div class="dashboard-overview mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Quick Stats Panel -->
+              <div class="stats-panel bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+                <h2 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                  📊 Quick Statistics
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="stat-item text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="totalPatients">0</div>
+                    <div class="text-xs text-blue-500">Total Patients</div>
+                  </div>
+                  <div class="stat-item text-center">
+                    <div class="text-2xl font-bold text-green-600" id="activePatients">0</div>
+                    <div class="text-xs text-green-500">Active Cases</div>
+                  </div>
+                  <div class="stat-item text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="pendingTasks">0</div>
+                    <div class="text-xs text-orange-500">Pending Tasks</div>
+                  </div>
+                  <div class="stat-item text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="criticalAlerts">0</div>
+                    <div class="text-xs text-purple-500">Critical Alerts</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Quick Actions Panel -->
+              <div class="actions-panel bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100">
+                <h2 class="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                  ⚡ Quick Actions
+                </h2>
+                <div class="space-y-3">
+                  <button class="w-full px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2" onclick="window.location.hash='#tab-info'">
+                    👤 New Patient
+                  </button>
+                  <button class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" onclick="window.location.hash='#tab-vitals'">
+                    🌡️ Record Vitals
+                  </button>
+                  <button class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2" onclick="window.location.hash='#tab-meds'">
+                    💊 Medication Order
+                  </button>
+                  <button class="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2" onclick="window.location.hash='#tab-labs'">
+                    🧪 Lab Results
+                  </button>
+                </div>
+              </div>
+              
+              <!-- System Status Panel -->
+              <div class="system-panel bg-gradient-to-br from-slate-50 to-gray-50 p-6 rounded-2xl border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  🖥️ System Status
+                </h2>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-600">Database</span>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Connected</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-600">Backup Status</span>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Up to Date</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-600">Last Sync</span>
+                    <span class="text-xs text-slate-500" id="lastSyncTime">Just now</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-600">Storage</span>
+                    <span class="text-xs text-slate-500">85% Available</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Modern Dashboard Cards -->
           <div class="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <!-- Patient Census Card -->
@@ -190,7 +270,7 @@
                 </div>
                 <div class="card-content">
                   <h3 class="card-title">Patient Census</h3>
-                  <div class="card-value" id="totalPatients">0</div>
+                  <div class="card-value" id="totalPatientsCard">0</div>
                   <div class="card-stats">
                     <span class="stat-item">
                       <span class="stat-dot bg-emerald-400"></span>
@@ -458,6 +538,110 @@
           </div>
         </div>
 
+        <!-- Departments & Bed Management -->
+        <div id="tab-departments" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Departments & Bed Management
+              </h3>
+              <p class="text-sm text-slate-500 mt-1">Manage hospital departments, bed assignments, and patient flow</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="departmentFilter" class="px-3 py-2 rounded-lg border text-sm">
+                <option value="">All Departments</option>
+                <option value="emergency">Emergency</option>
+                <option value="icu">ICU</option>
+                <option value="general-ward">General Ward</option>
+                <option value="surgery">Surgery</option>
+                <option value="pediatrics">Pediatrics</option>
+                <option value="maternity">Maternity</option>
+              </select>
+              <button id="refreshDepartments" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+          
+          <!-- Department Statistics -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-2xl font-bold text-blue-600" id="totalBeds">0</div>
+                  <div class="text-sm text-blue-500">Total Beds</div>
+                </div>
+                <div class="text-3xl text-blue-400">🛏️</div>
+              </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-2xl font-bold text-green-600" id="availableBeds">0</div>
+                  <div class="text-sm text-green-500">Available</div>
+                </div>
+                <div class="text-3xl text-green-400">✅</div>
+              </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-red-50 to-rose-50 p-4 rounded-xl border border-red-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-2xl font-bold text-red-600" id="occupiedBeds">0</div>
+                  <div class="text-sm text-red-500">Occupied</div>
+                </div>
+                <div class="text-3xl text-red-400">👥</div>
+              </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-yellow-50 to-amber-50 p-4 rounded-xl border border-yellow-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-2xl font-bold text-yellow-600" id="occupancyRate">0%</div>
+                  <div class="text-sm text-yellow-500">Occupancy Rate</div>
+                </div>
+                <div class="text-3xl text-yellow-400">📊</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Departments Grid -->
+          <div class="departments-section mb-6">
+            <h4 class="text-xl font-bold text-slate-800 mb-4">Hospital Departments</h4>
+            <div id="departmentsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <!-- Departments will be rendered here -->
+            </div>
+          </div>
+          
+          <!-- Quick Actions -->
+          <div class="quick-actions bg-gradient-to-br from-slate-50 to-gray-50 p-6 rounded-xl border border-slate-200">
+            <h4 class="text-lg font-bold text-slate-800 mb-4">Quick Actions</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button onclick="showBedAssignmentModal()" class="flex items-center gap-3 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <span class="text-xl">🛏️</span>
+                <div class="text-left">
+                  <div class="font-semibold">Assign Patient to Bed</div>
+                  <div class="text-xs opacity-80">Manage bed assignments</div>
+                </div>
+              </button>
+              
+              <button onclick="showPatientTransferModal()" class="flex items-center gap-3 p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <span class="text-xl">🔄</span>
+                <div class="text-left">
+                  <div class="font-semibold">Transfer Patient</div>
+                  <div class="text-xs opacity-80">Move between departments</div>
+                </div>
+              </button>
+              
+              <button onclick="showBedMaintenanceModal()" class="flex items-center gap-3 p-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                <span class="text-xl">🔧</span>
+                <div class="text-left">
+                  <div class="font-semibold">Bed Maintenance</div>
+                  <div class="text-xs opacity-80">Mark beds for cleaning</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- 1 • Patient Information -->
         <div id="tab-info" class="panel hidden p-6 rounded-2xl glass soft-shadow">
           <div class="flex items-center justify-between mb-6">
@@ -475,43 +659,88 @@
             </div>
           </div>
           
+          <!-- Patient Information Form Progress -->
+          <div class="form-progress mb-6">
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <span>Form Completion</span>
+              <span id="infoProgress">0% Complete</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
+              <div id="infoProgressBar" class="bg-gradient-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
           <form id="form-info" class="space-y-6">
             <!-- Hospital Information Section -->
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 class="font-semibold text-blue-800 mb-3">🏥 Hospital Information</h4>
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                🏥 Hospital Information
+                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Required</span>
+              </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label for="info_mrn" class="block text-sm font-semibold text-slate-700 mb-1">
+                <div class="form-group">
+                  <label for="info_mrn" class="block text-sm font-semibold text-slate-700 mb-2">
                     Medical Record No. (MRN) *
                   </label>
                   <input 
                     id="info_mrn" 
                     name="mrn" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
                     placeholder="Enter MRN"
                     required 
                   />
-                  <div class="text-xs text-slate-500 mt-1">System will auto-generate if empty</div>
+                  <div class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                    <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                    System will auto-generate if empty
+                  </div>
                 </div>
-                <div>
-                  <label for="info_patientStatus" class="block text-sm font-semibold text-slate-700 mb-1">
+                <div class="form-group">
+                  <label for="info_patientStatus" class="block text-sm font-semibold text-slate-700 mb-2">
                     Patient Class *
                   </label>
-                  <select id="info_patientStatus" name="patientStatus" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    <option value="">Select Status</option>
-                    <option value="Outpatient">Outpatient</option>
-                    <option value="Inpatient">Inpatient</option>
-                    <option value="Emergency">Emergency</option>
-                    <option value="Observation">Observation</option>
+                  <select id="info_patientStatus" name="patientStatus" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" required>
+                    <option value="">Select Patient Class</option>
+                    <option value="Outpatient">🚶 Outpatient</option>
+                    <option value="Inpatient">🛏️ Inpatient</option>
+                    <option value="Emergency">🚨 Emergency</option>
+                    <option value="Observation">👀 Observation</option>
+                    <option value="Day Surgery">🔬 Day Surgery</option>
+                    <option value="ICU">🏥 ICU</option>
                   </select>
                 </div>
-                <div>
-                  <label for="info_roomNo" class="block text-sm font-semibold text-slate-700 mb-1">Room No.</label>
-                  <input id="info_roomNo" name="roomNo" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 201A" />
+                <div class="form-group">
+                  <label for="info_department" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Department *
+                  </label>
+                  <select id="info_department" name="departmentId" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" required>
+                    <option value="">Select Department</option>
+                    <option value="emergency">🚨 Emergency Department</option>
+                    <option value="icu">🏥 Intensive Care Unit</option>
+                    <option value="general-ward">🛏️ General Ward</option>
+                    <option value="surgery">⚕️ Surgery Department</option>
+                    <option value="pediatrics">👶 Pediatrics</option>
+                    <option value="maternity">🤱 Maternity Ward</option>
+                    <option value="cardiology">❤️ Cardiology</option>
+                    <option value="orthopedics">🦴 Orthopedics</option>
+                  </select>
                 </div>
-                <div>
-                  <label for="info_bedNo" class="block text-sm font-semibold text-slate-700 mb-1">Bed No.</label>
-                  <input id="info_bedNo" name="bedNo" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Bed 1" />
+                <div class="form-group">
+                  <label for="info_bedAssignment" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Bed Assignment
+                  </label>
+                  <select id="info_bedAssignment" name="bedId" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all">
+                    <option value="">No bed assigned</option>
+                    <!-- Beds will be populated dynamically -->
+                  </select>
+                  <div class="text-xs text-slate-500 mt-1">Select department first</div>
+                </div>
+                <div class="form-group">
+                  <label for="info_roomNo" class="block text-sm font-semibold text-slate-700 mb-2">Room No.</label>
+                  <input id="info_roomNo" name="roomNo" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" placeholder="e.g., 201A" />
+                </div>
+                <div class="form-group">
+                  <label for="info_bedNo" class="block text-sm font-semibold text-slate-700 mb-2">Bed No.</label>
+                  <input id="info_bedNo" name="bedNo" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" placeholder="e.g., 1, 2, A" />
                 </div>
               </div>
             </div>
@@ -564,121 +793,562 @@
             </div>
 
             <!-- Personal Information Section -->
-            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h4 class="font-semibold text-purple-800 mb-3">👤 Personal Information</h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                  <label for="info_name" class="block text-sm font-semibold text-slate-700 mb-1">
-                    Full Name *
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-200 shadow-sm">
+              <h4 class="font-bold text-purple-800 mb-4 flex items-center gap-2">
+                👤 Personal Information
+                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">Required</span>
+              </h4>
+              
+              <!-- Name Fields -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div class="form-group">
+                  <label for="info_firstName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    First Name *
                   </label>
                   <input 
-                    id="info_name" 
-                    name="name" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
-                    placeholder="Last, First Middle" 
+                    id="info_firstName" 
+                    name="firstName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Enter first name" 
+                    pattern="[A-Za-z\s]{1,50}"
+                    title="First name should contain only letters and spaces (max 50 characters)"
                     required 
                   />
-                  <div class="text-xs text-slate-500 mt-1">Format: Last name, First name Middle name</div>
                 </div>
-                <div>
-                  <label for="info_otherName" class="block text-sm font-semibold text-slate-700 mb-1">Other / Maiden Name</label>
-                  <input id="info_otherName" name="otherName" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                <div class="form-group">
+                  <label for="info_middleName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Middle Name
+                  </label>
+                  <input 
+                    id="info_middleName" 
+                    name="middleName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Enter middle name" 
+                    pattern="[A-Za-z\s]{0,50}"
+                    title="Middle name should contain only letters and spaces (max 50 characters)"
+                  />
                 </div>
-                <div>
-                  <label for="info_civilStatus" class="block text-sm font-semibold text-slate-700 mb-1">Civil Status</label>
-                  <select id="info_civilStatus" name="civilStatus" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                    <option value="">Select Status</option>
-                    <option>Single</option>
-                    <option>Married</option>
-                    <option>Widowed</option>
-                    <option>Divorced</option>
-                    <option>Separated</option>
+                <div class="form-group">
+                  <label for="info_lastName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Last Name *
+                  </label>
+                  <input 
+                    id="info_lastName" 
+                    name="lastName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Enter last name" 
+                    pattern="[A-Za-z\s]{1,50}"
+                    title="Last name should contain only letters and spaces (max 50 characters)"
+                    required 
+                  />
+                </div>
+              </div>
+
+              <!-- Additional Name Information -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="form-group">
+                  <label for="info_suffix" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Suffix
+                  </label>
+                  <select id="info_suffix" name="suffix" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all">
+                    <option value="">Select Suffix</option>
+                    <option value="Jr.">Jr.</option>
+                    <option value="Sr.">Sr.</option>
+                    <option value="II">II</option>
+                    <option value="III">III</option>
+                    <option value="IV">IV</option>
                   </select>
                 </div>
-                <div>
-                  <label for="info_dob" class="block text-sm font-semibold text-slate-700 mb-1">
+                <div class="form-group">
+                  <label for="info_preferredName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Preferred Name
+                  </label>
+                  <input 
+                    id="info_preferredName" 
+                    name="preferredName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Nickname or preferred name" 
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_title" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Title
+                  </label>
+                  <select id="info_title" name="title" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all">
+                    <option value="">Select Title</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Ms.">Ms.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Dr.">Dr.</option>
+                    <option value="Prof.">Prof.</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_maidenName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Maiden Name
+                  </label>
+                  <input 
+                    id="info_maidenName" 
+                    name="maidenName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Maiden name (if applicable)" 
+                  />
+                </div>
+              </div>
+
+              <!-- Status and Demographics -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="info_civilStatus" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Civil Status *
+                  </label>
+                  <select id="info_civilStatus" name="civilStatus" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" required>
+                    <option value="">Select Civil Status</option>
+                    <option value="Single">💍 Single</option>
+                    <option value="Married">👫 Married</option>
+                    <option value="Widowed">🕯️ Widowed</option>
+                    <option value="Divorced">📄 Divorced</option>
+                    <option value="Separated">↔️ Separated</option>
+                    <option value="Common Law">🤝 Common Law</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_dob" class="block text-sm font-semibold text-slate-700 mb-2">
                     Date of Birth *
                   </label>
-                  <input 
-                    id="info_dob" 
-                    name="dob" 
-                    type="date" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
-                    required 
-                  />
+                  <div class="relative">
+                    <input 
+                      id="info_dob" 
+                      name="dob" 
+                      type="date" 
+                      class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                      max=""
+                      required 
+                    />
+                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      📅
+                    </div>
+                  </div>
+                  <div class="text-xs text-slate-500 mt-1">Must be a valid past date</div>
                 </div>
-                <div>
-                  <label for="info_age" class="block text-sm font-semibold text-slate-700 mb-1">Age</label>
-                  <input 
-                    id="info_age" 
-                    name="age" 
-                    type="number" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-slate-50" 
-                    readonly 
-                    placeholder="Auto-calculated"
-                  />
+              </div>
+
+              <!-- Age and Gender Information -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="form-group">
+                  <label for="info_age" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Age
+                  </label>
+                  <div class="relative">
+                    <input 
+                      id="info_age" 
+                      name="age" 
+                      type="number" 
+                      class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 bg-slate-50 transition-all" 
+                      readonly 
+                      placeholder="Auto-calculated"
+                    />
+                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                      🎂
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label for="info_gender" class="block text-sm font-semibold text-slate-700 mb-1">
+                <div class="form-group">
+                  <label for="info_gender" class="block text-sm font-semibold text-slate-700 mb-2">
                     Sex *
                   </label>
-                  <select id="info_gender" name="gender" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
-                    <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
+                  <select id="info_gender" name="gender" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" required>
+                    <option value="">Select Sex</option>
+                    <option value="Male">♂️ Male</option>
+                    <option value="Female">♀️ Female</option>
+                    <option value="Other">⚧️ Other</option>
+                    <option value="Prefer not to say">🤐 Prefer not to say</option>
                   </select>
                 </div>
-                <div>
-                  <label for="info_contact" class="block text-sm font-semibold text-slate-700 mb-1">
-                    Contact Number *
+                <div class="form-group">
+                  <label for="info_genderIdentity" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Gender Identity
+                  </label>
+                  <select id="info_genderIdentity" name="genderIdentity" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all">
+                    <option value="">Select Identity</option>
+                    <option value="Cisgender">Cisgender</option>
+                    <option value="Transgender">Transgender</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Gender fluid">Gender fluid</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_pronouns" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Pronouns
+                  </label>
+                  <select id="info_pronouns" name="pronouns" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all">
+                    <option value="">Select Pronouns</option>
+                    <option value="He/Him">He/Him</option>
+                    <option value="She/Her">She/Her</option>
+                    <option value="They/Them">They/Them</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl border border-teal-200 shadow-sm">
+              <h4 class="font-bold text-teal-800 mb-4 flex items-center gap-2">
+                📞 Contact Information
+                <span class="px-2 py-1 bg-teal-100 text-teal-700 text-xs rounded-full">Required</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="form-group">
+                  <label for="info_contact" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Primary Phone *
                   </label>
                   <input 
                     id="info_contact" 
                     name="contact" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    type="tel" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all" 
                     placeholder="+63 XXX XXX XXXX"
+                    pattern="[+]?[\d\s\-()]{10,15}"
+                    title="Please enter a valid phone number"
                     required 
                   />
                 </div>
-                <div>
-                  <label for="info_email" class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
-                  <input id="info_email" name="email" type="email" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="patient@email.com" />
-                </div>
-                <div class="sm:col-span-2">
-                  <label for="info_address" class="block text-sm font-semibold text-slate-700 mb-1">
-                    Home Address *
+                <div class="form-group">
+                  <label for="info_contactSecondary" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Secondary Phone
                   </label>
                   <input 
-                    id="info_address" 
-                    name="address" 
-                    class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
-                    placeholder="Complete address including city and postal code"
+                    id="info_contactSecondary" 
+                    name="contactSecondary" 
+                    type="tel" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all" 
+                    placeholder="+63 XXX XXX XXXX"
+                    pattern="[+]?[\d\s\-()]{10,15}"
+                    title="Please enter a valid phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_email" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Email Address
+                  </label>
+                  <input 
+                    id="info_email" 
+                    name="email" 
+                    type="email" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all" 
+                    placeholder="patient@example.com"
+                    title="Please enter a valid email address"
+                  />
+                </div>
+              </div>
+              
+              <!-- Emergency Contact -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                <div class="sm:col-span-2">
+                  <h5 class="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                    🚨 Emergency Contact
+                  </h5>
+                </div>
+                <div class="form-group">
+                  <label for="info_emergencyName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Contact Name *
+                  </label>
+                  <input 
+                    id="info_emergencyName" 
+                    name="emergencyName" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                    placeholder="Full name"
                     required 
                   />
                 </div>
-                <div>
-                  <label for="info_language" class="block text-sm font-semibold text-slate-700 mb-1">Primary Language</label>
-                  <input id="info_language" name="primaryLanguage" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="English, Filipino, etc." />
+                <div class="form-group">
+                  <label for="info_emergencyPhone" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input 
+                    id="info_emergencyPhone" 
+                    name="emergencyPhone" 
+                    type="tel" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                    placeholder="+63 XXX XXX XXXX"
+                    pattern="[+]?[\d\s\-()]{10,15}"
+                    title="Please enter a valid phone number"
+                    required 
+                  />
                 </div>
-                <div>
-                  <label for="info_ethnicity" class="block text-sm font-semibold text-slate-700 mb-1">Ethnicity / Religion</label>
-                  <input id="info_ethnicity" name="ethnicity" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-                </div>
-                <div>
-                  <label for="info_occupation" class="block text-sm font-semibold text-slate-700 mb-1">Occupation</label>
-                  <input id="info_occupation" name="occupation" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-                </div>
-                <div>
-                  <label for="info_employer" class="block text-sm font-semibold text-slate-700 mb-1">Employer</label>
-                  <input id="info_employer" name="employer" class="w-full rounded-lg px-3 py-2 border focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                <div class="form-group">
+                  <label for="info_emergencyRelation" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Relationship
+                  </label>
+                  <select id="info_emergencyRelation" name="emergencyRelation" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all">
+                    <option value="">Select Relationship</option>
+                    <option value="Spouse">👫 Spouse</option>
+                    <option value="Parent">👨‍👩‍👦 Parent</option>
+                    <option value="Child">👶 Child</option>
+                    <option value="Sibling">👫 Sibling</option>
+                    <option value="Friend">👥 Friend</option>
+                    <option value="Guardian">🛡️ Guardian</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <!-- Emergency Contact Section -->
-            <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h4 class="font-semibold text-red-800 mb-3">🚨 Emergency Contact</h4>
+            <!-- Address Information Section -->
+            <div class="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl border border-amber-200 shadow-sm">
+              <h4 class="font-bold text-amber-800 mb-4 flex items-center gap-2">
+                🏠 Address Information
+                <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Required</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 gap-4 mb-4">
+                <div class="form-group">
+                  <label for="info_address" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Street Address *
+                  </label>
+                  <input 
+                    id="info_address" 
+                    name="address" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" 
+                    placeholder="House/Unit number, Street name"
+                    required 
+                  />
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="form-group">
+                  <label for="info_city" class="block text-sm font-semibold text-slate-700 mb-2">
+                    City/Municipality *
+                  </label>
+                  <input 
+                    id="info_city" 
+                    name="city" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" 
+                    placeholder="City or Municipality"
+                    required 
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_province" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Province/State *
+                  </label>
+                  <input 
+                    id="info_province" 
+                    name="province" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" 
+                    placeholder="Province or State"
+                    required 
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_zipCode" class="block text-sm font-semibold text-slate-700 mb-2">
+                    ZIP/Postal Code
+                  </label>
+                  <input 
+                    id="info_zipCode" 
+                    name="zipCode" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" 
+                    placeholder="ZIP/Postal Code"
+                    pattern="[\d\-]{4,10}"
+                    title="Please enter a valid postal code"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_country" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Country *
+                  </label>
+                  <select id="info_country" name="country" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" required>
+                    <option value="">Select Country</option>
+                    <option value="Philippines">🇵🇭 Philippines</option>
+                    <option value="United States">🇺🇸 United States</option>
+                    <option value="Canada">🇨🇦 Canada</option>
+                    <option value="Australia">🇦🇺 Australia</option>
+                    <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                    <option value="Other">🌍 Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Demographics & Cultural Information Section -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-200 shadow-sm">
+              <h4 class="font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                🌍 Demographics & Cultural Information
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="form-group">
+                  <label for="info_language" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Primary Language *
+                  </label>
+                  <select id="info_language" name="primaryLanguage" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all" required>
+                    <option value="">Select Language</option>
+                    <option value="English">🇺🇸 English</option>
+                    <option value="Filipino">🇵🇭 Filipino</option>
+                    <option value="Tagalog">🇵🇭 Tagalog</option>
+                    <option value="Cebuano">🇵🇭 Cebuano</option>
+                    <option value="Ilocano">🇵🇭 Ilocano</option>
+                    <option value="Spanish">🇪🇸 Spanish</option>
+                    <option value="Chinese">🇨🇳 Chinese</option>
+                    <option value="Other">🌍 Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_secondaryLanguage" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Secondary Language
+                  </label>
+                  <select id="info_secondaryLanguage" name="secondaryLanguage" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all">
+                    <option value="">Select Language</option>
+                    <option value="English">🇺🇸 English</option>
+                    <option value="Filipino">🇵🇭 Filipino</option>
+                    <option value="Tagalog">🇵🇭 Tagalog</option>
+                    <option value="Cebuano">🇵🇭 Cebuano</option>
+                    <option value="Ilocano">🇵🇭 Ilocano</option>
+                    <option value="Spanish">🇪🇸 Spanish</option>
+                    <option value="Chinese">🇨🇳 Chinese</option>
+                    <option value="Other">🌍 Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_ethnicity" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Ethnicity
+                  </label>
+                  <select id="info_ethnicity" name="ethnicity" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all">
+                    <option value="">Select Ethnicity</option>
+                    <option value="Filipino">🇵🇭 Filipino</option>
+                    <option value="Chinese">🇨🇳 Chinese</option>
+                    <option value="Spanish">🇪🇸 Spanish</option>
+                    <option value="American">🇺🇸 American</option>
+                    <option value="Japanese">🇯🇵 Japanese</option>
+                    <option value="Korean">🇰🇷 Korean</option>
+                    <option value="Indian">🇮🇳 Indian</option>
+                    <option value="Mixed">🌍 Mixed</option>
+                    <option value="Other">❓ Other</option>
+                    <option value="Prefer not to say">🤐 Prefer not to say</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_religion" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Religion
+                  </label>
+                  <select id="info_religion" name="religion" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all">
+                    <option value="">Select Religion</option>
+                    <option value="Catholic">✝️ Catholic</option>
+                    <option value="Protestant">✝️ Protestant</option>
+                    <option value="Islam">☪️ Islam</option>
+                    <option value="Buddhism">☸️ Buddhism</option>
+                    <option value="Hinduism">🕉️ Hinduism</option>
+                    <option value="Judaism">✡️ Judaism</option>
+                    <option value="Iglesia ni Cristo">⛪ Iglesia ni Cristo</option>
+                    <option value="Born Again">✝️ Born Again</option>
+                    <option value="Other Christian">✝️ Other Christian</option>
+                    <option value="Other">❓ Other</option>
+                    <option value="None">🚫 None/Atheist</option>
+                    <option value="Prefer not to say">🤐 Prefer not to say</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="info_nationality" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Nationality
+                  </label>
+                  <select id="info_nationality" name="nationality" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all">
+                    <option value="">Select Nationality</option>
+                    <option value="Filipino">🇵🇭 Filipino</option>
+                    <option value="American">🇺🇸 American</option>
+                    <option value="Canadian">🇨🇦 Canadian</option>
+                    <option value="Australian">🇦🇺 Australian</option>
+                    <option value="British">🇬🇧 British</option>
+                    <option value="Japanese">🇯🇵 Japanese</option>
+                    <option value="Korean">🇰🇷 Korean</option>
+                    <option value="Chinese">🇨🇳 Chinese</option>
+                    <option value="Other">🌍 Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Employment Information Section -->
+            <div class="bg-gradient-to-br from-yellow-50 to-amber-50 p-6 rounded-xl border border-yellow-200 shadow-sm">
+              <h4 class="font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                💼 Employment Information
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="form-group">
+                  <label for="info_occupation" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Occupation
+                  </label>
+                  <input 
+                    id="info_occupation" 
+                    name="occupation" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all" 
+                    placeholder="Job title or occupation"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_employer" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Employer/Company
+                  </label>
+                  <input 
+                    id="info_employer" 
+                    name="employer" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all" 
+                    placeholder="Company or organization name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_workAddress" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Work Address
+                  </label>
+                  <input 
+                    id="info_workAddress" 
+                    name="workAddress" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all" 
+                    placeholder="Work location"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_workPhone" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Work Phone
+                  </label>
+                  <input 
+                    id="info_workPhone" 
+                    name="workPhone" 
+                    type="tel" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all" 
+                    placeholder="+63 XXX XXX XXXX"
+                    pattern="[+]?[\d\s\-()]{10,15}"
+                    title="Please enter a valid phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="info_employmentStatus" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Employment Status
+                  </label>
+                  <select id="info_employmentStatus" name="employmentStatus" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all">
+                    <option value="">Select Status</option>
+                    <option value="Employed Full-time">💼 Employed Full-time</option>
+                    <option value="Employed Part-time">🕐 Employed Part-time</option>
+                    <option value="Self-employed">🏢 Self-employed</option>
+                    <option value="Unemployed">❌ Unemployed</option>
+                    <option value="Student">� Student</option>
+                    <option value="Retired">🏖️ Retired</option>
+                    <option value="Disabled">♿ Disabled</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skip duplicate Emergency Contact Section -->
+            <div style="display: none;">
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label for="info_emg_name" class="block text-sm font-semibold text-slate-700 mb-1">
@@ -745,44 +1415,275 @@
 
         <!-- 2 • Identification & Insurance -->
         <div id="tab-id" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">2 • Identification & Insurance</h3>
-          <form id="form-id" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-semibold">Primary Government ID</label>
-              <select id="id_govIdType" name="govIdType" class="mt-1 w-full rounded-lg px-3 py-2 border">
-                <option value="">Select ID</option>
-                <option>Driver's License</option>
-                <option>Passport</option>
-                <option>National ID</option>
-                <option>Voter ID</option>
-              </select>
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              2 • Identification & Insurance
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-slate-600">
+              <span>Form Status:</span>
+              <span id="idFormStatus" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">Incomplete</span>
             </div>
-            <div>
-              <label class="text-sm font-semibold">Government ID No.</label>
-              <input id="id_govIdNo" name="govIdNo" class="mt-1 w-full rounded-lg px-3 py-2 border"/>
+          </div>
+          
+          <form id="form-id" class="space-y-6">
+            <!-- Government Identification Section -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                🪪 Government Identification
+                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Required</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="id_govIdType" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Primary Government ID *
+                  </label>
+                  <select id="id_govIdType" name="govIdType" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" required>
+                    <option value="">Select Government ID</option>
+                    <option value="Driver's License">🚗 Driver's License</option>
+                    <option value="Passport">🛂 Passport</option>
+                    <option value="National ID">🆔 National ID (PhilID)</option>
+                    <option value="Voter ID">🗳️ Voter's ID</option>
+                    <option value="SSS ID">📋 SSS ID</option>
+                    <option value="GSIS ID">🏛️ GSIS ID</option>
+                    <option value="TIN ID">📊 TIN ID</option>
+                    <option value="Postal ID">📮 Postal ID</option>
+                    <option value="Senior Citizen ID">👴 Senior Citizen ID</option>
+                    <option value="PWD ID">♿ PWD ID</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="id_govIdNo" class="block text-sm font-semibold text-slate-700 mb-2">
+                    ID Number *
+                  </label>
+                  <input 
+                    id="id_govIdNo" 
+                    name="govIdNo" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="Enter ID number"
+                    pattern="[A-Za-z0-9\-]{6,20}"
+                    title="ID number should be 6-20 characters (letters, numbers, and hyphens only)"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_govIdExpiry" class="block text-sm font-semibold text-slate-700 mb-2">
+                    ID Expiry Date
+                  </label>
+                  <input 
+                    id="id_govIdExpiry" 
+                    name="govIdExpiry" 
+                    type="date" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_placeOfIssue" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Place of Issue
+                  </label>
+                  <input 
+                    id="id_placeOfIssue" 
+                    name="placeOfIssue" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="City/Province where ID was issued"
+                  />
+                </div>
+              </div>
+              
+              <!-- Secondary ID -->
+              <div class="mt-6 p-4 bg-blue-25 rounded-lg border border-blue-100">
+                <h5 class="font-semibold text-blue-800 mb-3">📄 Secondary ID (Optional)</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="form-group">
+                    <label for="id_secondaryIdType" class="block text-sm font-semibold text-slate-700 mb-2">
+                      Secondary ID Type
+                    </label>
+                    <select id="id_secondaryIdType" name="secondaryIdType" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all">
+                      <option value="">Select Secondary ID</option>
+                      <option value="Birth Certificate">📜 Birth Certificate</option>
+                      <option value="Marriage Certificate">💒 Marriage Certificate</option>
+                      <option value="Barangay Certificate">🏘️ Barangay Certificate</option>
+                      <option value="Company ID">🏢 Company ID</option>
+                      <option value="School ID">🎓 School ID</option>
+                      <option value="Other">❓ Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="id_secondaryIdNo" class="block text-sm font-semibold text-slate-700 mb-2">
+                      Secondary ID Number
+                    </label>
+                    <input 
+                      id="id_secondaryIdNo" 
+                      name="secondaryIdNo" 
+                      class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                      placeholder="Enter secondary ID number"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="text-sm font-semibold">Insurance Provider</label>
-              <input id="id_insProvider" name="insuranceProvider" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Insurer name" />
-            </div>
-            <div>
-              <label class="text-sm font-semibold">Policy / Member No.</label>
-              <input id="id_policyNo" name="policyNo" class="mt-1 w-full rounded-lg px-3 py-2 border" />
+            <!-- Insurance Information Section -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
+              <h4 class="font-bold text-green-800 mb-4 flex items-center gap-2">
+                🏥 Insurance Information
+              </h4>
+              
+              <div class="grid grid-cols-1 gap-4 mb-4">
+                <div class="form-group">
+                  <label for="id_coverageType" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Coverage Type *
+                  </label>
+                  <select id="id_coverageType" name="coverageType" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" required>
+                    <option value="">Select Coverage Type</option>
+                    <option value="PhilHealth">🏛️ PhilHealth (Government)</option>
+                    <option value="Private Insurance">🏢 Private Insurance</option>
+                    <option value="HMO">⚕️ HMO (Health Maintenance Organization)</option>
+                    <option value="Corporate Plan">🏢 Corporate Health Plan</option>
+                    <option value="Medicare">👴 Medicare</option>
+                    <option value="Medicaid">🏥 Medicaid</option>
+                    <option value="Self-pay">💰 Self-pay / No Insurance</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="id_insProvider" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Insurance Provider
+                  </label>
+                  <input 
+                    id="id_insProvider" 
+                    name="insuranceProvider" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="e.g., PhilHealth, Maxicare, Intellicare"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_policyNo" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Policy / Member Number
+                  </label>
+                  <input 
+                    id="id_policyNo" 
+                    name="policyNo" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Enter policy or member number"
+                    pattern="[A-Za-z0-9\-]{6,25}"
+                    title="Policy number should be 6-25 characters"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_groupNumber" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Group Number
+                  </label>
+                  <input 
+                    id="id_groupNumber" 
+                    name="groupNumber" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Group or company code"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_effectiveDate" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Effective Date
+                  </label>
+                  <input 
+                    id="id_effectiveDate" 
+                    name="effectiveDate" 
+                    type="date" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_expiryDate" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Expiry Date
+                  </label>
+                  <input 
+                    id="id_expiryDate" 
+                    name="expiryDate" 
+                    type="date" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_copayAmount" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Co-pay Amount (₱)
+                  </label>
+                  <input 
+                    id="id_copayAmount" 
+                    name="copayAmount" 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="text-sm font-semibold">Coverage Type</label>
-              <select id="id_coverageType" name="coverageType" class="mt-1 w-full rounded-lg px-3 py-2 border">
-                <option value="Private">Private</option>
-                <option value="Government">Government / PhilHealth</option>
-                <option value="HMO">HMO</option>
-                <option value="None">None / Self-pay</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm font-semibold">Guarantor / Responsible Party</label>
-              <input id="id_guarantor" name="guarantor" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Name / relation" />
+            <!-- Guarantor/Responsible Party Section -->
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200 shadow-sm">
+              <h4 class="font-bold text-orange-800 mb-4 flex items-center gap-2">
+                👥 Guarantor / Responsible Party
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="id_guarantor" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Guarantor Name
+                  </label>
+                  <input 
+                    id="id_guarantor" 
+                    name="guarantor" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all" 
+                    placeholder="Full name of responsible party"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_guarantorRelation" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Relationship to Patient
+                  </label>
+                  <select id="id_guarantorRelation" name="guarantorRelation" class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all">
+                    <option value="">Select Relationship</option>
+                    <option value="Self">👤 Self</option>
+                    <option value="Spouse">👫 Spouse</option>
+                    <option value="Parent">👨‍👩‍👦 Parent</option>
+                    <option value="Child">👶 Child</option>
+                    <option value="Sibling">👫 Sibling</option>
+                    <option value="Guardian">🛡️ Legal Guardian</option>
+                    <option value="Employer">🏢 Employer</option>
+                    <option value="Other">❓ Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="id_guarantorPhone" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Guarantor Phone
+                  </label>
+                  <input 
+                    id="id_guarantorPhone" 
+                    name="guarantorPhone" 
+                    type="tel" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all" 
+                    placeholder="+63 XXX XXX XXXX"
+                    pattern="[+]?[\d\s\-()]{10,15}"
+                    title="Please enter a valid phone number"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="id_guarantorAddress" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Guarantor Address
+                  </label>
+                  <input 
+                    id="id_guarantorAddress" 
+                    name="guarantorAddress" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all" 
+                    placeholder="Complete address"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
@@ -803,73 +1704,228 @@
 
         <!-- 3 • Medical History -->
         <div id="tab-history" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">3 • Medical History</h3>
-          <form id="form-history" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="sm:col-span-2">
-              <label class="text-sm">Chief Complaint</label>
-              <div class="flex gap-2 items-center">
-                <input name="chiefComplaint" class="flex-1 rounded-lg p-3 border" placeholder="Main reason for visit" />
-                <label class="text-sm">Pain</label>
-                <select name="painScale" class="w-24 rounded-lg p-2 border" title="Pain scale 1-10 or N/A">
-                  <option value="na">N/A</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                </select>
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              3 • Medical History
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-slate-600">
+              <span>Completion:</span>
+              <span id="historyProgress" class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full font-medium">0%</span>
+            </div>
+          </div>
+          
+          <form id="form-history" class="space-y-6">
+            <!-- Chief Complaint & Present Illness -->
+            <div class="bg-gradient-to-br from-red-50 to-pink-50 p-6 rounded-xl border border-red-200 shadow-sm">
+              <h4 class="font-bold text-red-800 mb-4 flex items-center gap-2">
+                🩺 Chief Complaint & Present Illness
+                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Critical</span>
+              </h4>
+              
+              <div class="space-y-4">
+                <div class="form-group">
+                  <label for="chiefComplaint" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Chief Complaint *
+                  </label>
+                  <div class="flex gap-3 items-start">
+                    <input 
+                      id="chiefComplaint" 
+                      name="chiefComplaint" 
+                      class="flex-1 rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                      placeholder="Main reason for today's visit (e.g., chest pain, fever, cough)"
+                      required
+                    />
+                    <div class="flex flex-col items-center gap-1 min-w-[100px]">
+                      <label class="text-xs font-semibold text-slate-700">Pain Scale</label>
+                      <select 
+                        id="painScale" 
+                        name="painScale" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all text-center font-bold"
+                        title="Pain scale: 0 = No pain, 10 = Worst imaginable pain"
+                      >
+                        <option value="na">N/A</option>
+                        <option value="0">0️⃣ None</option>
+                        <option value="1">1️⃣ Mild</option>
+                        <option value="2">2️⃣</option>
+                        <option value="3">3️⃣</option>
+                        <option value="4">4️⃣ Moderate</option>
+                        <option value="5">5️⃣</option>
+                        <option value="6">6️⃣</option>
+                        <option value="7">7️⃣ Severe</option>
+                        <option value="8">8️⃣</option>
+                        <option value="9">9️⃣</option>
+                        <option value="10">🔟 Worst</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="historyPresentIllness" class="block text-sm font-semibold text-slate-700 mb-2">
+                    History of Present Illness *
+                  </label>
+                  <textarea 
+                    id="historyPresentIllness" 
+                    name="historyPresentIllness" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                    placeholder="Describe: Onset (when did it start?), Duration, Character, Aggravating/Relieving factors, Associated symptoms, Previous episodes"
+                    required
+                  ></textarea>
+                  <div class="text-xs text-slate-500 mt-1">Include: onset, duration, character, location, radiation, timing, context, modifying factors, associated signs/symptoms</div>
+                </div>
               </div>
             </div>
-            <div class="sm:col-span-2">
-              <label class="text-sm">History of Present Illness</label>
-              <textarea name="historyPresentIllness" class="w-full rounded-lg p-3 border" placeholder="Onset, progression, associated symptoms"></textarea>
+
+            <!-- Past Medical & Surgical History -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                📚 Past Medical & Surgical History
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="pastMedicalHistory" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Past Medical History
+                  </label>
+                  <textarea 
+                    id="pastMedicalHistory" 
+                    name="pastMedicalHistory" 
+                    rows="3" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="List chronic conditions: diabetes, hypertension, asthma, etc. Include dates if known"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="pastSurgicalHistory" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Past Surgical History
+                  </label>
+                  <textarea 
+                    id="pastSurgicalHistory" 
+                    name="pastSurgicalHistory" 
+                    rows="3" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="List surgeries with dates and complications (if any)"
+                  ></textarea>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="text-sm">Past Medical History</label>
-              <input name="pastMedicalHistory" class="w-full rounded-lg p-2 border" placeholder="List chronic illnesses" />
-            </div>
-            <div>
-              <label class="text-sm">Past Surgical History</label>
-              <input name="pastSurgicalHistory" class="w-full rounded-lg p-2 border" placeholder="Surgeries and dates" />
-            </div>
-
-            <div>
-              <label class="text-sm">Current Medications</label>
-              <input name="currentMedications" class="w-full rounded-lg p-2 border" placeholder="Name, dose, frequency" />
-            </div>
-            <div>
-              <label class="text-sm">Allergies / Reactions</label>
-              <input name="allergySummary" class="w-full rounded-lg p-2 border" placeholder="Agent and reaction" />
-            </div>
-
-            <div>
-              <label class="text-sm">Social History</label>
-              <input name="socialHistory" class="w-full rounded-lg p-2 border" placeholder="Smoking / alcohol / occupation" />
-            </div>
-            <div>
-              <label class="text-sm">Family History</label>
-              <input name="familyHistory" class="w-full rounded-lg p-2 border" placeholder="Significant hereditary conditions" />
-            </div>
-
-            <div class="sm:col-span-2">
-              <label class="text-sm">Vaccine / Immunization History</label>
-              <textarea name="vaccineHistory" class="w-full rounded-lg p-3 border" placeholder="COVID-19, Flu, Hepatitis B, Tetanus, etc. (with dates if available)"></textarea>
-            </div>
-
-            <div class="sm:col-span-2">
-              <label class="text-sm">Review of Systems (brief)</label>
-              <textarea name="reviewOfSystems" class="w-full rounded-lg p-3 border" placeholder="Constitutional, Cardio, Resp., GI, GU, Neuro etc."></textarea>
+            <!-- Current Medications & Allergies -->
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-200 shadow-sm">
+              <h4 class="font-bold text-purple-800 mb-4 flex items-center gap-2">
+                💊 Medications & Allergies
+                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">Important</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="currentMedications" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Current Medications
+                  </label>
+                  <textarea 
+                    id="currentMedications" 
+                    name="currentMedications" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="List all current medications including:&#10;• Name, strength, frequency&#10;• Over-the-counter medications&#10;• Vitamins and supplements&#10;• Herbal remedies"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="allergySummary" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Allergies & Adverse Reactions
+                  </label>
+                  <textarea 
+                    id="allergySummary" 
+                    name="allergySummary" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="List allergies and reactions:&#10;• Drug allergies (specify reaction)&#10;• Food allergies&#10;• Environmental allergies&#10;• No known allergies (NKDA)"
+                  ></textarea>
+                </div>
+              </div>
             </div>
 
-            <div class="sm:col-span-2 mt-2 flex gap-2">
-              <button type="button" data-save="history" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Medical History</button>
-              <button type="button" id="clearHistory" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            <!-- Social & Family History -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
+              <h4 class="font-bold text-green-800 mb-4 flex items-center gap-2">
+                👥 Social & Family History
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="socialHistory" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Social History
+                  </label>
+                  <textarea 
+                    id="socialHistory" 
+                    name="socialHistory" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Include:&#10;• Tobacco use (packs/day, years)&#10;• Alcohol consumption&#10;• Recreational drugs&#10;• Occupation & exposures&#10;• Living situation&#10;• Exercise habits"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="familyHistory" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Family History
+                  </label>
+                  <textarea 
+                    id="familyHistory" 
+                    name="familyHistory" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Significant family medical history:&#10;• Heart disease, diabetes, cancer&#10;• Genetic disorders&#10;• Mental health conditions&#10;• Age and cause of death (if applicable)"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Immunizations & Review of Systems -->
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200 shadow-sm">
+              <h4 class="font-bold text-orange-800 mb-4 flex items-center gap-2">
+                💉 Immunizations & Review of Systems
+              </h4>
+              
+              <div class="space-y-4">
+                <div class="form-group">
+                  <label for="vaccineHistory" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Immunization History
+                  </label>
+                  <textarea 
+                    id="vaccineHistory" 
+                    name="vaccineHistory" 
+                    rows="3" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all" 
+                    placeholder="Recent and important immunizations with dates:&#10;COVID-19, Influenza, Pneumonia, Hepatitis A/B, Tetanus/Diphtheria, MMR, etc."
+                  ></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label for="reviewOfSystems" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Review of Systems
+                  </label>
+                  <textarea 
+                    id="reviewOfSystems" 
+                    name="reviewOfSystems" 
+                    rows="4" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 transition-all" 
+                    placeholder="Systematic review by organ system:&#10;• Constitutional (fever, weight loss/gain, fatigue)&#10;• Cardiovascular, Respiratory, Gastrointestinal&#10;• Genitourinary, Neurological, Musculoskeletal&#10;• Skin, Psychiatric, Endocrine"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-3 pt-4 border-t border-slate-200">
+              <button type="button" data-save="history" class="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg hover:shadow-xl">
+                💾 Save Medical History
+              </button>
+              <button type="button" id="clearHistory" class="px-6 py-3 bg-white text-slate-700 font-semibold rounded-lg border-2 border-slate-300 hover:bg-slate-50 transition-all">
+                🗑️ Clear Form
+              </button>
+              <button type="button" id="printHistory" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-lg hover:shadow-xl">
+                🖨️ Print History
+              </button>
             </div>
           </form>
         </div>
@@ -983,167 +2039,895 @@
 
         <!-- 4 • Physical Assessment -->
         <div id="tab-physical" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">4 • Physical Assessment</h3>
-          <form id="form-physical" class="grid grid-cols-1 gap-3">
-            
-            <!-- Height, Weight, BMI Section -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
-              <div>
-                <label for="physical_weight" class="text-sm font-semibold">Weight (kg)</label>
-                <input id="physical_weight" name="weight" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 72.5" />
-              </div>
-              <div>
-                <label for="physical_height" class="text-sm font-semibold">Height (cm)</label>
-                <input id="physical_height" name="height" type="number" step="0.1" min="0" class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="e.g., 175" />
-              </div>
-              <div>
-                <label for="physical_bmi" class="text-sm font-semibold">BMI</label>
-                <input id="physical_bmi" name="bmi" type="text" readonly class="mt-1 w-full rounded-lg px-3 py-2 border bg-slate-100" placeholder="Auto-calculated" />
-              </div>
-              <div>
-                <label class="text-sm font-semibold">BMI Category</label>
-                <div id="physical_bmiCategory" class="mt-1 text-sm text-slate-600">—</div>
-              </div>
-            </div>
-
-            <!-- Initial/Primary Diagnosis -->
+          <div class="flex items-center justify-between mb-6">
             <div>
-              <label for="physical_initialDiagnosis" class="text-sm font-semibold">Initial / Primary Diagnosis *</label>
-              <input id="physical_initialDiagnosis" name="initialDiagnosis" required class="mt-1 w-full rounded-lg px-3 py-2 border" placeholder="Initial diagnosis / impression" />
+              <h3 class="text-2xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+                4 • Physical Assessment
+              </h3>
+              <p class="text-sm text-slate-500 mt-1">Comprehensive physical examination and vital measurements</p>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-slate-600">
+              <span>Assessment Status:</span>
+              <span id="physicalFormStatus" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">Incomplete</span>
+            </div>
+          </div>
+          
+          <form id="form-physical" class="space-y-6">
+            
+            <!-- Vital Measurements Section -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                📏 Vital Measurements
+                <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Auto-calculations</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="form-group">
+                  <label for="physical_weight" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Weight (kg) *
+                  </label>
+                  <input 
+                    id="physical_weight" 
+                    name="weight" 
+                    type="number" 
+                    step="0.1" 
+                    min="0" 
+                    max="300"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="e.g., 72.5"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="physical_height" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Height (cm) *
+                  </label>
+                  <input 
+                    id="physical_height" 
+                    name="height" 
+                    type="number" 
+                    step="0.1" 
+                    min="0" 
+                    max="250"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="e.g., 175"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="physical_bmi" class="block text-sm font-semibold text-slate-700 mb-2">
+                    BMI
+                  </label>
+                  <input 
+                    id="physical_bmi" 
+                    name="bmi" 
+                    type="text" 
+                    readonly 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 bg-slate-50 transition-all" 
+                    placeholder="Auto-calculated"
+                  />
+                  <div id="physical_bmiCategory" class="text-xs mt-1 font-medium">—</div>
+                </div>
+                <div class="form-group">
+                  <label for="physical_bodyFat" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Body Fat % (Optional)
+                  </label>
+                  <input 
+                    id="physical_bodyFat" 
+                    name="bodyFat" 
+                    type="number" 
+                    step="0.1" 
+                    min="0" 
+                    max="50"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                    placeholder="e.g., 15.2"
+                  />
+                </div>
+              </div>
             </div>
 
-            <!-- Physical Assessment Fields -->
-            <div>
-              <label class="text-sm font-semibold">General Appearance</label>
-              <textarea name="physical_appearance" class="w-full rounded-lg p-3 border" placeholder="General appearance, distress, posture"></textarea>
+            <!-- Primary Assessment Section -->
+            <div class="bg-gradient-to-br from-red-50 to-pink-50 p-6 rounded-xl border border-red-200 shadow-sm">
+              <h4 class="font-bold text-red-800 mb-4 flex items-center gap-2">
+                🩺 Primary Assessment
+                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Required</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 gap-4">
+                <div class="form-group">
+                  <label for="physical_initialDiagnosis" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Initial / Primary Diagnosis *
+                  </label>
+                  <input 
+                    id="physical_initialDiagnosis" 
+                    name="initialDiagnosis" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                    placeholder="Primary clinical impression or diagnosis"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="physical_chiefComplaint" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Chief Complaint
+                  </label>
+                  <textarea 
+                    id="physical_chiefComplaint" 
+                    name="chiefComplaint" 
+                    rows="2"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all" 
+                    placeholder="Patient's primary concern or reason for visit"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Systems Examination Section -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
+              <h4 class="font-bold text-green-800 mb-4 flex items-center gap-2">
+                🔍 Systems Examination
+              </h4>
+              
+              <!-- General Appearance -->
+              <div class="form-group mb-4">
+                <label for="physical_appearance" class="block text-sm font-semibold text-slate-700 mb-2">
+                  General Appearance & Mental Status
+                </label>
+                <textarea 
+                  id="physical_appearance" 
+                  name="physical_appearance" 
+                  rows="3"
+                  class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                  placeholder="General appearance, level of distress, mental status, orientation, cooperation..."
+                ></textarea>
+              </div>
+              
+              <!-- Cardiovascular & Respiratory -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                <div class="form-group">
+                  <label for="physical_cv" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Cardiovascular System
+                  </label>
+                  <textarea 
+                    id="physical_cv" 
+                    name="physical_cv" 
+                    rows="4"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Heart rate, rhythm, heart sounds, murmurs, peripheral pulses, capillary refill..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="physical_lungs" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Respiratory System
+                  </label>
+                  <textarea 
+                    id="physical_lungs" 
+                    name="physical_lungs" 
+                    rows="4"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Respiratory rate, effort, chest expansion, breath sounds, adventitious sounds..."
+                  ></textarea>
+                </div>
+              </div>
+              
+              <!-- Abdominal & GI -->
+              <div class="form-group mb-4">
+                <label for="physical_abdomen" class="block text-sm font-semibold text-slate-700 mb-2">
+                  Abdominal & Gastrointestinal System
+                </label>
+                <textarea 
+                  id="physical_abdomen" 
+                  name="physical_abdomen" 
+                  rows="3"
+                  class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                  placeholder="Inspection, palpation findings, tenderness, masses, organomegaly, bowel sounds..."
+                ></textarea>
+              </div>
+              
+              <!-- Neurological & Extremities -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="physical_neuro" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Neurological System
+                  </label>
+                  <textarea 
+                    id="physical_neuro" 
+                    name="physical_neuro" 
+                    rows="4"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Cranial nerves, motor strength, sensation, reflexes, coordination, gait..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="physical_extremities" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Extremities & Musculoskeletal
+                  </label>
+                  <textarea 
+                    id="physical_extremities" 
+                    name="physical_extremities" 
+                    rows="4"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                    placeholder="Range of motion, deformities, edema, muscle tone, joint stability..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Systems Section -->
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-200 shadow-sm">
+              <h4 class="font-bold text-purple-800 mb-4 flex items-center gap-2">
+                🔬 Additional Systems
+              </h4>
+              
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label for="physical_skin" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Skin & Integumentary
+                  </label>
+                  <textarea 
+                    id="physical_skin" 
+                    name="physical_skin" 
+                    rows="3"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Color, texture, lesions, rashes, wounds, temperature..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="physical_heent" class="block text-sm font-semibold text-slate-700 mb-2">
+                    HEENT (Head, Eyes, Ears, Nose, Throat)
+                  </label>
+                  <textarea 
+                    id="physical_heent" 
+                    name="physical_heent" 
+                    rows="3"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Pupils, extraocular movements, hearing, throat, lymph nodes..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="physical_genitourinary" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Genitourinary System
+                  </label>
+                  <textarea 
+                    id="physical_genitourinary" 
+                    name="physical_genitourinary" 
+                    rows="3"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Urinary symptoms, renal function, reproductive health (if applicable)..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="physical_other" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Other Findings
+                  </label>
+                  <textarea 
+                    id="physical_other" 
+                    name="physical_other" 
+                    rows="3"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all" 
+                    placeholder="Any additional findings or observations..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <button 
+                type="button" 
+                data-save="physical" 
+                class="flex-1 px-6 py-3 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-2"
+              >
+                💾 Save Physical Assessment
+              </button>
+              <button 
+                type="button" 
+                id="validatePhysical" 
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                ✓ Validate
+              </button>
+              <button 
+                type="button" 
+                id="clearPhysical" 
+                class="px-6 py-3 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors"
+              >
+                🗑️ Clear
+              </button>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="text-sm font-semibold">Chest / Lungs</label>
-                <textarea name="physical_lungs" class="w-full rounded-lg p-3 border" placeholder="Auscultation"></textarea>
-              </div>
-              <div>
-                <label class="text-sm font-semibold">Cardiovascular</label>
-                <textarea name="physical_cv" class="w-full rounded-lg p-3 border" placeholder="Heart sounds, murmurs"></textarea>
-              </div>
-            </div>
-            
-            <div>
-              <label class="text-sm font-semibold">Abdomen / GI</label>
-              <textarea name="physical_abdomen" class="w-full rounded-lg p-3 border" placeholder="Tenderness, masses, bowel sounds"></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="text-sm font-semibold">Neurological</label>
-                <textarea name="physical_neuro" class="w-full rounded-lg p-3 border" placeholder="Mental status, reflexes, sensation"></textarea>
-              </div>
-              <div>
-                <label class="text-sm font-semibold">Extremities</label>
-                <textarea name="physical_extremities" class="w-full rounded-lg p-3 border" placeholder="Edema, pulses, mobility"></textarea>
-              </div>
-            </div>
-
-            <div class="mt-3">
-              <button type="button" data-save="physical" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Physical Assessment</button>
-            </div>
+            <!-- Form Status -->
+            <div id="physicalStatus" class="hidden p-3 rounded-lg"></div>
           </form>
         </div>
 
         <!-- 7 • Labs -->
+        <!-- 7 • Laboratory & Diagnostics -->
         <div id="tab-labs" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">7 • Laboratory & Diagnostics</h3>
-          <form id="form-labs" class="grid grid-cols-1 gap-3">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <input name="lab_test" placeholder="Test / Imaging (e.g., CBC, Chest X-ray)" class="rounded-lg p-2 border" />
-              <select name="lab_priority" class="rounded-lg p-2 border"><option>Routine</option><option>Urgent</option><option>Stat</option></select>
-              <input name="lab_specimen" placeholder="Specimen (blood, urine, swab)" class="rounded-lg p-2 border" />
-            </div>
-
+          <div class="flex items-center justify-between mb-6">
             <div>
-              <label class="text-sm">Indication / Clinical Notes</label>
-              <textarea name="lab_indication" class="w-full rounded-lg p-3 border" placeholder="Why the test was ordered"></textarea>
+              <h3 class="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                7 • Laboratory & Diagnostics
+              </h3>
+              <p class="text-sm text-slate-500 mt-1">Order tests, upload results, and manage diagnostic imaging</p>
             </div>
-
-            <div class="mt-3 flex items-center gap-2">
-              <input accept="image/*,.pdf" id="labFileInput" type="file"/>
-              <button type="button" id="uploadLabBtn" class="ml-2 px-3 py-1 rounded-lg bg-white border">⬆️ Upload</button>
+            <div class="flex items-center gap-2 text-sm text-slate-600">
+              <span>Lab Status:</span>
+              <span id="labFormStatus" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">Active</span>
             </div>
-            <div id="uploadProgress" class="mt-2 hidden">
-              <div class="w-full bg-slate-200 rounded h-2 overflow-hidden">
-                <div id="uploadProgressBar" class="h-2 bg-sky-600 w-0"></div>
+          </div>
+          
+          <form id="form-labs" class="space-y-6">
+            
+            <!-- Lab Order Section -->
+            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl border border-teal-200 shadow-sm">
+              <h4 class="font-bold text-teal-800 mb-4 flex items-center gap-2">
+                🧪 Laboratory Orders
+                <span class="px-2 py-1 bg-teal-100 text-teal-700 text-xs rounded-full">CPOE System</span>
+              </h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="form-group">
+                  <label for="lab_test" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Test / Imaging *
+                  </label>
+                  <select 
+                    id="lab_test" 
+                    name="lab_test" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all"
+                    required
+                  >
+                    <option value="">Select Test Type</option>
+                    <optgroup label="🩸 Hematology">
+                      <option value="CBC">CBC (Complete Blood Count)</option>
+                      <option value="CBC with Diff">CBC with Differential</option>
+                      <option value="PT/PTT">PT/PTT/INR</option>
+                      <option value="ESR">ESR (Erythrocyte Sedimentation Rate)</option>
+                    </optgroup>
+                    <optgroup label="🧪 Chemistry">
+                      <option value="Basic Metabolic Panel">Basic Metabolic Panel</option>
+                      <option value="Comprehensive Metabolic Panel">Comprehensive Metabolic Panel</option>
+                      <option value="Lipid Panel">Lipid Panel</option>
+                      <option value="Liver Function">Liver Function Tests</option>
+                      <option value="Thyroid Function">Thyroid Function Tests</option>
+                      <option value="HbA1c">HbA1c</option>
+                      <option value="Glucose">Glucose (Random/Fasting)</option>
+                    </optgroup>
+                    <optgroup label="🦠 Microbiology">
+                      <option value="Blood Culture">Blood Culture</option>
+                      <option value="Urine Culture">Urine Culture</option>
+                      <option value="Wound Culture">Wound Culture</option>
+                      <option value="Sputum Culture">Sputum Culture</option>
+                    </optgroup>
+                    <optgroup label="📸 Imaging">
+                      <option value="Chest X-ray">Chest X-ray</option>
+                      <option value="Abdominal X-ray">Abdominal X-ray</option>
+                      <option value="CT Scan">CT Scan</option>
+                      <option value="MRI">MRI</option>
+                      <option value="Ultrasound">Ultrasound</option>
+                      <option value="ECG">ECG/EKG</option>
+                      <option value="Echo">Echocardiogram</option>
+                    </optgroup>
+                    <optgroup label="🔬 Other">
+                      <option value="Urinalysis">Urinalysis</option>
+                      <option value="Stool Analysis">Stool Analysis</option>
+                      <option value="Arterial Blood Gas">Arterial Blood Gas (ABG)</option>
+                      <option value="Custom">Custom Test (specify below)</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="lab_priority" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Priority *
+                  </label>
+                  <select 
+                    id="lab_priority" 
+                    name="lab_priority" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all"
+                    required
+                  >
+                    <option value="">Select Priority</option>
+                    <option value="Routine">🟢 Routine (24-48 hours)</option>
+                    <option value="Urgent">🟡 Urgent (2-4 hours)</option>
+                    <option value="Stat">🔴 STAT (Immediate)</option>
+                    <option value="Timed">⏰ Timed Collection</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="lab_specimen" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Specimen Type
+                  </label>
+                  <select 
+                    id="lab_specimen" 
+                    name="lab_specimen" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all"
+                  >
+                    <option value="">Select Specimen</option>
+                    <option value="Blood">🩸 Blood (Venous)</option>
+                    <option value="Blood Arterial">🩸 Blood (Arterial)</option>
+                    <option value="Urine">💧 Urine</option>
+                    <option value="Stool">💩 Stool</option>
+                    <option value="Sputum">🫁 Sputum</option>
+                    <option value="Wound Swab">🩹 Wound Swab</option>
+                    <option value="Throat Swab">👄 Throat Swab</option>
+                    <option value="CSF">🧠 Cerebrospinal Fluid</option>
+                    <option value="Tissue">🔬 Tissue</option>
+                    <option value="N/A">N/A (Imaging)</option>
+                  </select>
+                </div>
               </div>
-              <div id="uploadProgressText" class="text-sm text-slate-500 mt-1">0%</div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div class="form-group">
+                  <label for="lab_customTest" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Custom Test Name
+                  </label>
+                  <input 
+                    id="lab_customTest" 
+                    name="lab_customTest" 
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all" 
+                    placeholder="Enter custom test name (if selected above)"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="lab_orderDateTime" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Order Date & Time
+                  </label>
+                  <input 
+                    id="lab_orderDateTime" 
+                    name="lab_orderDateTime" 
+                    type="datetime-local"
+                    class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div class="form-group mt-4">
+                <label for="lab_indication" class="block text-sm font-semibold text-slate-700 mb-2">
+                  Clinical Indication / Notes *
+                </label>
+                <textarea 
+                  id="lab_indication" 
+                  name="lab_indication" 
+                  rows="3"
+                  class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-teal-100 focus:border-teal-500 transition-all" 
+                  placeholder="Clinical reason for ordering this test, relevant symptoms, differential diagnosis..."
+                  required
+                ></textarea>
+              </div>
             </div>
 
-            <div id="labFilesList" class="mt-3 flex flex-wrap gap-2"></div>
+            <!-- Results Upload Section -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+              <h4 class="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                📄 Results & Documentation
+              </h4>
+              
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- File Upload -->
+                <div class="space-y-4">
+                  <div class="form-group">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                      Upload Lab Results / Images
+                    </label>
+                    <div class="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                      <input 
+                        accept="image/*,.pdf,.doc,.docx,.txt" 
+                        id="labFileInput" 
+                        type="file" 
+                        multiple
+                        class="hidden"
+                      />
+                      <label for="labFileInput" class="cursor-pointer">
+                        <div class="text-4xl mb-2">📁</div>
+                        <div class="text-sm font-medium text-blue-600">Click to upload files</div>
+                        <div class="text-xs text-slate-500 mt-1">PDF, Images, Documents (Max 10MB each)</div>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    type="button" 
+                    id="uploadLabBtn" 
+                    class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    ⬆️ Upload Selected Files
+                  </button>
+                  
+                  <div id="uploadProgress" class="hidden">
+                    <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                      <div id="uploadProgressBar" class="h-3 bg-blue-600 w-0 transition-all duration-300"></div>
+                    </div>
+                    <div id="uploadProgressText" class="text-sm text-slate-600 mt-2 text-center">0%</div>
+                  </div>
+                </div>
+                
+                <!-- Manual Results Entry -->
+                <div class="space-y-4">
+                  <div class="form-group">
+                    <label for="lab_results" class="block text-sm font-semibold text-slate-700 mb-2">
+                      Manual Results Entry
+                    </label>
+                    <textarea 
+                      id="lab_results" 
+                      name="lab_results" 
+                      rows="6"
+                      class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all font-mono text-sm" 
+                      placeholder="Enter lab results manually:&#10;&#10;WBC: 8.5 x10³/μL&#10;RBC: 4.2 x10⁶/μL&#10;Hgb: 12.8 g/dL&#10;Hct: 38.5%&#10;..."
+                    ></textarea>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="lab_interpretation" class="block text-sm font-semibold text-slate-700 mb-2">
+                      Interpretation / Comments
+                    </label>
+                    <textarea 
+                      id="lab_interpretation" 
+                      name="lab_interpretation" 
+                      rows="3"
+                      class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all" 
+                      placeholder="Clinical interpretation, significance, follow-up recommendations..."
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Uploaded Files Display -->
+              <div id="labFilesList" class="mt-6">
+                <h5 class="text-sm font-semibold text-slate-700 mb-3">Uploaded Files:</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="labFilesGrid">
+                  <!-- Files will be displayed here -->
+                </div>
+              </div>
+            </div>
 
-            <div class="mt-3 flex gap-2">
-              <button type="button" data-save="labs" class="px-4 py-2 bg-sky-600 text-white rounded-lg">💾 Save Labs</button>
-              <button type="button" id="clearLabs" class="px-4 py-2 bg-white rounded-lg border">Clear</button>
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <button 
+                type="button" 
+                data-save="labs" 
+                class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+              >
+                💾 Save Lab Order
+              </button>
+              <button 
+                type="button" 
+                id="addLabOrder" 
+                class="px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors"
+              >
+                ➕ Add Another
+              </button>
+              <button 
+                type="button" 
+                id="clearLabs" 
+                class="px-6 py-3 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors"
+              >
+                🗑️ Clear Form
+              </button>
+            </div>
+            
+            <!-- Lab Orders History -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <h5 class="font-semibold text-slate-700 mb-3">📋 Recent Lab Orders</h5>
+              <div id="labOrdersHistory" class="space-y-2">
+                <div class="text-sm text-slate-500 italic">No lab orders yet</div>
+              </div>
+            </div>
+            
+            <!-- Lab Trends and Analytics -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200">
+              <h5 class="font-semibold text-indigo-700 mb-3">📈 Lab Trends & Analytics</h5>
+              <div id="labTrendsDisplay" class="space-y-3">
+                <div class="text-sm text-slate-500 italic">No trend data available</div>
+              </div>
+              
+              <!-- Quick Lab Analysis Tools -->
+              <div class="mt-4 pt-4 border-t border-indigo-200">
+                <h6 class="font-medium text-indigo-700 mb-2">Quick Analysis Tools</h6>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button 
+                    type="button" 
+                    onclick="labResultsManager.generateLabSummary()" 
+                    class="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-lg hover:bg-indigo-200 transition-colors text-sm"
+                  >
+                    📊 Generate Lab Summary
+                  </button>
+                  <button 
+                    type="button" 
+                    onclick="labResultsManager.exportLabData()" 
+                    class="px-3 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                  >
+                    📤 Export Lab Data
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
         </div>
 
         <!-- 6 • Medication & IV Order -->
         <div id="tab-meds" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">6 • Medication & IV Order</h3>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <!-- Left: CPOE form -->
-            <div class="p-3 rounded border bg-white/50">
-              <div class="text-sm font-semibold mb-2">CPOE — Enter New Medication Order</div>
-              <form id="medCPOEForm" class="space-y-2">
-                <div class="grid grid-cols-2 gap-2">
-                  <input id="cpoe_drug" name="drug" placeholder="Drug name" class="w-full rounded border px-2 py-1" required />
-                  <input id="cpoe_dosage" name="dosage" placeholder="Dose (e.g., 500 mg)" class="w-full rounded border px-2 py-1" />
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <select id="cpoe_route" name="route" class="w-full rounded border px-2 py-1"><option value="IV">IV</option><option value="PO">PO</option><option value="IM">IM</option><option value="SC">SC</option></select>
-                  <input id="cpoe_frequency" name="frequency" placeholder="Frequency (e.g., q4h, daily)" class="w-full rounded border px-2 py-1" />
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <input id="cpoe_start" name="startDate" type="date" class="w-full rounded border px-2 py-1" />
-                  <input id="cpoe_duration" name="duration" placeholder="Duration (e.g., 5 days)" class="w-full rounded border px-2 py-1" />
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                6 • Medication & IV Order
+              </h3>
+              <p class="text-sm text-slate-500 mt-1">Computerized Provider Order Entry with clinical decision support</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                CDS Active
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Enhanced CPOE form with safety checks -->
+            <div class="space-y-4">
+              <div class="p-4 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="text-xl">💊</span>
+                  <div class="text-lg font-bold text-green-800">CPOE - New Order</div>
                 </div>
                 
-                <!-- IV Fluids Section -->
-                <div class="bg-blue-50 p-2 rounded">
-                  <div class="text-xs font-semibold mb-2 text-blue-700">IV FLUIDS</div>
-                  <div class="grid grid-cols-1 gap-2">
-                    <select id="cpoe_iv_fluid" name="iv_fluid" class="w-full rounded border px-2 py-1">
-                      <option value="">— Select IV Fluid —</option>
-                      <option>NS (Normal Saline, 0.9% NaCl)</option>
-                      <option>0.45% NaCl (Half Normal Saline)</option>
-                      <option>LR or LRS (Lactated Ringer's Solution)</option>
-                      <option>D5LR (5% Dextrose & Lactate Ringer)</option>
-                      <option>D5W (Dextrose 5% in Water)</option>
-                      <option>D5NS (Dextrose 5% in Normal Saline)</option>
-                      <option>D5 0.45% NaCl (Dextrose 5% in Half Normal Saline)</option>
-                      <option>D10W (Dextrose 10% in Water)</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-1">
-                      <input id="cpoe_iv_ml_hr" name="iv_ml_hr" placeholder="mL/hr" class="w-full rounded border px-2 py-1" />
-                      <input id="cpoe_iv_gtt_min" name="iv_gtt_min" placeholder="gtt/min" class="w-full rounded border px-2 py-1" />
+                <form id="medCPOEForm" class="space-y-3">
+                  <!-- Drug name with autocomplete -->
+                  <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-700">Drug Name *</label>
+                    <div class="relative">
+                      <input 
+                        id="cpoe_drug" 
+                        name="drug" 
+                        placeholder="Start typing drug name..." 
+                        class="w-full rounded-lg px-4 py-3 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                        required 
+                        list="drugList"
+                      />
+                      <datalist id="drugList">
+                        <option value="Paracetamol (Acetaminophen)">
+                        <option value="Ibuprofen">
+                        <option value="Aspirin">
+                        <option value="Amoxicillin">
+                        <option value="Omeprazole">
+                        <option value="Simvastatin">
+                        <option value="Metformin">
+                        <option value="Lisinopril">
+                        <option value="Amlodipine">
+                        <option value="Atorvastatin">
+                        <option value="Furosemide">
+                        <option value="Warfarin">
+                        <option value="Digoxin">
+                        <option value="Insulin">
+                        <option value="Morphine">
+                      </datalist>
+                      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <span id="drugSafetyIcon" class="text-gray-400">💊</span>
+                      </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-1">
-                      <input id="cpoe_iv_volume" name="iv_volume" placeholder="IV volume (mL)" class="w-full rounded border px-2 py-1" />
-                      <input id="cpoe_iv_time" name="iv_time" placeholder="Infusion time (hrs)" class="w-full rounded border px-2 py-1" />
+                    <div id="drugSafetyAlerts" class="space-y-1"></div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Dosage</label>
+                      <input 
+                        id="cpoe_dosage" 
+                        name="dosage" 
+                        placeholder="e.g., 500 mg" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Route</label>
+                      <select 
+                        id="cpoe_route" 
+                        name="route" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                      >
+                        <option value="">Select Route</option>
+                        <option value="PO">💊 PO (Oral)</option>
+                        <option value="IV">💉 IV (Intravenous)</option>
+                        <option value="IM">🔹 IM (Intramuscular)</option>
+                        <option value="SC">🔸 SC (Subcutaneous)</option>
+                        <option value="SL">👅 SL (Sublingual)</option>
+                        <option value="PR">🔻 PR (Rectal)</option>
+                        <option value="Topical">🧴 Topical</option>
+                        <option value="Inhaled">💨 Inhaled</option>
+                      </select>
                     </div>
                   </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-2 items-center">
-                  <select id="cpoe_prn" name="prn" class="w-full rounded border px-2 py-1"><option value="No">Scheduled</option><option value="Yes">PRN</option></select>
-                  <input id="cpoe_prescriber" name="prescriber" placeholder="Nurse Full Name" class="w-full rounded border px-2 py-1" />
-                </div>
-                <div class="flex gap-2">
-                  <button type="button" id="addMedOrderBtn" class="px-3 py-1 bg-white rounded border">➕ Add Order</button>
-                  <button type="button" id="sendToPharmacy" class="px-3 py-1 bg-amber-400 text-white rounded">Send to Pharmacy</button>
-                  <button type="button" id="cpoeClear" class="px-3 py-1 btn-ghost">Clear</button>
-                </div>
-                <div id="medAlerts" class="mt-2 text-sm"></div>
-              </form>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Frequency</label>
+                      <select 
+                        id="cpoe_frequency" 
+                        name="frequency" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                      >
+                        <option value="">Select Frequency</option>
+                        <option value="STAT">⚡ STAT (Immediately)</option>
+                        <option value="Daily">📅 Daily</option>
+                        <option value="BID">🔄 BID (Twice daily)</option>
+                        <option value="TID">⏰ TID (Three times daily)</option>
+                        <option value="QID">🕐 QID (Four times daily)</option>
+                        <option value="Q4H">⏱️ Q4H (Every 4 hours)</option>
+                        <option value="Q6H">⏲️ Q6H (Every 6 hours)</option>
+                        <option value="Q8H">⏰ Q8H (Every 8 hours)</option>
+                        <option value="Q12H">🕐 Q12H (Every 12 hours)</option>
+                        <option value="PRN">🆘 PRN (As needed)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Priority</label>
+                      <select 
+                        id="cpoe_priority" 
+                        name="priority" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                      >
+                        <option value="Routine">📋 Routine</option>
+                        <option value="Urgent">⚠️ Urgent</option>
+                        <option value="STAT">🚨 STAT</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Start Date</label>
+                      <input 
+                        id="cpoe_start" 
+                        name="startDate" 
+                        type="date" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Duration</label>
+                      <input 
+                        id="cpoe_duration" 
+                        name="duration" 
+                        placeholder="e.g., 5 days, 2 weeks" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Dosing Guidelines Panel -->
+                  <div id="dosingGuidelines" class="hidden p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <h5 class="font-semibold text-blue-800 mb-2">📖 Dosing Guidelines</h5>
+                    <div id="dosingContent" class="text-sm text-blue-700"></div>
+                  </div>
+
+                  <!-- IV Fluids Section (Enhanced) -->
+                  <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="text-lg">💧</span>
+                      <div class="text-sm font-bold text-blue-800">IV FLUIDS</div>
+                    </div>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block text-xs font-semibold text-blue-700 mb-1">IV Fluid Type</label>
+                        <select 
+                          id="cpoe_iv_fluid" 
+                          name="iv_fluid" 
+                          class="w-full rounded-lg px-3 py-2 border-2 border-blue-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-sm"
+                        >
+                          <option value="">— Select IV Fluid —</option>
+                          <option value="NS">🧂 NS (Normal Saline, 0.9% NaCl)</option>
+                          <option value="0.45% NaCl">💧 0.45% NaCl (Half Normal Saline)</option>
+                          <option value="LR">🔄 LR (Lactated Ringer's Solution)</option>
+                          <option value="D5LR">🍯 D5LR (5% Dextrose & Lactate Ringer)</option>
+                          <option value="D5W">🍯 D5W (Dextrose 5% in Water)</option>
+                          <option value="D5NS">🍯 D5NS (Dextrose 5% in Normal Saline)</option>
+                          <option value="D5 0.45% NaCl">🍯 D5 0.45% NaCl</option>
+                          <option value="D10W">🍯 D10W (Dextrose 10% in Water)</option>
+                        </select>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-xs font-semibold text-blue-700 mb-1">Rate (mL/hr)</label>
+                          <input 
+                            id="cpoe_iv_ml_hr" 
+                            name="iv_ml_hr" 
+                            type="number" 
+                            step="0.1" 
+                            placeholder="125" 
+                            class="w-full rounded-lg px-3 py-2 border-2 border-blue-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-sm" 
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold text-blue-700 mb-1">Drops (gtt/min)</label>
+                          <input 
+                            id="cpoe_iv_gtt_min" 
+                            name="iv_gtt_min" 
+                            type="number" 
+                            step="1" 
+                            placeholder="31" 
+                            class="w-full rounded-lg px-3 py-2 border-2 border-blue-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-sm" 
+                          />
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-xs font-semibold text-blue-700 mb-1">Volume (mL)</label>
+                          <input 
+                            id="cpoe_iv_volume" 
+                            name="iv_volume" 
+                            type="number" 
+                            placeholder="1000" 
+                            class="w-full rounded-lg px-3 py-2 border-2 border-blue-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-sm" 
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold text-blue-700 mb-1">Time (hrs)</label>
+                          <input 
+                            id="cpoe_iv_time" 
+                            name="iv_time" 
+                            type="number" 
+                            step="0.5" 
+                            placeholder="8" 
+                            class="w-full rounded-lg px-3 py-2 border-2 border-blue-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-sm" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">PRN Status</label>
+                      <select 
+                        id="cpoe_prn" 
+                        name="prn" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all"
+                      >
+                        <option value="No">📅 Scheduled</option>
+                        <option value="Yes">🆘 PRN (As Needed)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-semibold text-slate-700 mb-1">Ordering Provider</label>
+                      <input 
+                        id="cpoe_prescriber" 
+                        name="prescriber" 
+                        placeholder="Provider name" 
+                        class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all" 
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="flex flex-col gap-2 pt-3 border-t border-green-200">
+                    <button 
+                      type="button" 
+                      id="addMedOrderBtn" 
+                      class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      ➕ Add to Orders
+                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button 
+                        type="button" 
+                        id="sendToPharmacy" 
+                        class="px-3 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
+                      >
+                        📤 Send to Pharmacy
+                      </button>
+                      <button 
+                        type="button" 
+                        id="cpoeClear" 
+                        class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                      >
+                        🗑️ Clear Form
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Clinical Decision Support Alerts -->
+              <div id="medAlerts" class="space-y-2"></div>
             </div>
 
             <!-- Center: Active medication list -->
@@ -1720,18 +3504,6 @@
       setupSearchFilters();
       setupTimelineFilters();
       updateLastUpdated();
-      
-      // Auto-fill current date/time for admission
-      const admissionDate = document.getElementById('info_admissionDate');
-      const admissionTime = document.getElementById('info_admissionTime');
-      
-      if (admissionDate && !admissionDate.value) {
-        admissionDate.value = new Date().toISOString().split('T')[0];
-      }
-      
-      if (admissionTime && !admissionTime.value) {
-        admissionTime.value = new Date().toTimeString().slice(0, 5);
-      }
       
       // Wire up demo data button
       const demoBtn = document.getElementById('autoFillDemo');

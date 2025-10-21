@@ -193,12 +193,277 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 6px 18px rgba(11,116,2
   transition: all 0.3s ease;
 }
 
-/* Physical Assessment BMI Section */
-.physical-bmi-section {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+/* Tab buttons and navigation styling */
+.tab-btn {
+  padding: 8px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.tab-btn:hover:not(.active) {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* Department management styling */
+.department-card {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.department-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.department-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--emerald-500);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.department-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Bed status indicators */
+.bed-card {
+  transition: all 0.2s ease;
+}
+
+.bed-card:hover {
+  transform: scale(1.02);
+}
+
+/* Medication safety styling */
+.med-safety-alert {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Enhanced form styling for medication CPOE */
+.cpoe-form input:focus,
+.cpoe-form select:focus {
+  border-color: var(--emerald-500);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.cpoe-form .safety-warning {
+  border-left: 4px solid #f59e0b;
+  background: #fef3c7;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.cpoe-form .safety-error {
+  border-left: 4px solid #ef4444;
+  background: #fee2e2;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+/* Enhanced medication table */
+.med-table th {
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+  font-weight: 600;
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 2px solid var(--emerald-200);
+}
+
+.med-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+.med-table tr:hover {
+  background: var(--emerald-25);
+}
+
+/* High-risk medication highlighting */
+.high-risk-med {
+  background: linear-gradient(90deg, #fef3c7 0%, #fef3c7 4px, transparent 4px);
+  border-left: 4px solid #f59e0b;
+}
+
+.critical-alert-med {
+  background: linear-gradient(90deg, #fee2e2 0%, #fee2e2 4px, transparent 4px);
+  border-left: 4px solid #ef4444;
+}
+
+/* Department statistics cards */
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive department grid */
+@media (max-width: 768px) {
+  .departments-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .department-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .departments-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .departments-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Enhanced tooltips for medication safety */
+.med-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.med-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.med-tooltip:hover::after {
+  opacity: 1;
+}
+
+/* Bed assignment modal styling */
+.bed-assignment-modal {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.bed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.bed-item {
+  padding: 1rem;
+  border: 2px solid transparent;
   border-radius: 8px;
-  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bed-item.available {
+  background: var(--green-50);
+  border-color: var(--green-200);
+}
+
+.bed-item.occupied {
+  background: var(--red-50);
+  border-color: var(--red-200);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bed-item.selected {
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading states */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced alert styling */
+.clinical-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  margin-bottom: 8px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.clinical-alert.critical {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.clinical-alert.warning {
+  background: #fffbeb;
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.clinical-alert.info {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* IV Fluids Section in CPOE */
@@ -432,13 +697,7 @@ textarea[name="vaccineHistory"] {
 .timeline-event .dot { width:12px; height:12px; border-radius:999px; background: linear-gradient(180deg,var(--neon-cyan), var(--neon-violet)); box-shadow: 0 6px 18px rgba(99,102,241,0.18); }
 .timeline-legend { display:flex; gap:8px; margin-top:8px; font-size:12px; color:rgba(255,255,255,0.8); }
 
-/* Floating FAB */
-.fab-wrap { position: fixed; right: 20px; bottom: 24px; z-index: 80; }
-.fab { width:64px; height:64px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:28px; color:white; box-shadow: 0 12px 30px rgba(16,24,40,0.4); cursor:pointer; transition: transform .18s ease, box-shadow .2s ease; }
-.fab:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(14,165,233,0.18); }
-.fab-menu { position: absolute; right: 0; bottom: 80px; display:flex; flex-direction:column; gap:8px; align-items:flex-end; opacity:0; transform: translateY(6px) scale(.98); transition: opacity .18s ease, transform .18s ease; pointer-events:none; }
-.fab-menu.open { opacity:1; transform: translateY(0) scale(1); pointer-events:auto; }
-.fab-action { background: rgba(255,255,255,0.95); color:#072; padding:8px 12px; border-radius:12px; display:inline-flex; gap:8px; align-items:center; font-weight:600; }
+
 
 /* Toasts */
 #toastContainer { right:18px; bottom:18px; left:auto; position:fixed; z-index:100; display:flex; flex-direction:column-reverse; gap:8px; }
@@ -1468,4 +1727,150 @@ textarea:focus-visible {
   background: var(--blue-50);
   border-color: var(--blue-400);
   color: var(--blue-800);
+}
+
+/* Enhanced Lab Results Styling */
+.lab-result-input {
+  transition: all 0.3s ease;
+}
+
+.lab-result-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-interpretation {
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Lab order status indicators */
+.lab-order-status {
+  position: relative;
+  overflow: hidden;
+}
+
+.lab-order-status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.lab-order-status:hover::before {
+  left: 100%;
+}
+
+/* Structured lab form animations */
+#structuredLabEntry {
+  animation: slideInDown 0.4s ease;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Lab trends chart styling */
+.lab-trends-container {
+  position: relative;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0;
+}
+
+.lab-trends-entry {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.lab-trends-entry:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Critical value alerts */
+.critical-value {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Lab file upload improvements */
+.lab-file-preview {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lab-file-preview:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Lab structured results grid styling */
+#structuredResultsGrid .space-y-2 > div {
+  transition: all 0.2s ease;
+}
+
+#structuredResultsGrid .space-y-2 > div:hover {
+  transform: translateY(-2px);
+}
+
+/* Enhanced lab interpretation colors */
+.text-green-600 {
+  color: #059669 !important;
+  font-weight: 600;
+}
+
+.text-orange-600 {
+  color: #ea580c !important;
+  font-weight: 600;
+}
+
+.text-red-600 {
+  color: #dc2626 !important;
+  font-weight: 700;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }

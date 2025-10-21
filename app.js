@@ -45,6 +45,11 @@ let vitalsRows = [];
 let uploadedLabs = [];
 let isSaving = false;
 
+// Department and bed management
+let departments = [];
+let beds = [];
+let selectedDepartment = null;
+
 // -------------------- Helpers --------------------
 const $ = id => document.getElementById(id);
 function qs(sel) { return document.querySelector(sel); }
@@ -82,6 +87,1805 @@ function on(id, event, fn){
 // safe query add
 function onSel(sel, event, fn){
   qsa(sel).forEach(el=>el.addEventListener(event, fn));
+}
+
+// -------------------- Department & Bed Management --------------------
+// Initialize default departments and beds
+const defaultDepartments = [
+  {
+    id: 'emergency',
+    name: 'Emergency Department',
+    code: 'ER',
+    description: 'Emergency and urgent care services',
+    color: '#dc2626',
+    icon: '🚨',
+    capacity: 20,
+    type: 'emergency'
+  },
+  {
+    id: 'icu',
+    name: 'Intensive Care Unit',
+    code: 'ICU',
+    description: 'Critical care and monitoring',
+    color: '#7c2d12',
+    icon: '🏥',
+    capacity: 12,
+    type: 'critical'
+  },
+  {
+    id: 'general-ward',
+    name: 'General Ward',
+    code: 'GW',
+    description: 'General medical and surgical care',
+    color: '#059669',
+    icon: '🛏️',
+    capacity: 40,
+    type: 'general'
+  },
+  {
+    id: 'surgery',
+    name: 'Surgery Department',
+    code: 'SURG',
+    description: 'Pre/post-operative care',
+    color: '#2563eb',
+    icon: '⚕️',
+    capacity: 15,
+    type: 'surgery'
+  },
+  {
+    id: 'pediatrics',
+    name: 'Pediatrics',
+    code: 'PEDS',
+    description: 'Child and adolescent care',
+    color: '#7c3aed',
+    icon: '👶',
+    capacity: 25,
+    type: 'pediatrics'
+  },
+  {
+    id: 'maternity',
+    name: 'Maternity Ward',
+    code: 'MAT',
+    description: 'Obstetrics and gynecology',
+    color: '#db2777',
+    icon: '🤱',
+    capacity: 18,
+    type: 'maternity'
+  },
+  {
+    id: 'cardiology',
+    name: 'Cardiology',
+    code: 'CARD',
+    description: 'Heart and cardiovascular care',
+    color: '#dc2626',
+    icon: '❤️',
+    capacity: 16,
+    type: 'specialty'
+  },
+  {
+    id: 'orthopedics',
+    name: 'Orthopedics',
+    code: 'ORTHO',
+    description: 'Bone and joint care',
+    color: '#ea580c',
+    icon: '🦴',
+    capacity: 14,
+    type: 'specialty'
+  }
+];
+
+// Generate beds for each department
+function generateBedsForDepartment(dept) {
+  const beds = [];
+  for (let i = 1; i <= dept.capacity; i++) {
+    const bedNumber = `${dept.code}-${i.toString().padStart(2, '0')}`;
+    beds.push({
+      id: `${dept.id}-bed-${i}`,
+      number: bedNumber,
+      departmentId: dept.id,
+      departmentName: dept.name,
+      status: 'available', // available, occupied, maintenance, reserved
+      patientId: null,
+      patientName: null,
+      roomType: i <= Math.ceil(dept.capacity * 0.2) ? 'private' : 'shared',
+      amenities: ['bed', 'monitor', 'oxygen'],
+      lastCleaned: new Date().toISOString(),
+      notes: ''
+    });
+  }
+  return beds;
+}
+
+// Initialize departments and beds
+async function initializeDepartments() {
+  try {
+    // Check if departments already exist
+    const deptSnapshot = await db.collection('departments').get();
+    if (deptSnapshot.empty) {
+      // Create default departments
+      const batch = db.batch();
+      defaultDepartments.forEach(dept => {
+        const deptRef = db.collection('departments').doc(dept.id);
+        batch.set(deptRef, {
+          ...dept,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      await batch.commit();
+      showToast('Departments initialized successfully', 'success');
+    }
+    
+    // Load departments
+    await loadDepartments();
+    
+    // Check if beds already exist
+    const bedsSnapshot = await db.collection('beds').get();
+    if (bedsSnapshot.empty) {
+      // Generate and create beds
+      const allBeds = [];
+      defaultDepartments.forEach(dept => {
+        allBeds.push(...generateBedsForDepartment(dept));
+      });
+      
+      const bedBatch = db.batch();
+      allBeds.forEach(bed => {
+        const bedRef = db.collection('beds').doc(bed.id);
+        bedBatch.set(bedRef, {
+          ...bed,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      await bedBatch.commit();
+      showToast('Beds initialized successfully', 'success');
+    }
+    
+    // Load beds
+    await loadBeds();
+    
+  } catch (error) {
+    console.error('Error initializing departments:', error);
+    showToast('Failed to initialize departments', 'error');
+  }
+}
+
+// Load departments from database
+async function loadDepartments() {
+  try {
+    const snapshot = await db.collection('departments').orderBy('name').get();
+    departments = [];
+    snapshot.forEach(doc => {
+      departments.push({ id: doc.id, ...doc.data() });
+    });
+    renderDepartments();
+  } catch (error) {
+    console.error('Error loading departments:', error);
+    showToast('Failed to load departments', 'error');
+  }
+}
+
+// Load beds from database
+async function loadBeds() {
+  try {
+    const snapshot = await db.collection('beds').orderBy('number').get();
+    beds = [];
+    snapshot.forEach(doc => {
+      beds.push({ id: doc.id, ...doc.data() });
+    });
+    renderBedStatus();
+  } catch (error) {
+    console.error('Error loading beds:', error);
+    showToast('Failed to load beds', 'error');
+  }
+}
+
+// Assign patient to bed
+async function assignPatientToBed(patientId, bedId) {
+  try {
+    const patient = patients.find(p => p.id === patientId);
+    const bed = beds.find(b => b.id === bedId);
+    
+    if (!patient || !bed) {
+      throw new Error('Patient or bed not found');
+    }
+    
+    if (bed.status === 'occupied') {
+      throw new Error('Bed is already occupied');
+    }
+    
+    // Update bed status
+    await db.collection('beds').doc(bedId).update({
+      status: 'occupied',
+      patientId: patientId,
+      patientName: patient.name,
+      assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Update patient with bed assignment
+    await db.collection('patients').doc(patientId).update({
+      bedId: bedId,
+      bedNumber: bed.number,
+      departmentId: bed.departmentId,
+      departmentName: bed.departmentName,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    showToast(`${patient.name} assigned to bed ${bed.number}`, 'success');
+    await loadBeds();
+    await loadPatients();
+    
+  } catch (error) {
+    console.error('Error assigning patient to bed:', error);
+    showToast('Failed to assign patient to bed: ' + error.message, 'error');
+  }
+}
+
+// Discharge patient from bed
+async function dischargePatientFromBed(patientId) {
+  try {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient || !patient.bedId) {
+      throw new Error('Patient not found or not assigned to a bed');
+    }
+    
+    // Update bed status
+    await db.collection('beds').doc(patient.bedId).update({
+      status: 'available',
+      patientId: null,
+      patientName: null,
+      assignedAt: null,
+      dischargedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Update patient
+    await db.collection('patients').doc(patientId).update({
+      bedId: firebase.firestore.FieldValue.delete(),
+      bedNumber: firebase.firestore.FieldValue.delete(),
+      departmentId: firebase.firestore.FieldValue.delete(),
+      departmentName: firebase.firestore.FieldValue.delete(),
+      dischargedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      patientStatus: 'Discharged',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    showToast(`${patient.name} discharged from bed`, 'success');
+    await loadBeds();
+    await loadPatients();
+    
+  } catch (error) {
+    console.error('Error discharging patient:', error);
+    showToast('Failed to discharge patient: ' + error.message, 'error');
+  }
+}
+
+// Render departments in UI
+function renderDepartments() {
+  const container = document.getElementById('departmentsContainer');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  departments.forEach(dept => {
+    const occupiedBeds = beds.filter(b => b.departmentId === dept.id && b.status === 'occupied').length;
+    const availableBeds = dept.capacity - occupiedBeds;
+    const occupancyRate = ((occupiedBeds / dept.capacity) * 100).toFixed(1);
+    
+    const deptCard = document.createElement('div');
+    deptCard.className = 'department-card p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg';
+    deptCard.style.borderColor = dept.color + '40';
+    deptCard.style.backgroundColor = dept.color + '10';
+    
+    deptCard.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl">${dept.icon}</div>
+          <div>
+            <h3 class="font-bold text-slate-800">${dept.name}</h3>
+            <p class="text-xs text-slate-500">${dept.code}</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold" style="color: ${dept.color}">${occupiedBeds}/${dept.capacity}</div>
+          <div class="text-xs text-slate-500">${occupancyRate}% occupied</div>
+        </div>
+      </div>
+      
+      <div class="space-y-2">
+        <div class="text-sm text-slate-600">${dept.description}</div>
+        <div class="flex justify-between text-sm">
+          <span class="text-green-600">✓ ${availableBeds} Available</span>
+          <span class="text-blue-600">👥 ${occupiedBeds} Occupied</span>
+        </div>
+      </div>
+    `;
+    
+    deptCard.addEventListener('click', () => {
+      selectedDepartment = dept.id;
+      showDepartmentDetails(dept.id);
+    });
+    
+    container.appendChild(deptCard);
+  });
+}
+
+// Show department details modal
+function showDepartmentDetails(departmentId) {
+  const dept = departments.find(d => d.id === departmentId);
+  if (!dept) return;
+  
+  const deptBeds = beds.filter(b => b.departmentId === departmentId);
+  const deptPatients = patients.filter(p => p.departmentId === departmentId);
+  
+  const modal = document.getElementById('modalBody');
+  if (!modal) return;
+  
+  modal.innerHTML = `
+    <div class="department-details p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="text-3xl">${dept.icon}</div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">${dept.name}</h2>
+          <p class="text-slate-600">${dept.description}</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="stat-card bg-blue-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-blue-600">${dept.capacity}</div>
+          <div class="text-sm text-blue-500">Total Beds</div>
+        </div>
+        <div class="stat-card bg-green-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-green-600">${deptBeds.filter(b => b.status === 'available').length}</div>
+          <div class="text-sm text-green-500">Available</div>
+        </div>
+        <div class="stat-card bg-red-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-red-600">${deptBeds.filter(b => b.status === 'occupied').length}</div>
+          <div class="text-sm text-red-500">Occupied</div>
+        </div>
+      </div>
+      
+      <div class="tabs mb-4">
+        <button class="tab-btn active" onclick="showDepartmentTab('beds')">Bed Status</button>
+        <button class="tab-btn" onclick="showDepartmentTab('patients')">Current Patients</button>
+      </div>
+      
+      <div id="departmentTabContent">
+        ${renderDepartmentBeds(deptBeds)}
+      </div>
+      
+      <div class="flex justify-end gap-2 mt-6">
+        <button onclick="closeModal()" class="px-4 py-2 bg-gray-100 rounded-lg">Close</button>
+        <button onclick="showBedAssignmentModal('${departmentId}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Assign Patient</button>
+      </div>
+    </div>
+  `;
+  
+  showEmptyModal();
+}
+
+// Render bed status for department
+function renderDepartmentBeds(deptBeds) {
+  return `
+    <div class="bed-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      ${deptBeds.map(bed => `
+        <div class="bed-card p-3 rounded-lg border-2 ${getBedStatusClass(bed.status)}">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold">${bed.number}</div>
+            <div class="text-xs px-2 py-1 rounded-full ${getBedStatusBadge(bed.status)}">
+              ${bed.status.toUpperCase()}
+            </div>
+          </div>
+          
+          ${bed.patientName ? `
+            <div class="text-sm text-slate-600">
+              <div class="font-medium">${bed.patientName}</div>
+              <div class="text-xs">${bed.roomType} room</div>
+            </div>
+          ` : `
+            <div class="text-sm text-slate-400">
+              ${bed.roomType} room
+            </div>
+          `}
+          
+          ${bed.status === 'occupied' ? `
+            <button onclick="dischargePatientFromBed('${bed.patientId}')" 
+                    class="mt-2 text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+              Discharge
+            </button>
+          ` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function getBedStatusClass(status) {
+  switch (status) {
+    case 'available': return 'border-green-300 bg-green-50';
+    case 'occupied': return 'border-red-300 bg-red-50';
+    case 'maintenance': return 'border-yellow-300 bg-yellow-50';
+    case 'reserved': return 'border-blue-300 bg-blue-50';
+    default: return 'border-gray-300 bg-gray-50';
+  }
+}
+
+function getBedStatusBadge(status) {
+  switch (status) {
+    case 'available': return 'bg-green-100 text-green-800';
+    case 'occupied': return 'bg-red-100 text-red-800';
+    case 'maintenance': return 'bg-yellow-100 text-yellow-800';
+    case 'reserved': return 'bg-blue-100 text-blue-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+}
+
+// Initialize departments when user logs in
+function initializeSystemForUser() {
+  if (currentUser) {
+    initializeDepartments();
+  }
+}
+
+// -------------------- Clinical Decision Support --------------------
+// Medication safety database
+const medicationSafety = {
+  // High-risk medications that require extra caution
+  highRiskDrugs: [
+    'warfarin', 'heparin', 'insulin', 'digoxin', 'lithium', 'methotrexate',
+    'phenytoin', 'theophylline', 'vancomycin', 'gentamicin', 'morphine',
+    'fentanyl', 'propofol', 'norepinephrine', 'epinephrine', 'dopamine'
+  ],
+  
+  // Common drug interactions
+  drugInteractions: {
+    'warfarin': ['aspirin', 'ibuprofen', 'amiodarone', 'metronidazole'],
+    'digoxin': ['furosemide', 'spironolactone', 'verapamil', 'amiodarone'],
+    'lithium': ['hydrochlorothiazide', 'lisinopril', 'ibuprofen', 'celecoxib'],
+    'methotrexate': ['trimethoprim', 'probenecid', 'aspirin', 'ibuprofen']
+  },
+  
+  // Allergy cross-reactions
+  allergyCrossReactions: {
+    'penicillin': ['amoxicillin', 'ampicillin', 'cephalexin'],
+    'sulfa': ['sulfamethoxazole', 'furosemide', 'hydrochlorothiazide'],
+    'aspirin': ['ibuprofen', 'naproxen', 'diclofenac']
+  },
+  
+  // Check for drug interactions and allergies
+  checkMedication: function(drugName, patientData) {
+    const alerts = [];
+    const drug = drugName.toLowerCase();
+    
+    // Check if high-risk medication
+    if (this.highRiskDrugs.includes(drug)) {
+      alerts.push({
+        type: 'warning',
+        level: 'high',
+        message: `HIGH RISK: ${drugName} requires careful monitoring and dose adjustment`
+      });
+    }
+    
+    // Check for drug interactions with existing medications
+    if (patientData.medOrders && Array.isArray(patientData.medOrders)) {
+      patientData.medOrders.forEach(existingMed => {
+        const existingDrug = (existingMed.drug || '').toLowerCase();
+        if (this.drugInteractions[drug] && this.drugInteractions[drug].includes(existingDrug)) {
+          alerts.push({
+            type: 'error',
+            level: 'critical',
+            message: `INTERACTION: ${drugName} may interact with ${existingMed.drug}`
+          });
+        }
+      });
+    }
+    
+    // Check for allergy cross-reactions
+    if (patientData.allergySummary || patientData.allergies) {
+      const allergyText = (patientData.allergySummary || '').toLowerCase();
+      Object.keys(this.allergyCrossReactions).forEach(allergen => {
+        if (allergyText.includes(allergen)) {
+          const crossReactive = this.allergyCrossReactions[allergen];
+          if (crossReactive.includes(drug)) {
+            alerts.push({
+              type: 'error',
+              level: 'critical',
+              message: `ALLERGY ALERT: Patient allergic to ${allergen}, may cross-react with ${drugName}`
+            });
+          }
+        }
+      });
+    }
+    
+    // Age-based warnings
+    if (patientData.age) {
+      const age = parseInt(patientData.age);
+      if (age >= 65 && ['digoxin', 'warfarin', 'morphine'].includes(drug)) {
+        alerts.push({
+          type: 'warning',
+          level: 'medium',
+          message: `GERIATRIC: Consider dose reduction for ${drugName} in elderly patients`
+        });
+      }
+      if (age < 18 && ['aspirin', 'tetracycline', 'fluoroquinolone'].includes(drug)) {
+        alerts.push({
+          type: 'warning',
+          level: 'medium',
+          message: `PEDIATRIC: ${drugName} may not be appropriate for pediatric patients`
+        });
+      }
+    }
+    
+    return alerts;
+  },
+  
+  // Dosing guidelines
+  getDosingGuideline: function(drugName, patientData) {
+    const drug = drugName.toLowerCase();
+    const guidelines = {
+      'paracetamol': {
+        adult: '500-1000mg every 4-6 hours, max 4g/day',
+        pediatric: '10-15mg/kg every 4-6 hours',
+        elderly: 'Reduce dose if hepatic impairment'
+      },
+      'ibuprofen': {
+        adult: '200-400mg every 4-6 hours, max 2.4g/day',
+        pediatric: '5-10mg/kg every 6-8 hours',
+        contraindications: 'Avoid in renal impairment, peptic ulcer'
+      },
+      'amoxicillin': {
+        adult: '250-500mg every 8 hours',
+        pediatric: '20-40mg/kg/day divided every 8 hours',
+        renalAdjustment: 'Reduce dose if CrCl < 30 mL/min'
+      }
+    };
+    
+    return guidelines[drug] || null;
+  }
+};
+
+// Expose medication safety globally
+window.medicationSafety = medicationSafety;
+
+// Lab values interpretation
+const labInterpretation = {
+  normalRanges: {
+    'hemoglobin': { male: [14, 18], female: [12, 16], unit: 'g/dL' },
+    'hematocrit': { male: [42, 52], female: [37, 47], unit: '%' },
+    'glucose': { fasting: [70, 100], random: [70, 140], unit: 'mg/dL' },
+    'creatinine': { male: [0.7, 1.3], female: [0.6, 1.1], unit: 'mg/dL' },
+    'sodium': { normal: [136, 145], unit: 'mEq/L' },
+    'potassium': { normal: [3.5, 5.1], unit: 'mEq/L' },
+    'chloride': { normal: [98, 107], unit: 'mEq/L' },
+    'bun': { normal: [7, 20], unit: 'mg/dL' },
+    'alt': { normal: [7, 56], unit: 'U/L' },
+    'ast': { normal: [10, 40], unit: 'U/L' }
+  },
+  
+  interpretResult: function(testName, value, patientGender = 'male') {
+    const test = testName.toLowerCase();
+    const range = this.normalRanges[test];
+    
+    if (!range) return { status: 'unknown', message: 'No reference range available' };
+    
+    const normalRange = range[patientGender] || range.normal || range.fasting;
+    if (!normalRange) return { status: 'unknown', message: 'No reference range for this population' };
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return { status: 'invalid', message: 'Invalid numeric value' };
+    
+    if (numValue < normalRange[0]) {
+      return {
+        status: 'low',
+        message: `Below normal range (${normalRange[0]}-${normalRange[1]} ${range.unit})`,
+        severity: numValue < normalRange[0] * 0.7 ? 'critical' : 'abnormal'
+      };
+    } else if (numValue > normalRange[1]) {
+      return {
+        status: 'high',
+        message: `Above normal range (${normalRange[0]}-${normalRange[1]} ${range.unit})`,
+        severity: numValue > normalRange[1] * 1.5 ? 'critical' : 'abnormal'
+      };
+    } else {
+      return {
+        status: 'normal',
+        message: `Within normal range (${normalRange[0]}-${normalRange[1]} ${range.unit})`,
+        severity: 'normal'
+      };
+    }
+  }
+};
+
+// Enhanced Lab Results Management
+const labResultsManager = {
+  structuredResults: {},
+  
+  // Common lab test templates with structured fields
+  testTemplates: {
+    'CBC': {
+      name: 'Complete Blood Count',
+      fields: [
+        { name: 'WBC', unit: 'x10³/μL', normal: [4.5, 11.0] },
+        { name: 'RBC', unit: 'x10⁶/μL', normal: { male: [4.7, 6.1], female: [4.2, 5.4] } },
+        { name: 'Hemoglobin', unit: 'g/dL', normal: { male: [14, 18], female: [12, 16] } },
+        { name: 'Hematocrit', unit: '%', normal: { male: [42, 52], female: [37, 47] } },
+        { name: 'Platelets', unit: 'x10³/μL', normal: [150, 450] },
+        { name: 'MCV', unit: 'fL', normal: [80, 100] },
+        { name: 'MCH', unit: 'pg', normal: [27, 31] },
+        { name: 'MCHC', unit: 'g/dL', normal: [32, 36] }
+      ]
+    },
+    'Basic Metabolic Panel': {
+      name: 'Basic Metabolic Panel',
+      fields: [
+        { name: 'Glucose', unit: 'mg/dL', normal: [70, 100] },
+        { name: 'BUN', unit: 'mg/dL', normal: [7, 20] },
+        { name: 'Creatinine', unit: 'mg/dL', normal: { male: [0.7, 1.3], female: [0.6, 1.1] } },
+        { name: 'Sodium', unit: 'mEq/L', normal: [136, 145] },
+        { name: 'Potassium', unit: 'mEq/L', normal: [3.5, 5.1] },
+        { name: 'Chloride', unit: 'mEq/L', normal: [98, 107] },
+        { name: 'CO2', unit: 'mEq/L', normal: [22, 29] }
+      ]
+    },
+    'Liver Function': {
+      name: 'Liver Function Tests',
+      fields: [
+        { name: 'ALT', unit: 'U/L', normal: [7, 56] },
+        { name: 'AST', unit: 'U/L', normal: [10, 40] },
+        { name: 'Alkaline Phosphatase', unit: 'U/L', normal: [44, 147] },
+        { name: 'Total Bilirubin', unit: 'mg/dL', normal: [0.3, 1.2] },
+        { name: 'Direct Bilirubin', unit: 'mg/dL', normal: [0.0, 0.3] },
+        { name: 'Albumin', unit: 'g/dL', normal: [3.5, 5.0] }
+      ]
+    },
+    'Lipid Panel': {
+      name: 'Lipid Panel',
+      fields: [
+        { name: 'Total Cholesterol', unit: 'mg/dL', normal: [0, 200], optimal: [0, 170] },
+        { name: 'HDL Cholesterol', unit: 'mg/dL', normal: { male: [40, 999], female: [50, 999] } },
+        { name: 'LDL Cholesterol', unit: 'mg/dL', normal: [0, 100], optimal: [0, 70] },
+        { name: 'Triglycerides', unit: 'mg/dL', normal: [0, 150] }
+      ]
+    }
+  },
+  
+  // Generate structured result entry form
+  generateStructuredForm: function(testType) {
+    const template = this.testTemplates[testType];
+    if (!template) return null;
+    
+    let html = `
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200 shadow-sm mt-4">
+        <h5 class="font-bold text-purple-800 mb-4 flex items-center gap-2">
+          🔬 Structured Entry: ${template.name}
+        </h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="structuredResultsGrid">
+    `;
+    
+    template.fields.forEach((field, index) => {
+      const normalRange = this.getNormalRangeDisplay(field.normal);
+      html += `
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-slate-700">
+            ${field.name} (${field.unit})
+          </label>
+          <input 
+            type="number" 
+            step="0.01"
+            data-field="${field.name}"
+            data-unit="${field.unit}"
+            data-normal='${JSON.stringify(field.normal)}'
+            class="w-full rounded-lg px-3 py-2 border-2 border-slate-200 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all lab-result-input"
+            placeholder="Enter value"
+          />
+          <div class="text-xs text-slate-500">Normal: ${normalRange}</div>
+          <div class="result-interpretation hidden text-xs font-medium"></div>
+        </div>
+      `;
+    });
+    
+    html += `
+        </div>
+        <div class="mt-4 flex gap-3">
+          <button type="button" onclick="labResultsManager.autoInterpretResults()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+            🤖 Auto-Interpret
+          </button>
+          <button type="button" onclick="labResultsManager.clearStructuredResults()" class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm">
+            🗑️ Clear
+          </button>
+        </div>
+      </div>
+    `;
+    
+    return html;
+  },
+  
+  // Get normal range display string
+  getNormalRangeDisplay: function(normal) {
+    if (Array.isArray(normal)) {
+      return `${normal[0]}-${normal[1]}`;
+    } else if (typeof normal === 'object') {
+      const ranges = [];
+      if (normal.male) ranges.push(`M: ${normal.male[0]}-${normal.male[1]}`);
+      if (normal.female) ranges.push(`F: ${normal.female[0]}-${normal.female[1]}`);
+      return ranges.join(', ');
+    }
+    return 'Variable';
+  },
+  
+  // Auto-interpret all entered results
+  autoInterpretResults: function() {
+    const inputs = document.querySelectorAll('.lab-result-input');
+    let interpretationText = '';
+    let abnormalFindings = [];
+    
+    inputs.forEach(input => {
+      const value = parseFloat(input.value);
+      if (isNaN(value) || !input.value.trim()) return;
+      
+      const fieldName = input.dataset.field;
+      const unit = input.dataset.unit;
+      const normalRange = JSON.parse(input.dataset.normal);
+      
+      const interpretation = this.interpretValue(value, normalRange);
+      const interpretDiv = input.parentElement.querySelector('.result-interpretation');
+      
+      interpretDiv.className = `result-interpretation text-xs font-medium ${interpretation.className}`;
+      interpretDiv.textContent = interpretation.message;
+      interpretDiv.classList.remove('hidden');
+      
+      // Add to interpretation summary
+      interpretationText += `${fieldName}: ${value} ${unit} - ${interpretation.message}\n`;
+      
+      if (interpretation.status !== 'normal') {
+        abnormalFindings.push({
+          test: fieldName,
+          value: value,
+          unit: unit,
+          status: interpretation.status,
+          severity: interpretation.severity
+        });
+      }
+    });
+    
+    // Update the manual interpretation field
+    const interpretationField = document.getElementById('lab_interpretation');
+    if (interpretationField) {
+      let clinicalInterpretation = this.generateClinicalInterpretation(abnormalFindings);
+      interpretationField.value = clinicalInterpretation;
+    }
+    
+    showToast('Results interpreted automatically', 'success');
+  },
+  
+  // Generate clinical interpretation based on abnormal findings
+  generateClinicalInterpretation: function(abnormalFindings) {
+    if (abnormalFindings.length === 0) {
+      return 'All laboratory values are within normal limits. No significant abnormalities detected.';
+    }
+    
+    let interpretation = 'ABNORMAL FINDINGS:\n\n';
+    
+    // Group by severity
+    const critical = abnormalFindings.filter(f => f.severity === 'critical');
+    const abnormal = abnormalFindings.filter(f => f.severity === 'abnormal');
+    
+    if (critical.length > 0) {
+      interpretation += '⚠️ CRITICAL VALUES:\n';
+      critical.forEach(finding => {
+        interpretation += `• ${finding.test}: ${finding.value} ${finding.unit} (${finding.status})\n`;
+      });
+      interpretation += '\n';
+    }
+    
+    if (abnormal.length > 0) {
+      interpretation += '📋 ABNORMAL VALUES:\n';
+      abnormal.forEach(finding => {
+        interpretation += `• ${finding.test}: ${finding.value} ${finding.unit} (${finding.status})\n`;
+      });
+      interpretation += '\n';
+    }
+    
+    // Add clinical correlations based on patterns
+    interpretation += this.generateClinicalCorrelations(abnormalFindings);
+    
+    return interpretation;
+  },
+  
+  // Generate clinical correlations and recommendations
+  generateClinicalCorrelations: function(findings) {
+    let correlations = 'CLINICAL CORRELATIONS:\n';
+    
+    // Look for common patterns
+    const testNames = findings.map(f => f.test.toLowerCase());
+    
+    // Anemia pattern
+    if (testNames.includes('hemoglobin') || testNames.includes('hematocrit')) {
+      const hgb = findings.find(f => f.test.toLowerCase().includes('hemoglobin'));
+      if (hgb && hgb.status === 'low') {
+        correlations += '• Consider anemia workup - check iron studies, B12, folate\n';
+      }
+    }
+    
+    // Liver function pattern
+    if (testNames.some(t => ['alt', 'ast', 'bilirubin'].includes(t))) {
+      correlations += '• Liver function abnormalities noted - consider hepatic workup\n';
+    }
+    
+    // Kidney function pattern
+    if (testNames.includes('creatinine') || testNames.includes('bun')) {
+      const creat = findings.find(f => f.test.toLowerCase().includes('creatinine'));
+      if (creat && creat.status === 'high') {
+        correlations += '• Elevated creatinine suggests possible renal dysfunction\n';
+      }
+    }
+    
+    // Electrolyte imbalances
+    if (testNames.some(t => ['sodium', 'potassium', 'chloride'].includes(t))) {
+      correlations += '• Electrolyte imbalances noted - monitor fluid status\n';
+    }
+    
+    correlations += '\nRECOMMENDATIONS:\n';
+    correlations += '• Correlate with clinical presentation\n';
+    correlations += '• Consider repeat testing if indicated\n';
+    correlations += '• Notify attending physician of critical values\n';
+    
+    return correlations;
+  },
+  
+  // Interpret individual lab value
+  interpretValue: function(value, normalRange) {
+    let range;
+    
+    if (Array.isArray(normalRange)) {
+      range = normalRange;
+    } else if (typeof normalRange === 'object') {
+      // For now, use male range or first available range
+      range = normalRange.male || normalRange.female || normalRange.normal;
+    } else {
+      return { status: 'unknown', message: 'Unknown range', className: 'text-slate-500', severity: 'unknown' };
+    }
+    
+    if (!range || range.length !== 2) {
+      return { status: 'unknown', message: 'Invalid range', className: 'text-slate-500', severity: 'unknown' };
+    }
+    
+    const [min, max] = range;
+    
+    if (value < min) {
+      const severity = value < min * 0.7 ? 'critical' : 'abnormal';
+      return {
+        status: 'low',
+        message: `LOW (${min}-${max})`,
+        className: severity === 'critical' ? 'text-red-600' : 'text-orange-600',
+        severity: severity
+      };
+    } else if (value > max) {
+      const severity = value > max * 1.5 ? 'critical' : 'abnormal';
+      return {
+        status: 'high',
+        message: `HIGH (${min}-${max})`,
+        className: severity === 'critical' ? 'text-red-600' : 'text-orange-600',
+        severity: severity
+      };
+    } else {
+      return {
+        status: 'normal',
+        message: `Normal (${min}-${max})`,
+        className: 'text-green-600',
+        severity: 'normal'
+      };
+    }
+  },
+  
+  // Clear structured results
+  clearStructuredResults: function() {
+    const inputs = document.querySelectorAll('.lab-result-input');
+    inputs.forEach(input => {
+      input.value = '';
+      const interpretDiv = input.parentElement.querySelector('.result-interpretation');
+      interpretDiv.classList.add('hidden');
+    });
+    
+    const interpretationField = document.getElementById('lab_interpretation');
+    if (interpretationField) {
+      interpretationField.value = '';
+    }
+    
+    showToast('Structured results cleared', 'info');
+  },
+  
+  // Generate comprehensive lab summary
+  generateLabSummary: function() {
+    if (!selectedPatientId) {
+      showToast('Please select a patient first', 'error');
+      return;
+    }
+    
+    const patient = patients.find(p => p.id === selectedPatientId);
+    if (!patient) {
+      showToast('Patient data not found', 'error');
+      return;
+    }
+    
+    let summary = `LAB SUMMARY REPORT\n`;
+    summary += `Patient: ${patient.name || 'Unknown'}\n`;
+    summary += `Date: ${new Date().toLocaleDateString()}\n`;
+    summary += `Generated by: ${currentUser?.name || 'Current User'}\n\n`;
+    
+    // Lab Orders Summary
+    if (labOrderManager.orders.length > 0) {
+      summary += `LAB ORDERS (${labOrderManager.orders.length}):\n`;
+      summary += `${'='.repeat(40)}\n`;
+      
+      labOrderManager.orders.forEach((order, index) => {
+        summary += `${index + 1}. ${order.customTest || order.test}\n`;
+        summary += `   Priority: ${order.priority}\n`;
+        summary += `   Status: ${order.status}\n`;
+        summary += `   Ordered: ${new Date(order.orderDateTime).toLocaleString()}\n`;
+        summary += `   Indication: ${order.indication}\n\n`;
+      });
+    }
+    
+    // Structured Results Summary
+    if (patient.structuredResults) {
+      summary += `STRUCTURED RESULTS:\n`;
+      summary += `${'='.repeat(40)}\n`;
+      
+      Object.entries(patient.structuredResults).forEach(([test, data]) => {
+        summary += `${test}: ${data.value} ${data.unit}\n`;
+        if (data.timestamp) {
+          summary += `   Date: ${new Date(data.timestamp).toLocaleString()}\n`;
+        }
+      });
+      summary += '\n';
+    }
+    
+    // Lab Files Summary
+    if (patient.labFiles && patient.labFiles.length > 0) {
+      summary += `UPLOADED FILES (${patient.labFiles.length}):\n`;
+      summary += `${'='.repeat(40)}\n`;
+      
+      patient.labFiles.forEach((file, index) => {
+        summary += `${index + 1}. ${file.name}\n`;
+        summary += `   Type: ${file.type || 'Unknown'}\n`;
+        summary += `   URL: ${file.url}\n\n`;
+      });
+    }
+    
+    // Trends Summary
+    const trendsData = Object.keys(labTrends.historicalData);
+    if (trendsData.length > 0) {
+      summary += `TRENDS DATA:\n`;
+      summary += `${'='.repeat(40)}\n`;
+      
+      trendsData.forEach(testType => {
+        const entries = labTrends.historicalData[testType];
+        summary += `${testType}: ${entries.length} entries\n`;
+        summary += `   Latest: ${new Date(entries[entries.length - 1].timestamp).toLocaleDateString()}\n`;
+      });
+    }
+    
+    // Display in a modal or new window
+    const summaryWindow = window.open('', '_blank', 'width=800,height=600');
+    summaryWindow.document.write(`
+      <html>
+        <head>
+          <title>Lab Summary - ${patient.name}</title>
+          <style>
+            body { font-family: monospace; padding: 20px; line-height: 1.5; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .print-btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+            <button class="print-btn" onclick="window.close()">✖️ Close</button>
+          </div>
+          <pre>${summary}</pre>
+        </body>
+      </html>
+    `);
+    
+    showToast('Lab summary generated', 'success');
+  },
+  
+  // Export lab data as JSON
+  exportLabData: function() {
+    if (!selectedPatientId) {
+      showToast('Please select a patient first', 'error');
+      return;
+    }
+    
+    const patient = patients.find(p => p.id === selectedPatientId);
+    if (!patient) {
+      showToast('Patient data not found', 'error');
+      return;
+    }
+    
+    const exportData = {
+      patient: {
+        id: patient.id,
+        name: patient.name,
+        exportDate: new Date().toISOString()
+      },
+      labOrders: labOrderManager.orders,
+      structuredResults: patient.structuredResults || {},
+      labFiles: patient.labFiles || [],
+      trends: labTrends.historicalData
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `lab-data-${patient.name || 'unknown'}-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showToast('Lab data exported', 'success');
+  }
+};
+
+// Lab trends and comparison
+const labTrends = {
+  historicalData: {},
+  
+  // Add current results to trends
+  addToTrends: function(testType, results) {
+    const timestamp = new Date().toISOString();
+    
+    if (!this.historicalData[testType]) {
+      this.historicalData[testType] = [];
+    }
+    
+    this.historicalData[testType].push({
+      timestamp: timestamp,
+      results: results
+    });
+    
+    // Keep only last 10 results
+    if (this.historicalData[testType].length > 10) {
+      this.historicalData[testType] = this.historicalData[testType].slice(-10);
+    }
+  },
+  
+  // Generate trends display
+  generateTrendsDisplay: function(testType) {
+    const data = this.historicalData[testType];
+    if (!data || data.length === 0) {
+      return '<div class="text-sm text-slate-500">No historical data available</div>';
+    }
+    
+    let html = `
+      <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-200 mt-4">
+        <h5 class="font-bold text-indigo-800 mb-3">📈 Trends: ${testType}</h5>
+        <div class="space-y-2 max-h-40 overflow-y-auto">
+    `;
+    
+    data.slice(-5).forEach((entry, index) => {
+      const date = new Date(entry.timestamp).toLocaleDateString();
+      html += `
+        <div class="text-sm bg-white p-2 rounded border">
+          <div class="font-medium text-slate-700">${date}</div>
+          <div class="text-xs text-slate-600 mt-1">
+            ${Object.entries(entry.results).map(([key, value]) => `${key}: ${value}`).join(', ')}
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div></div>';
+    return html;
+  },
+  
+  // Update trends display in UI
+  updateTrendsDisplay: function() {
+    const trendsDiv = document.getElementById('labTrendsDisplay');
+    if (!trendsDiv) return;
+    
+    const testTypes = Object.keys(this.historicalData);
+    
+    if (testTypes.length === 0) {
+      trendsDiv.innerHTML = '<div class="text-sm text-slate-500 italic">No trend data available</div>';
+      return;
+    }
+    
+    let html = '';
+    testTypes.forEach(testType => {
+      html += this.generateTrendsDisplay(testType);
+    });
+    
+    trendsDiv.innerHTML = html;
+  }
+};
+
+// -------------------- Missing Function Implementations --------------------
+
+// Show all patients function
+function showAllPatients() {
+  // Switch to patients list view
+  const patientsTab = document.querySelector('.navbtn[data-target="patients"]');
+  if (patientsTab) {
+    patientsTab.click();
+  } else {
+    // If no patients tab, show/hide patients list
+    const patientsList = document.getElementById('patientList');
+    if (patientsList) {
+      patientsList.style.display = patientsList.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+}
+
+// Navigate to specific tab
+window.navigateToTab = function(tabId) {
+  // First try using the data-target attribute
+  const navBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
+  if (navBtn) {
+    navBtn.click();
+    return;
+  }
+  
+  // Fallback: directly show the tab
+  const allTabs = document.querySelectorAll('.panel');
+  allTabs.forEach(tab => tab.classList.add('hidden'));
+  
+  const targetTab = document.getElementById(tabId);
+  if (targetTab) {
+    targetTab.classList.remove('hidden');
+  }
+  
+  // Update navigation buttons
+  const allNavBtns = document.querySelectorAll('.navbtn');
+  allNavBtns.forEach(btn => btn.classList.remove('active'));
+  
+  if (navBtn) {
+    navBtn.classList.add('active');
+  }
+};
+
+// Bed assignment modal functions
+function showBedAssignmentModal(departmentId = null) {
+  if (!selectedPatientId) {
+    showToast('Please select a patient first', 'error');
+    return;
+  }
+  
+  // Create modal content
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-lg mx-auto">
+      <h3 class="text-xl font-bold mb-4">Assign Patient to Bed</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Select Department:</label>
+          <select id="bedAssignDept" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Department</option>
+            ${departments.map(dept => 
+              `<option value="${dept.id}" ${departmentId === dept.id ? 'selected' : ''}>${dept.name}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Select Bed:</label>
+          <select id="bedAssignBed" class="w-full border rounded-lg px-3 py-2">
+            <option value="">First select a department</option>
+          </select>
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button onclick="processBedAssignment()" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Assign Bed
+          </button>
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  showModal(modalContent);
+  
+  // Add event listener for department selection
+  const deptSelect = document.getElementById('bedAssignDept');
+  const bedSelect = document.getElementById('bedAssignBed');
+  
+  if (deptSelect && bedSelect) {
+    deptSelect.addEventListener('change', function() {
+      const selectedDeptId = this.value;
+      bedSelect.innerHTML = '<option value="">Choose Bed</option>';
+      
+      if (selectedDeptId) {
+        const availableBeds = beds.filter(bed => 
+          bed.departmentId === selectedDeptId && bed.status === 'available'
+        );
+        
+        availableBeds.forEach(bed => {
+          bedSelect.innerHTML += `<option value="${bed.id}">Bed ${bed.number} (${bed.type})</option>`;
+        });
+        
+        if (availableBeds.length === 0) {
+          bedSelect.innerHTML += '<option value="">No beds available</option>';
+        }
+      }
+    });
+    
+    // Trigger change if department is pre-selected
+    if (departmentId) {
+      deptSelect.dispatchEvent(new Event('change'));
+    }
+  }
+}
+
+function showPatientTransferModal() {
+  if (!selectedPatientId) {
+    showToast('Please select a patient first', 'error');
+    return;
+  }
+  
+  // Find current patient bed
+  const currentBed = beds.find(bed => bed.patientId === selectedPatientId);
+  
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-lg mx-auto">
+      <h3 class="text-xl font-bold mb-4">Transfer Patient</h3>
+      <div class="space-y-4">
+        ${currentBed ? `
+          <div class="bg-blue-50 p-3 rounded-lg">
+            <p><strong>Current Location:</strong> ${departments.find(d => d.id === currentBed.departmentId)?.name || 'Unknown'} - Bed ${currentBed.number}</p>
+          </div>
+        ` : `
+          <div class="bg-yellow-50 p-3 rounded-lg">
+            <p><strong>Current Status:</strong> No bed assigned</p>
+          </div>
+        `}
+        <div>
+          <label class="block text-sm font-medium mb-2">Transfer to Department:</label>
+          <select id="transferDept" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Department</option>
+            ${departments.map(dept => 
+              `<option value="${dept.id}">${dept.name}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Select New Bed:</label>
+          <select id="transferBed" class="w-full border rounded-lg px-3 py-2">
+            <option value="">First select a department</option>
+          </select>
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button onclick="processPatientTransfer()" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+            Transfer Patient
+          </button>
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  showModal(modalContent);
+  
+  // Add event listeners similar to bed assignment
+  const deptSelect = document.getElementById('transferDept');
+  const bedSelect = document.getElementById('transferBed');
+  
+  if (deptSelect && bedSelect) {
+    deptSelect.addEventListener('change', function() {
+      const selectedDeptId = this.value;
+      bedSelect.innerHTML = '<option value="">Choose Bed</option>';
+      
+      if (selectedDeptId) {
+        const availableBeds = beds.filter(bed => 
+          bed.departmentId === selectedDeptId && bed.status === 'available'
+        );
+        
+        availableBeds.forEach(bed => {
+          bedSelect.innerHTML += `<option value="${bed.id}">Bed ${bed.number} (${bed.type})</option>`;
+        });
+        
+        if (availableBeds.length === 0) {
+          bedSelect.innerHTML += '<option value="">No beds available</option>';
+        }
+      }
+    });
+  }
+}
+
+function showBedMaintenanceModal() {
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-lg mx-auto">
+      <h3 class="text-xl font-bold mb-4">Bed Maintenance</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Select Department:</label>
+          <select id="maintDept" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Department</option>
+            ${departments.map(dept => 
+              `<option value="${dept.id}">${dept.name}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Select Bed:</label>
+          <select id="maintBed" class="w-full border rounded-lg px-3 py-2">
+            <option value="">First select a department</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Maintenance Action:</label>
+          <select id="maintAction" class="w-full border rounded-lg px-3 py-2">
+            <option value="maintenance">Set to Maintenance</option>
+            <option value="available">Mark as Available</option>
+            <option value="occupied">Mark as Occupied</option>
+            <option value="reserved">Mark as Reserved</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Notes:</label>
+          <textarea id="maintNotes" class="w-full border rounded-lg px-3 py-2" rows="3" placeholder="Maintenance notes..."></textarea>
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button onclick="processBedMaintenance()" class="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+            Update Bed
+          </button>
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  showModal(modalContent);
+  
+  // Add event listeners
+  const deptSelect = document.getElementById('maintDept');
+  const bedSelect = document.getElementById('maintBed');
+  
+  if (deptSelect && bedSelect) {
+    deptSelect.addEventListener('change', function() {
+      const selectedDeptId = this.value;
+      bedSelect.innerHTML = '<option value="">Choose Bed</option>';
+      
+      if (selectedDeptId) {
+        const deptBeds = beds.filter(bed => bed.departmentId === selectedDeptId);
+        
+        deptBeds.forEach(bed => {
+          bedSelect.innerHTML += `<option value="${bed.id}">Bed ${bed.number} (${bed.status})</option>`;
+        });
+      }
+    });
+  }
+}
+
+// Helper function to show modal
+function showModal(content) {
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  if (modal && modalBody) {
+    modalBody.innerHTML = content;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+}
+
+// Process functions for the modals
+function processBedAssignment() {
+  const deptId = document.getElementById('bedAssignDept')?.value;
+  const bedId = document.getElementById('bedAssignBed')?.value;
+  
+  if (!deptId || !bedId) {
+    showToast('Please select both department and bed', 'error');
+    return;
+  }
+  
+  assignPatientToBed(selectedPatientId, bedId)
+    .then(() => {
+      showToast('Patient assigned to bed successfully', 'success');
+      closeModal();
+      renderDepartments(); // Refresh the display
+    })
+    .catch(error => {
+      console.error('Error assigning bed:', error);
+      showToast('Error assigning bed', 'error');
+    });
+}
+
+function processPatientTransfer() {
+  const newDeptId = document.getElementById('transferDept')?.value;
+  const newBedId = document.getElementById('transferBed')?.value;
+  
+  if (!newDeptId || !newBedId) {
+    showToast('Please select destination department and bed', 'error');
+    return;
+  }
+  
+  // First release current bed, then assign new one
+  const currentBed = beds.find(bed => bed.patientId === selectedPatientId);
+  
+  const transferPromise = currentBed 
+    ? releaseBed(currentBed.id).then(() => assignPatientToBed(selectedPatientId, newBedId))
+    : assignPatientToBed(selectedPatientId, newBedId);
+  
+  transferPromise
+    .then(() => {
+      showToast('Patient transferred successfully', 'success');
+      closeModal();
+      renderDepartments(); // Refresh the display
+    })
+    .catch(error => {
+      console.error('Error transferring patient:', error);
+      showToast('Error transferring patient', 'error');
+    });
+}
+
+function processBedMaintenance() {
+  const deptId = document.getElementById('maintDept')?.value;
+  const bedId = document.getElementById('maintBed')?.value;
+  const action = document.getElementById('maintAction')?.value;
+  const notes = document.getElementById('maintNotes')?.value;
+  
+  if (!deptId || !bedId || !action) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+  
+  updateBedStatus(bedId, action, notes)
+    .then(() => {
+      showToast('Bed status updated successfully', 'success');
+      closeModal();
+      renderDepartments(); // Refresh the display
+    })
+    .catch(error => {
+      console.error('Error updating bed status:', error);
+      showToast('Error updating bed status', 'error');
+    });
+}
+
+// -------------------- End Missing Functions --------------------
+
+// Clinical alerts system
+function checkClinicalAlerts(patientData) {
+  const alerts = [];
+  
+  // Vital signs alerts
+  if (patientData.vitals && patientData.vitals.length > 0) {
+    const latestVitals = patientData.vitals[patientData.vitals.length - 1];
+    
+    // Temperature alerts
+    const temp = parseFloat(latestVitals.temp);
+    if (temp >= 39) {
+      alerts.push({
+        type: 'critical',
+        category: 'vitals',
+        message: `High fever: ${temp}°C - Consider antipyretics and infection workup`,
+        priority: 'urgent'
+      });
+    } else if (temp >= 38.5) {
+      alerts.push({
+        type: 'warning',
+        category: 'vitals',
+        message: `Fever: ${temp}°C - Monitor closely`,
+        priority: 'high'
+      });
+    } else if (temp <= 35) {
+      alerts.push({
+        type: 'critical',
+        category: 'vitals',
+        message: `Hypothermia: ${temp}°C - Warming measures needed`,
+        priority: 'urgent'
+      });
+    }
+    
+    // Heart rate alerts
+    const pulse = parseFloat(latestVitals.pulse);
+    if (pulse > 120) {
+      alerts.push({
+        type: 'warning',
+        category: 'vitals',
+        message: `Tachycardia: ${pulse} bpm - Investigate cause`,
+        priority: 'high'
+      });
+    } else if (pulse < 50) {
+      alerts.push({
+        type: 'warning',
+        category: 'vitals',
+        message: `Bradycardia: ${pulse} bpm - Consider cardiac evaluation`,
+        priority: 'high'
+      });
+    }
+    
+    // Oxygen saturation alerts
+    const spo2 = parseFloat(latestVitals.spo2 || latestVitals.spO2);
+    if (spo2 < 90) {
+      alerts.push({
+        type: 'critical',
+        category: 'vitals',
+        message: `Low oxygen saturation: ${spo2}% - Oxygen therapy indicated`,
+        priority: 'urgent'
+      });
+    } else if (spo2 < 94) {
+      alerts.push({
+        type: 'warning',
+        category: 'vitals',
+        message: `Mild hypoxemia: ${spo2}% - Monitor closely`,
+        priority: 'high'
+      });
+    }
+  }
+  
+  // Medication alerts
+  if (patientData.medOrders && Array.isArray(patientData.medOrders)) {
+    patientData.medOrders.forEach(med => {
+      const medAlerts = medicationSafety.checkMedication(med.drug || '', patientData);
+      alerts.push(...medAlerts.map(alert => ({
+        ...alert,
+        category: 'medication',
+        priority: alert.level === 'critical' ? 'urgent' : 'high'
+      })));
+    });
+  }
+  
+  return alerts;
+}
+
+// -------------------- Enhanced Medication Functions --------------------
+// Real-time medication safety checking
+function setupMedicationSafetyChecks() {
+  const drugInput = document.getElementById('cpoe_drug');
+  const alertsContainer = document.getElementById('drugSafetyAlerts');
+  const safetyIcon = document.getElementById('drugSafetyIcon');
+  const dosingGuidelines = document.getElementById('dosingGuidelines');
+  const dosingContent = document.getElementById('dosingContent');
+  
+  if (!drugInput) return;
+  
+  drugInput.addEventListener('input', function() {
+    const drugName = this.value.trim();
+    if (!drugName) {
+      alertsContainer.innerHTML = '';
+      safetyIcon.textContent = '💊';
+      dosingGuidelines.classList.add('hidden');
+      return;
+    }
+    
+    // Get current patient data for context
+    const currentPatient = selectedPatientId ? patients.find(p => p.id === selectedPatientId) : null;
+    
+    // Check for medication safety issues
+    const alerts = medicationSafety.checkMedication(drugName, currentPatient || {});
+    
+    // Display alerts
+    alertsContainer.innerHTML = '';
+    if (alerts.length > 0) {
+      alerts.forEach(alert => {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `p-2 rounded-lg text-xs font-medium ${
+          alert.type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+          alert.type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+          'bg-blue-100 text-blue-800 border border-blue-200'
+        }`;
+        alertDiv.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-sm">${alert.type === 'error' ? '🚨' : alert.type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+            <span>${alert.message}</span>
+          </div>
+        `;
+        alertsContainer.appendChild(alertDiv);
+      });
+      
+      // Update safety icon
+      const hasErrors = alerts.some(a => a.type === 'error');
+      const hasWarnings = alerts.some(a => a.type === 'warning');
+      safetyIcon.textContent = hasErrors ? '🚨' : hasWarnings ? '⚠️' : '💊';
+    } else {
+      safetyIcon.textContent = '✅';
+    }
+    
+    // Show dosing guidelines if available
+    const guidelines = medicationSafety.getDosingGuideline(drugName, currentPatient || {});
+    if (guidelines) {
+      dosingContent.innerHTML = `
+        <div class="space-y-2">
+          ${guidelines.adult ? `<div><strong>Adult:</strong> ${guidelines.adult}</div>` : ''}
+          ${guidelines.pediatric ? `<div><strong>Pediatric:</strong> ${guidelines.pediatric}</div>` : ''}
+          ${guidelines.elderly ? `<div><strong>Elderly:</strong> ${guidelines.elderly}</div>` : ''}
+          ${guidelines.contraindications ? `<div class="text-red-700"><strong>Contraindications:</strong> ${guidelines.contraindications}</div>` : ''}
+          ${guidelines.renalAdjustment ? `<div class="text-orange-700"><strong>Renal Adjustment:</strong> ${guidelines.renalAdjustment}</div>` : ''}
+        </div>
+      `;
+      dosingGuidelines.classList.remove('hidden');
+    } else {
+      dosingGuidelines.classList.add('hidden');
+    }
+  });
+}
+
+// Update bed availability when department changes
+function setupDepartmentBedSelection() {
+  const deptSelect = document.getElementById('info_department');
+  const bedSelect = document.getElementById('info_bedAssignment');
+  
+  if (!deptSelect || !bedSelect) return;
+  
+  deptSelect.addEventListener('change', function() {
+    const departmentId = this.value;
+    bedSelect.innerHTML = '<option value="">Loading beds...</option>';
+    
+    if (!departmentId) {
+      bedSelect.innerHTML = '<option value="">Select department first</option>';
+      return;
+    }
+    
+    // Filter available beds for selected department
+    const availableBeds = beds.filter(bed => 
+      bed.departmentId === departmentId && bed.status === 'available'
+    );
+    
+    bedSelect.innerHTML = '<option value="">No bed assigned</option>';
+    availableBeds.forEach(bed => {
+      const option = document.createElement('option');
+      option.value = bed.id;
+      option.textContent = `${bed.number} (${bed.roomType})`;
+      bedSelect.appendChild(option);
+    });
+    
+    if (availableBeds.length === 0) {
+      bedSelect.innerHTML = '<option value="">No beds available</option>';
+    }
+  });
+}
+
+// Enhanced add medication order function
+function addMedicationOrder() {
+  const form = document.getElementById('medCPOEForm');
+  if (!form) return;
+  
+  const formData = new FormData(form);
+  const order = {};
+  for (const [key, value] of formData.entries()) {
+    order[key] = value;
+  }
+  
+  // Validate required fields
+  if (!order.drug) {
+    showToast('Drug name is required', 'error');
+    return;
+  }
+  
+  // Check for safety alerts
+  const currentPatient = selectedPatientId ? patients.find(p => p.id === selectedPatientId) : null;
+  const alerts = medicationSafety.checkMedication(order.drug, currentPatient || {});
+  const criticalAlerts = alerts.filter(a => a.type === 'error');
+  
+  if (criticalAlerts.length > 0) {
+    const proceed = confirm(`Critical safety alert:\n${criticalAlerts.map(a => a.message).join('\n')}\n\nDo you want to proceed anyway?`);
+    if (!proceed) return;
+  }
+  
+  // Add order to medications table
+  const tbody = document.getElementById('medTableBody');
+  if (!tbody) return;
+  
+  const tr = document.createElement('tr');
+  tr.className = 'med-row';
+  
+  // Check if it's an IV order
+  if (order.iv_fluid) {
+    // Add to IV table instead
+    const ivTbody = document.getElementById('ivTableBody');
+    if (ivTbody) {
+      const ivTr = document.createElement('tr');
+      ivTr.innerHTML = `
+        <td><input name="iv_fluid" value="${order.iv_fluid}" class="w-full rounded border px-2 py-1" readonly/></td>
+        <td><input name="iv_ml_hr" value="${order.iv_ml_hr || ''}" class="w-full rounded border px-2 py-1"/></td>
+        <td><input name="iv_gtt_min" value="${order.iv_gtt_min || ''}" class="w-full rounded border px-2 py-1"/></td>
+        <td><input name="iv_volume" value="${order.iv_volume || ''}" class="w-full rounded border px-2 py-1"/></td>
+        <td><input name="iv_time" value="${order.iv_time || ''}" class="w-full rounded border px-2 py-1"/></td>
+        <td><input name="startDate" value="${order.startDate || ''}" type="date" class="w-full rounded border px-2 py-1"/></td>
+        <td><input name="prescriber" value="${order.prescriber || ''}" class="w-full rounded border px-2 py-1"/></td>
+        <td><button type="button" class="btn-remove-row px-2 py-1 rounded bg-white border">🗑️</button></td>
+      `;
+      ivTbody.appendChild(ivTr);
+    }
+  } else {
+    // Add to medication table
+    tr.innerHTML = `
+      <td><input name="drug" value="${order.drug}" class="w-full rounded border px-2 py-1" readonly/></td>
+      <td><input name="dosage" value="${order.dosage || ''}" class="w-full rounded border px-2 py-1"/></td>
+      <td><input name="route" value="${order.route || ''}" class="w-full rounded border px-2 py-1"/></td>
+      <td><input name="frequency" value="${order.frequency || ''}" class="w-full rounded border px-2 py-1"/></td>
+      <td><input name="startDate" value="${order.startDate || ''}" type="date" class="w-full rounded border px-2 py-1"/></td>
+      <td><input name="duration" value="${order.duration || ''}" class="w-full rounded border px-2 py-1"/></td>
+      <td><select name="prn" class="w-full rounded border px-2 py-1"><option value="No" ${order.prn === 'No' ? 'selected' : ''}>No</option><option value="Yes" ${order.prn === 'Yes' ? 'selected' : ''}>Yes</option></select></td>
+      <td><input name="prescriber" value="${order.prescriber || ''}" class="w-full rounded border px-2 py-1"/></td>
+      <td><button type="button" class="btn-remove-row px-2 py-1 rounded bg-white border">🗑️</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+  
+  // Clear form
+  form.reset();
+  document.getElementById('drugSafetyAlerts').innerHTML = '';
+  document.getElementById('drugSafetyIcon').textContent = '💊';
+  document.getElementById('dosingGuidelines').classList.add('hidden');
+  
+  showToast('Medication order added', 'success');
+  enableMedRowSelection();
+}
+
+// Set up event listeners when page loads
+window.addEventListener('load', function() {
+  setupMedicationSafetyChecks();
+  setupDepartmentBedSelection();
+  
+  // Enhanced add medication button
+  const addMedBtn = document.getElementById('addMedOrderBtn');
+  if (addMedBtn) {
+    addMedBtn.addEventListener('click', addMedicationOrder);
+  }
+  
+  // Clear CPOE form button
+  const clearBtn = document.getElementById('cpoeClear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      const form = document.getElementById('medCPOEForm');
+      if (form) form.reset();
+      document.getElementById('drugSafetyAlerts').innerHTML = '';
+      document.getElementById('drugSafetyIcon').textContent = '💊';
+      document.getElementById('dosingGuidelines').classList.add('hidden');
+    });
+  }
+  
+  // Send to pharmacy button
+  const pharmacyBtn = document.getElementById('sendToPharmacy');
+  if (pharmacyBtn) {
+    pharmacyBtn.addEventListener('click', function() {
+      const currentPatient = selectedPatientId ? patients.find(p => p.id === selectedPatientId) : null;
+      if (!currentPatient) {
+        showToast('Please select a patient first', 'error');
+        return;
+      }
+      
+      // Count active medication orders
+      const medRows = document.querySelectorAll('#medTableBody tr');
+      const ivRows = document.querySelectorAll('#ivTableBody tr');
+      const totalOrders = medRows.length + ivRows.length;
+      
+      if (totalOrders === 0) {
+        showToast('No medication orders to send', 'error');
+        return;
+      }
+      
+      showToast(`${totalOrders} orders sent to pharmacy for ${currentPatient.name}`, 'success');
+    });
+  }
+});
+
+// Update the bed status rendering function
+function renderBedStatus() {
+  const totalBedsEl = document.getElementById('totalBeds');
+  const availableBedsEl = document.getElementById('availableBeds');
+  const occupiedBedsEl = document.getElementById('occupiedBeds');
+  const occupancyRateEl = document.getElementById('occupancyRate');
+  
+  if (!totalBedsEl) return;
+  
+  const totalBeds = beds.length;
+  const availableBeds = beds.filter(b => b.status === 'available').length;
+  const occupiedBeds = beds.filter(b => b.status === 'occupied').length;
+  const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+  
+  totalBedsEl.textContent = totalBeds;
+  availableBedsEl.textContent = availableBeds;
+  occupiedBedsEl.textContent = occupiedBeds;
+  occupancyRateEl.textContent = occupancyRate + '%';
 }
 
 // read form into object (keeps empty strings too)
@@ -124,6 +1928,8 @@ auth.onAuthStateChanged(async user => {
     const loginModalEl = $('loginModal'); if(loginModalEl) loginModalEl.classList.add('hidden');
     // enable realtime updates for patients
     enableRealtimePatients();
+    // initialize departments and beds
+    initializeSystemForUser();
   } else {
     currentRole = 'guest';
     renderUserBadge();
@@ -490,6 +2296,62 @@ if(searchEl) searchEl.addEventListener('input', e=>{
   renderPatients(filtered);
 });
 
+// -------------------- Auto-fill date/time functions --------------------
+function setCurrentDateTime() {
+  const now = new Date();
+  const currentDate = now.toISOString().split('T')[0];
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const currentDateTime = `${currentDate}T${currentTime}`;
+  
+  // Set admission date (current date)
+  const admissionDate = document.getElementById('info_admissionDate');
+  if (admissionDate && !admissionDate.value) {
+    admissionDate.value = currentDate;
+  }
+  
+  // Set admission time (current time)
+  const admissionTime = document.getElementById('info_admissionTime');
+  if (admissionTime && !admissionTime.value) {
+    admissionTime.value = currentTime;
+  }
+  
+  // Auto-fill other time fields when they become active/focused
+  const timeFields = [
+    'v_time',           // Vitals time
+    'nurse_time',       // Nurse notes time
+    'doc_time',         // Doctor notes time
+    'discharge_time'    // Discharge time
+  ];
+  
+  timeFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      // Set current time when field gets focus (if empty)
+      field.addEventListener('focus', function() {
+        if (!this.value) {
+          const freshNow = new Date();
+          const freshTime = `${freshNow.getHours().toString().padStart(2, '0')}:${freshNow.getMinutes().toString().padStart(2, '0')}`;
+          this.value = freshTime;
+        }
+      });
+    }
+  });
+  
+  // Auto-fill datetime-local fields
+  const dateTimeFields = document.querySelectorAll('input[type="datetime-local"]');
+  dateTimeFields.forEach(field => {
+    if (field && !field.value) {
+      field.addEventListener('focus', function() {
+        if (!this.value) {
+          const freshNow = new Date();
+          const freshDateTime = freshNow.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+          this.value = freshDateTime;
+        }
+      });
+    }
+  });
+}
+
 // -------------------- New Patient flow --------------------
 if($('btnNew')) $('btnNew').addEventListener('click', ()=>{
   selectedPatientId = null;
@@ -498,6 +2360,8 @@ if($('btnNew')) $('btnNew').addEventListener('click', ()=>{
   vitalsRows = []; uploadedLabs = [];
   renderVitalsTable(); renderLabFiles();
   updateUploadButtonState();
+  // Auto-fill current date and time
+  setCurrentDateTime();
   // show patient info tab
   const btn = document.querySelector('.navbtn[data-target="tab-info"]');
   if(btn) btn.click();
@@ -534,7 +2398,36 @@ qsa('[data-save]').forEach(btn => {
     const data = readForm(fid);
     // attach complex fields
     if(key === 'vitals') data.vitals = vitalsRows.slice();
-    if(key === 'labs') data.labFiles = uploadedLabs.slice();
+    if(key === 'labs') {
+      data.labFiles = uploadedLabs.slice();
+      data.labOrders = labOrderManager.orders.slice();
+      
+      // Include structured results if available
+      const structuredInputs = document.querySelectorAll('.lab-result-input');
+      if (structuredInputs.length > 0) {
+        const structuredResults = {};
+        structuredInputs.forEach(input => {
+          if (input.value.trim()) {
+            structuredResults[input.dataset.field] = {
+              value: parseFloat(input.value),
+              unit: input.dataset.unit,
+              timestamp: new Date().toISOString()
+            };
+          }
+        });
+        
+        if (Object.keys(structuredResults).length > 0) {
+          data.structuredResults = structuredResults;
+          
+          // Add to trends
+          const testType = document.getElementById('lab_test')?.value;
+          if (testType) {
+            labTrends.addToTrends(testType, structuredResults);
+            labTrends.updateTrendsDisplay();
+          }
+        }
+      }
+    }
     if(key === 'meds') {
       // collect medication table (medications only)
       const meds = [];
@@ -585,9 +2478,17 @@ qsa('[data-save]').forEach(btn => {
         if(m.iv_gtt_min !== null && !isFinite(m.iv_gtt_min)) return showToast('Invalid IV gtt/min for IV order: ' + (m.iv_fluid||'row ' + (i+1)), 'error');
       }
     }
+    // Construct full name for info tab
+    if(key === 'info') {
+      const parts = [];
+      if(data.firstName) parts.push(data.firstName.trim());
+      if(data.middleName) parts.push(data.middleName.trim());
+      if(data.lastName) parts.push(data.lastName.trim());
+      data.name = parts.join(' ');
+    }
     // validation for info
-    if(key === 'info' && (!data.name)) {
-      return showToast('Please enter patient name', 'error');
+    if(key === 'info' && (!data.firstName || data.firstName.trim() === '')) {
+      return showToast('Please enter patient first name', 'error');
     }
     // validation for physical assessment
     if(key === 'physical' && (!data.initialDiagnosis)) {
@@ -644,6 +2545,201 @@ async function saveTabData(tabKey, data){
   }
   // reload patients
   await loadPatients();
+}
+
+// -------------------- Enhanced Lab Functionality --------------------
+
+// Lab test selection handler
+if($('lab_test')) {
+  $('lab_test').addEventListener('change', function(e) {
+    const selectedTest = e.target.value;
+    const existingStructured = document.querySelector('#structuredLabEntry');
+    
+    if (existingStructured) {
+      existingStructured.remove();
+    }
+    
+    if (selectedTest && labResultsManager.testTemplates[selectedTest]) {
+      const structuredForm = labResultsManager.generateStructuredForm(selectedTest);
+      if (structuredForm) {
+        const labSection = document.querySelector('#tab-labs form');
+        const insertPoint = document.querySelector('#tab-labs .bg-gradient-to-br.from-blue-50');
+        
+        const structuredDiv = document.createElement('div');
+        structuredDiv.id = 'structuredLabEntry';
+        structuredDiv.innerHTML = structuredForm;
+        
+        if (insertPoint) {
+          insertPoint.parentNode.insertBefore(structuredDiv, insertPoint);
+        }
+        
+        // Add real-time interpretation
+        setTimeout(() => {
+          const inputs = document.querySelectorAll('.lab-result-input');
+          inputs.forEach(input => {
+            input.addEventListener('input', function() {
+              const value = parseFloat(this.value);
+              if (isNaN(value) || !this.value.trim()) {
+                const interpretDiv = this.parentElement.querySelector('.result-interpretation');
+                interpretDiv.classList.add('hidden');
+                return;
+              }
+              
+              const normalRange = JSON.parse(this.dataset.normal);
+              const interpretation = labResultsManager.interpretValue(value, normalRange);
+              const interpretDiv = this.parentElement.querySelector('.result-interpretation');
+              
+              interpretDiv.className = `result-interpretation text-xs font-medium ${interpretation.className}`;
+              interpretDiv.textContent = interpretation.message;
+              interpretDiv.classList.remove('hidden');
+            });
+          });
+        }, 100);
+      }
+    }
+  });
+}
+
+// Enhanced lab order management
+const labOrderManager = {
+  orders: [],
+  
+  addOrder: function() {
+    const form = document.getElementById('form-labs');
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    const order = {
+      id: Date.now(),
+      test: formData.get('lab_test'),
+      customTest: formData.get('lab_customTest'),
+      priority: formData.get('lab_priority'),
+      specimen: formData.get('lab_specimen'),
+      indication: formData.get('lab_indication'),
+      orderDateTime: formData.get('lab_orderDateTime') || new Date().toISOString(),
+      status: 'ordered',
+      orderedBy: currentUser?.name || 'Current User',
+      patient: selectedPatientId
+    };
+    
+    // Validate required fields
+    if (!order.test || !order.priority || !order.indication) {
+      showToast('Please fill in all required fields', 'error');
+      return false;
+    }
+    
+    this.orders.push(order);
+    this.renderOrdersHistory();
+    this.clearCurrentOrder();
+    
+    showToast('Lab order added successfully', 'success');
+    return true;
+  },
+  
+  renderOrdersHistory: function() {
+    const historyDiv = document.getElementById('labOrdersHistory');
+    if (!historyDiv) return;
+    
+    if (this.orders.length === 0) {
+      historyDiv.innerHTML = '<div class="text-sm text-slate-500 italic">No lab orders yet</div>';
+      return;
+    }
+    
+    let html = '';
+    this.orders.slice(-5).forEach(order => {
+      const orderDate = new Date(order.orderDateTime).toLocaleString();
+      const statusClass = this.getStatusClass(order.status);
+      
+      html += `
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+          <div class="flex justify-between items-start mb-2">
+            <div class="font-medium text-slate-800">
+              ${order.customTest || order.test}
+              ${order.priority === 'Stat' ? ' <span class="text-red-600 font-bold">STAT</span>' : ''}
+            </div>
+            <span class="px-2 py-1 text-xs rounded-full ${statusClass}">
+              ${order.status.toUpperCase()}
+            </span>
+          </div>
+          <div class="text-sm text-slate-600">
+            <div><strong>Specimen:</strong> ${order.specimen || 'Not specified'}</div>
+            <div><strong>Ordered:</strong> ${orderDate}</div>
+            <div><strong>Indication:</strong> ${order.indication}</div>
+          </div>
+          <div class="mt-2 flex gap-2">
+            <button onclick="labOrderManager.updateStatus(${order.id}, 'collected')" 
+                    class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200">
+              Mark Collected
+            </button>
+            <button onclick="labOrderManager.updateStatus(${order.id}, 'resulted')" 
+                    class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">
+              Mark Resulted
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    
+    historyDiv.innerHTML = html;
+  },
+  
+  getStatusClass: function(status) {
+    switch(status) {
+      case 'ordered': return 'bg-yellow-100 text-yellow-800';
+      case 'collected': return 'bg-blue-100 text-blue-800';
+      case 'resulted': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-slate-100 text-slate-800';
+    }
+  },
+  
+  updateStatus: function(orderId, newStatus) {
+    const order = this.orders.find(o => o.id === orderId);
+    if (order) {
+      order.status = newStatus;
+      if (newStatus === 'resulted') {
+        order.resultedAt = new Date().toISOString();
+      }
+      this.renderOrdersHistory();
+      showToast(`Order status updated to ${newStatus}`, 'success');
+    }
+  },
+  
+  clearCurrentOrder: function() {
+    const form = document.getElementById('form-labs');
+    if (form) {
+      // Clear form fields except files
+      const inputs = form.querySelectorAll('input:not([type="file"]), select, textarea');
+      inputs.forEach(input => {
+        if (input.type === 'datetime-local') {
+          input.value = '';
+        } else {
+          input.value = '';
+        }
+      });
+      
+      // Remove structured entry if present
+      const structuredEntry = document.getElementById('structuredLabEntry');
+      if (structuredEntry) {
+        structuredEntry.remove();
+      }
+    }
+  }
+};
+
+// Add lab order button handler
+if($('addLabOrder')) {
+  $('addLabOrder').addEventListener('click', function() {
+    labOrderManager.addOrder();
+  });
+}
+
+// Clear labs button handler
+if($('clearLabs')) {
+  $('clearLabs').addEventListener('click', function() {
+    labOrderManager.clearCurrentOrder();
+    showToast('Lab form cleared', 'info');
+  });
 }
 
 // -------------------- Lab uploads --------------------
@@ -808,6 +2904,657 @@ if(clearVitalsBtn){ clearVitalsBtn.addEventListener('click', ()=>{
   ['v_date','v_time','v_temp','v_pulse','v_rr','v_bp','v_spo2','v_by','v_io_in','v_io_out'].forEach(id=>{ const el = document.getElementById(id); if(el) el.value = ''; });
 }); }
 
+// -------------------- Form Progress Tracking and Validation --------------------
+function setupFormProgressTracking() {
+  const infoForm = document.getElementById('form-info');
+  const progressBar = document.getElementById('infoProgressBar');
+  const progressText = document.getElementById('infoProgress');
+  
+  if (!infoForm || !progressBar || !progressText) return;
+
+  // Required fields for progress calculation
+  const requiredFields = [
+    'mrn', 'patientStatus', 'firstName', 'lastName', 'civilStatus', 
+    'dob', 'gender', 'contact', 'address', 'city', 'province', 'country',
+    'primaryLanguage', 'emergencyName', 'emergencyPhone'
+  ];
+
+  // All form fields for enhanced validation
+  const allFields = infoForm.querySelectorAll('input, select, textarea');
+
+  function updateProgress() {
+    let completedFields = 0;
+    
+    requiredFields.forEach(fieldName => {
+      const field = infoForm.querySelector(`[name="${fieldName}"]`);
+      if (field && field.value.trim() !== '') {
+        completedFields++;
+      }
+    });
+
+    const percentage = Math.round((completedFields / requiredFields.length) * 100);
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `${percentage}% Complete (${completedFields}/${requiredFields.length} required fields)`;
+    
+    // Update progress bar color based on completion
+    if (percentage < 30) {
+      progressBar.className = 'bg-gradient-to-r from-red-400 to-red-500 h-2 rounded-full transition-all duration-300';
+    } else if (percentage < 70) {
+      progressBar.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full transition-all duration-300';
+    } else if (percentage < 100) {
+      progressBar.className = 'bg-gradient-to-r from-blue-400 to-blue-500 h-2 rounded-full transition-all duration-300';
+    } else {
+      progressBar.className = 'bg-gradient-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all duration-300';
+    }
+  }
+
+  // Enhanced field validation
+  function validateField(field) {
+    const fieldContainer = field.closest('.form-group') || field.parentElement;
+    let isValid = true;
+    let errorMessage = '';
+
+    // Remove existing error styling
+    field.classList.remove('border-red-500', 'ring-red-100');
+    const existingError = fieldContainer.querySelector('.field-error');
+    if (existingError) existingError.remove();
+
+    // Check if required field is empty
+    if (field.hasAttribute('required') && field.value.trim() === '') {
+      isValid = false;
+      errorMessage = 'This field is required';
+    }
+
+    // Specific validations
+    switch (field.type) {
+      case 'email':
+        if (field.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+          isValid = false;
+          errorMessage = 'Please enter a valid email address';
+        }
+        break;
+      case 'tel':
+        if (field.value && !/^[+]?[\d\s\-()]{10,15}$/.test(field.value)) {
+          isValid = false;
+          errorMessage = 'Please enter a valid phone number';
+        }
+        break;
+      case 'date':
+        if (field.value && field.name === 'dob') {
+          const birthDate = new Date(field.value);
+          const today = new Date();
+          const age = today.getFullYear() - birthDate.getFullYear();
+          if (birthDate > today || age > 150) {
+            isValid = false;
+            errorMessage = 'Please enter a valid birth date';
+          } else {
+            // Auto-calculate age
+            const ageField = infoForm.querySelector('[name="age"]');
+            if (ageField) {
+              const monthDiff = today.getMonth() - birthDate.getMonth();
+              const finalAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
+              ageField.value = finalAge;
+            }
+          }
+        }
+        break;
+      case 'number':
+        if (field.value && (isNaN(field.value) || parseFloat(field.value) < 0)) {
+          isValid = false;
+          errorMessage = 'Please enter a valid positive number';
+        }
+        break;
+    }
+
+    // Pattern validation
+    if (field.pattern && field.value && !new RegExp(field.pattern).test(field.value)) {
+      isValid = false;
+      errorMessage = field.title || 'Please enter a valid format';
+    }
+
+    // Apply error styling and message
+    if (!isValid) {
+      field.classList.add('border-red-500', 'ring-red-100');
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'field-error text-xs text-red-600 mt-1 flex items-center gap-1';
+      errorDiv.innerHTML = `<span class="text-red-500">⚠️</span> ${errorMessage}`;
+      fieldContainer.appendChild(errorDiv);
+    } else {
+      field.classList.add('border-green-300');
+      setTimeout(() => field.classList.remove('border-green-300'), 2000);
+    }
+
+    return isValid;
+  }
+
+  // Auto-fill MRN if empty
+  function generateMRN() {
+    const mrnField = infoForm.querySelector('[name="mrn"]');
+    if (mrnField && !mrnField.value.trim()) {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      mrnField.value = `MRN${timestamp.toString().slice(-6)}${random}`;
+    }
+  }
+
+  // Set maximum date for date of birth (today)
+  const dobField = infoForm.querySelector('[name="dob"]');
+  if (dobField) {
+    const today = new Date().toISOString().split('T')[0];
+    dobField.setAttribute('max', today);
+  }
+
+  // Add event listeners to all fields
+  allFields.forEach(field => {
+    // Real-time validation and progress update
+    field.addEventListener('input', () => {
+      updateProgress();
+      validateField(field);
+    });
+
+    field.addEventListener('blur', () => {
+      validateField(field);
+    });
+
+    // Auto-generate MRN when focus leaves empty MRN field
+    if (field.name === 'mrn') {
+      field.addEventListener('blur', generateMRN);
+    }
+  });
+
+  // Auto-fill full name when individual name fields change
+  function updateFullName() {
+    const firstName = infoForm.querySelector('[name="firstName"]')?.value || '';
+    const middleName = infoForm.querySelector('[name="middleName"]')?.value || '';
+    const lastName = infoForm.querySelector('[name="lastName"]')?.value || '';
+    const suffix = infoForm.querySelector('[name="suffix"]')?.value || '';
+    
+    const fullNameField = infoForm.querySelector('[name="name"]');
+    if (fullNameField) {
+      let fullName = lastName;
+      if (firstName) fullName += `, ${firstName}`;
+      if (middleName) fullName += ` ${middleName}`;
+      if (suffix) fullName += ` ${suffix}`;
+      fullNameField.value = fullName.trim().replace(/^,\s*/, '');
+    }
+  }
+
+  // Add listeners for name field updates
+  ['firstName', 'middleName', 'lastName', 'suffix'].forEach(fieldName => {
+    const field = infoForm.querySelector(`[name="${fieldName}"]`);
+    if (field) {
+      field.addEventListener('input', updateFullName);
+    }
+  });
+
+  // Initial progress calculation
+  updateProgress();
+}
+
+// -------------------- Consolidated Application Initialization --------------------
+
+// Single initialization function to prevent conflicts
+function initializeEHRApplication() {
+  console.log('🚀 Initializing EHR Application...');
+  
+  try {
+    // Wait for DOM to be fully ready
+    if (document.readyState !== 'complete') {
+      setTimeout(initializeEHRApplication, 100);
+      return;
+    }
+    
+    // Initialize form progress tracking
+    if (typeof setupFormProgressTracking === 'function') {
+      setupFormProgressTracking();
+      console.log('✅ Form progress tracking initialized');
+    }
+    
+    // Initialize BMI and IV calculations
+    if (typeof setupBMIandIV === 'function') {
+      setupBMIandIV();
+      console.log('✅ BMI and IV calculations initialized');
+    }
+    
+    // Initialize enhanced auto-save
+    if (typeof enhanceAutoSave === 'function') {
+      enhanceAutoSave();
+      console.log('✅ Enhanced auto-save initialized');
+    }
+    
+    // Initialize enhanced dashboard
+    if (typeof setupEnhancedDashboard === 'function') {
+      setupEnhancedDashboard();
+      console.log('✅ Enhanced dashboard initialized');
+    }
+    
+    // Initialize enhanced patient selection
+    if (typeof setupEnhancedPatientSelection === 'function') {
+      setupEnhancedPatientSelection();
+      console.log('✅ Enhanced patient selection initialized');
+    }
+    
+    // Auto-fill current date and time for new patients
+    setCurrentDateTime();
+    console.log('✅ Auto date/time filling initialized');
+    
+    // Initialize enhanced features
+    if (typeof initializeEnhancedFeatures === 'function') {
+      initializeEnhancedFeatures();
+      console.log('✅ Enhanced features initialized');
+    }
+    
+    // Initialize enhanced patient model
+    if (typeof setupEnhancedPatientModel === 'function') {
+      setupEnhancedPatientModel();
+      console.log('✅ Enhanced patient model initialized');
+    }
+    
+    // Initialize departments if not already done
+    if (departments.length === 0) {
+      initializeDepartments().catch(console.error);
+      console.log('✅ Departments initialization started');
+    }
+    
+    // Initialize lab functionality
+    if (typeof labOrderManager !== 'undefined') {
+      labOrderManager.orders = labOrderManager.orders || [];
+      console.log('✅ Lab order manager initialized');
+    }
+    
+    if (typeof labTrends !== 'undefined') {
+      labTrends.historicalData = labTrends.historicalData || {};
+      console.log('✅ Lab trends system initialized');
+    }
+    
+    // Attach Lottie animation if function exists
+    if (typeof attachLottieToLogo === 'function') {
+      attachLottieToLogo();
+      console.log('✅ Lottie animation attached');
+    }
+    
+    // Setup error handlers for critical missing functions
+    setupErrorHandlers();
+    
+    // Setup all clear button handlers
+    setupClearButtonHandlers();
+    
+    // Setup additional missing button handlers
+    setupAdditionalButtonHandlers();
+    
+    console.log('🎉 EHR Application initialization complete!');
+    
+  } catch (error) {
+    console.error('❌ Error during EHR initialization:', error);
+    showToast('Application initialization error. Some features may not work properly.', 'error');
+  }
+}
+
+// Setup error handlers for missing functions
+function setupErrorHandlers() {
+  // Define safe fallbacks for critical functions
+  if (typeof window.showAllPatients === 'undefined') {
+    window.showAllPatients = showAllPatients;
+  }
+  
+  if (typeof window.navigateToTab === 'undefined') {
+    window.navigateToTab = navigateToTab;
+  }
+  
+  // Lab functions
+  if (typeof window.labResultsManager === 'undefined') {
+    console.warn('labResultsManager not found, lab functionality may be limited');
+  }
+  
+  // Ensure modal functions exist
+  if (typeof window.showBedAssignmentModal === 'undefined') {
+    window.showBedAssignmentModal = showBedAssignmentModal;
+  }
+  
+  if (typeof window.showPatientTransferModal === 'undefined') {
+    window.showPatientTransferModal = showPatientTransferModal;
+  }
+  
+  if (typeof window.showBedMaintenanceModal === 'undefined') {
+    window.showBedMaintenanceModal = showBedMaintenanceModal;
+  }
+  
+  console.log('✅ Error handlers and function fallbacks set up');
+}
+
+// Setup all clear button handlers
+function setupClearButtonHandlers() {
+  console.log('Setting up clear button handlers...');
+  
+  // Clear Info form (Patient Information)
+  const clearInfoBtn = document.getElementById('clearInfo');
+  if (clearInfoBtn) {
+    clearInfoBtn.addEventListener('click', function() {
+      const form = document.getElementById('form-info');
+      if (form) {
+        // Clear all form inputs
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        
+        // Clear any calculated fields
+        const bmiField = document.getElementById('info_bmi');
+        const bmiCategoryField = document.getElementById('info_bmiCategory');
+        if (bmiField) bmiField.value = '';
+        if (bmiCategoryField) bmiCategoryField.textContent = '';
+        
+        showToast('Patient information form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear ID form (previous versions compatibility)
+  const clearIDBtn = document.getElementById('clearID');
+  if (clearIDBtn) {
+    clearIDBtn.addEventListener('click', function() {
+      // Same as clearInfo for backwards compatibility
+      const form = document.getElementById('form-info');
+      if (form) {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        showToast('Form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear History form (Nurse Notes)
+  const clearHistoryBtn = document.getElementById('clearHistory');
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', function() {
+      const form = document.getElementById('form-history');
+      if (form) {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        showToast('Nurse notes form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear Physical Assessment form
+  const clearPhysicalBtn = document.getElementById('clearPhysical');
+  if (clearPhysicalBtn) {
+    clearPhysicalBtn.addEventListener('click', function() {
+      const form = document.getElementById('form-physical');
+      if (form) {
+        const inputs = form.querySelectorAll('input:not([readonly]), select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        
+        // Clear calculated BMI fields
+        const bmiField = document.getElementById('physical_bmi');
+        const bmiCategoryField = document.getElementById('physical_bmiCategory');
+        if (bmiField) bmiField.value = '';
+        if (bmiCategoryField) bmiCategoryField.textContent = '';
+        
+        showToast('Physical assessment form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear Doctor Notes form  
+  const clearDoctorBtn = document.getElementById('clearDoctor');
+  if (clearDoctorBtn) {
+    clearDoctorBtn.addEventListener('click', function() {
+      const form = document.getElementById('form-doctor');
+      if (form) {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        showToast('Doctor notes form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear Treatment Plan form
+  const clearPlanBtn = document.getElementById('clearPlan');
+  if (clearPlanBtn) {
+    clearPlanBtn.addEventListener('click', function() {
+      const form = document.getElementById('form-assessment');
+      if (form) {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        showToast('Treatment plan form cleared', 'info');
+      }
+    });
+  }
+  
+  // Clear CPOE Medication form
+  const cpoeClearBtn = document.getElementById('cpoeClear');
+  if (cpoeClearBtn) {
+    cpoeClearBtn.addEventListener('click', function() {
+      const form = document.getElementById('medCPOEForm');
+      if (form) {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+          } else {
+            input.value = '';
+          }
+        });
+        
+        // Clear any medication safety alerts
+        const alertContainer = document.getElementById('medicationAlerts');
+        if (alertContainer) {
+          alertContainer.innerHTML = '';
+        }
+        
+        // Clear dosing guidelines
+        const dosingInfo = document.getElementById('dosingGuidelines');
+        if (dosingInfo) {
+          dosingInfo.innerHTML = '';
+        }
+        
+        showToast('CPOE form cleared', 'info');
+      }
+    });
+  }
+  
+  console.log('✅ Clear button handlers set up');
+}
+
+// Setup additional missing button handlers
+function setupAdditionalButtonHandlers() {
+  console.log('Setting up additional button handlers...');
+  
+  // Help button
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) {
+    helpBtn.addEventListener('click', function() {
+      const helpContent = `
+        <div class="max-w-2xl mx-auto p-6">
+          <h2 class="text-2xl font-bold mb-6 text-center">🏥 One Care System - Help & Documentation</h2>
+          
+          <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <h3 class="font-bold text-blue-800 mb-2">🔐 Getting Started</h3>
+              <ul class="text-sm text-blue-700 space-y-1">
+                <li>• Sign in with your healthcare provider credentials</li>
+                <li>• Select your role (Doctor, Nurse, or Admin)</li>
+                <li>• Use "New" button to create patient records</li>
+              </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg">
+              <h3 class="font-bold text-green-800 mb-2">👥 Patient Management</h3>
+              <ul class="text-sm text-green-700 space-y-1">
+                <li>• Click on patient cards to select and edit</li>
+                <li>• Use department assignment for bed management</li>
+                <li>• All data saves automatically to cloud database</li>
+              </ul>
+            </div>
+            
+            <div class="bg-purple-50 p-4 rounded-lg">
+              <h3 class="font-bold text-purple-800 mb-2">📋 Clinical Workflow</h3>
+              <ul class="text-sm text-purple-700 space-y-1">
+                <li>• Patient Info → Vitals → Physical Assessment → Labs</li>
+                <li>• Nurses: Access to vitals, notes, and basic care</li>
+                <li>• Doctors: Full access including treatment plans</li>
+              </ul>
+            </div>
+            
+            <div class="bg-teal-50 p-4 rounded-lg">
+              <h3 class="font-bold text-teal-800 mb-2">💊 Medication Safety</h3>
+              <ul class="text-sm text-teal-700 space-y-1">
+                <li>• CPOE system with drug interaction checking</li>
+                <li>• Allergy alerts and contraindication warnings</li>
+                <li>• Automatic dosing guidelines and safety checks</li>
+              </ul>
+            </div>
+            
+            <div class="bg-amber-50 p-4 rounded-lg">
+              <h3 class="font-bold text-amber-800 mb-2">🧪 Laboratory Integration</h3>
+              <ul class="text-sm text-amber-700 space-y-1">
+                <li>• Structured lab entry with auto-interpretation</li>
+                <li>• Normal/abnormal flagging with clinical correlations</li>
+                <li>• Lab trends and historical data tracking</li>
+              </ul>
+            </div>
+            
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h3 class="font-bold text-red-800 mb-2">⚠️ Emergency Features</h3>
+              <ul class="text-sm text-red-700 space-y-1">
+                <li>• STAT lab orders and critical value alerts</li>
+                <li>• High-risk medication warnings</li>
+                <li>• Emergency department bed tracking</li>
+              </ul>
+            </div>
+            
+            <div class="text-center mt-6 pt-4 border-t">
+              <p class="text-sm text-gray-600">
+                For technical support: <strong>support@onecaresystem.com</strong><br>
+                Version 2.0 | Built with modern web technologies
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      showModal(helpContent);
+    });
+  }
+  
+  // Add Patient button (from dashboard quick actions)
+  const addPatientBtn = document.getElementById('addPatientBtn');
+  if (addPatientBtn) {
+    addPatientBtn.addEventListener('click', function() {
+      // Same functionality as the main "New" button
+      const newBtn = document.getElementById('btnNew');
+      if (newBtn) {
+        newBtn.click();
+      } else {
+        // Fallback: manually trigger new patient creation
+        clearAllForms();
+        selectedPatientId = null;
+        showToast('Ready to create new patient', 'info');
+        
+        // Navigate to patient info tab
+        const infoTab = document.querySelector('.navbtn[data-target="tab-info"]');
+        if (infoTab) {
+          infoTab.click();
+        }
+      }
+    });
+  }
+  
+  console.log('✅ Additional button handlers set up');
+}
+
+// Helper function to clear all forms
+function clearAllForms() {
+  // Clear all form data
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (input.type === 'checkbox' || input.type === 'radio') {
+        input.checked = false;
+      } else {
+        input.value = '';
+      }
+    });
+  });
+  
+  // Clear vitals and labs
+  if (typeof vitalsRows !== 'undefined') {
+    vitalsRows.length = 0;
+    if (typeof renderVitalsTable === 'function') renderVitalsTable();
+  }
+  
+  if (typeof uploadedLabs !== 'undefined') {
+    uploadedLabs.length = 0;
+    if (typeof renderLabFiles === 'function') renderLabFiles();
+  }
+  
+  // Clear medication and IV tables
+  const medTableBody = document.getElementById('medTableBody');
+  if (medTableBody) medTableBody.innerHTML = '';
+  
+  const ivTableBody = document.getElementById('ivTableBody');
+  if (ivTableBody) ivTableBody.innerHTML = '';
+  
+  // Clear any calculated fields
+  const bmiFields = document.querySelectorAll('[id*="bmi"]');
+  bmiFields.forEach(field => {
+    if (field.tagName === 'INPUT') {
+      field.value = '';
+    } else {
+      field.textContent = '';
+    }
+  });
+}
+
+// Remove multiple DOMContentLoaded listeners and use single consolidated one
+document.addEventListener('DOMContentLoaded', () => {
+  // Small delay to ensure all scripts are loaded
+  setTimeout(initializeEHRApplication, 100);
+});
+
+// Keep the window.load for BMI setup as fallback
+window.addEventListener('load', () => {
+  if (typeof setupBMIandIV === 'function') {
+    setupBMIandIV();
+  }
+});
+
 // -------------------- BMI and IV Calculation helpers --------------------
 function setupBMIandIV(){
   // BMI - form-info fields: weight, height, bmi
@@ -890,7 +3637,7 @@ function setupBMIandIV(){
     out.value = `${mlPerHr.toFixed(1)} mL/hr${gttPerMin!==null ? ' — '+gttPerMin + ' gtt/min' : ''}`;
   })});
 }
-window.addEventListener('load', ()=> setupBMIandIV());
+// BMI and IV calculations are initialized through the consolidated init function
 
 // -------------------- View, Edit, Delete, Print --------------------
 let currentModalPatientIndex = null;
@@ -1055,7 +3802,7 @@ on('openAlerts','click', ()=>{
           </div>
         </div>
       `; 
-      showModal(); 
+      showEmptyModal(); 
     } 
   } 
 });
@@ -1234,7 +3981,7 @@ function showPatientModal(index){
         ${notesHtml}
       </div>
     </div>`;
-  const parent = $('modal'); if(parent) showModal();
+  const parent = $('modal'); if(parent) showEmptyModal();
 }
 
 // Enhanced section generators for patient summary
@@ -1801,7 +4548,7 @@ function printPatientInline(id){
 // closeModal implemented above with accessibility
 
 // enhance modal accessibility when showing
-function showModal(){ const parent = $('modal'); if(!parent) return; parent.classList.remove('hidden'); parent.setAttribute('aria-hidden','false');
+function showEmptyModal(){ const parent = $('modal'); if(!parent) return; parent.classList.remove('hidden'); parent.setAttribute('aria-hidden','false');
   // move focus into modal body
   const mb = document.getElementById('modalBody'); if(mb) {
     // focus first focusable element or the modal container
@@ -1870,6 +4617,35 @@ window.editPatient = function(indexOrId){
   // vitals and labs
   vitalsRows = Array.isArray(p.vitals) ? p.vitals.slice() : [];
   uploadedLabs = Array.isArray(p.labFiles) ? p.labFiles.slice() : [];
+  
+  // Load lab orders
+  if (Array.isArray(p.labOrders)) {
+    labOrderManager.orders = p.labOrders.slice();
+    labOrderManager.renderOrdersHistory();
+  } else {
+    labOrderManager.orders = [];
+  }
+  
+  // Load structured results and add to trends
+  if (p.structuredResults && typeof p.structuredResults === 'object') {
+    // Find which test type this belongs to
+    const testTypes = Object.keys(labResultsManager.testTemplates);
+    for (let testType of testTypes) {
+      const template = labResultsManager.testTemplates[testType];
+      const hasMatchingFields = template.fields.some(field => 
+        p.structuredResults.hasOwnProperty(field.name)
+      );
+      
+      if (hasMatchingFields) {
+        labTrends.addToTrends(testType, p.structuredResults);
+        break;
+      }
+    }
+    
+    // Update trends display
+    labTrends.updateTrendsDisplay();
+  }
+  
   renderVitalsTable(); renderLabFiles();
   updateUploadButtonState();
   // compute BMI category if values present
@@ -2122,32 +4898,6 @@ function enableMedRowSelection(){
 // run on initial load and when med rows are re-rendered
 enableMedRowSelection();
 
-// --- New: Floating FAB (quick access) ---
-// create FAB markup and wire actions
-;(function createFAB(){
-  const wrap = document.createElement('div'); wrap.className = 'fab-wrap';
-  wrap.innerHTML = `
-    <div class="fab-menu" id="fabMenu">
-      <div class="fab-action" data-action="newPatient">➕ New Patient</div>
-      <div class="fab-action" data-action="newNote">📝 New Note</div>
-      <div class="fab-action" data-action="addVitals">❤️ Add Vitals</div>
-    </div>
-    <div class="fab bg-gradient-to-br from-sky-500 to-indigo-600" id="mainFab">➕</div>
-  `;
-  document.body.appendChild(wrap);
-  const main = document.getElementById('mainFab');
-  const menu = document.getElementById('fabMenu');
-  if(main && menu){
-    main.addEventListener('click', ()=>{ menu.classList.toggle('open'); main.classList.toggle('active'); });
-    menu.querySelectorAll('.fab-action').forEach(a=> a.addEventListener('click', (e)=>{
-      const act = a.dataset.action;
-      menu.classList.remove('open');
-      if(act === 'newPatient') document.getElementById('btnNew')?.click();
-      if(act === 'newNote') { const btn = document.querySelector('[data-save="nurse"]'); if(btn) btn.click(); else showToast('Open Nurse Notes and save', 'info'); }
-      if(act === 'addVitals') { document.getElementById('btnAddVitals')?.click(); }
-    }));
-  }
-})();
 
 // --- Simple sparkline and meds counter rendering for dashboard ---
 function renderVitalsSparkline(values){
@@ -2347,14 +5097,19 @@ function attachLottie(el, path){
   if(!window.lottie) return; try{ window.lottie.loadAnimation({ container: el, renderer: 'svg', loop: true, autoplay: true, path }); }catch(e){}
 }
 
-// example: attach small Lottie to header logo area if present
-document.addEventListener('DOMContentLoaded', ()=>{
+// Lottie animation setup
+function attachLottieToLogo() {
   const logo = document.querySelector('.header-logo');
-  if(logo){ const holder = document.createElement('div'); holder.className='lottie-sm mr-2'; holder.style.display='inline-block'; logo.prepend(holder); // use a small generic heartbeat animation from LottieFiles CDN (example)
+  if(logo){ 
+    const holder = document.createElement('div'); 
+    holder.className='lottie-sm mr-2'; 
+    holder.style.display='inline-block'; 
+    logo.prepend(holder); 
+    // use a small generic heartbeat animation from LottieFiles CDN (example)
     // path is optional; the project should replace with a local minimal JSON for production
     setTimeout(()=> attachLottie(holder, 'https://assets10.lottiefiles.com/packages/lf20_jcikwtux.json'), 800);
   }
-});
+}
 
 // core calculations
 function computeFromVolumeTimeDrop(){
@@ -2372,11 +5127,8 @@ function computeFromVolumeTimeDrop(){
 // ENHANCED INTEGRATION FEATURES
 // ===============================
 
-// Initialize enhanced features when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Enhanced auto-save functionality
-  enhanceAutoSave();
-  
+// Enhanced features initialization - now handled by consolidated init function
+function setupEnhancedPatientModel() {
   // When saving patient data, upgrade to enhanced model
   const originalSaveTabData = window.saveTabData;
   if (typeof originalSaveTabData === 'function') {
@@ -2417,7 +5169,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup enhanced vitals visualization
   setupEnhancedVitalsDisplay();
-});
+}
 
 // Helper to add periodic auto-save
 function enhanceAutoSave() {
@@ -3264,14 +6016,11 @@ saveTabData = async function(tabKey, data){
 // ENHANCED INTEGRATION INITIALIZATION
 // ========================================================================================
 
-// Initialize enhanced features after DOM is ready
-document.addEventListener('DOMContentLoaded', async function() {
+// Enhanced features initialization is now handled by the consolidated init function
+function initializeEnhancedFeatures() {
   console.log('🚀 Initializing Enhanced EHR Features...');
   
   try {
-    // Wait for dependencies to load
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
     console.log('✅ Chart.js available:', typeof Chart !== 'undefined');
     console.log('✅ Firebase available:', typeof firebase !== 'undefined');
     console.log('✅ Medication Safety available:', typeof window.medicationSafety !== 'undefined');
@@ -3288,7 +6037,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   } catch (error) {
     console.error('❌ Error initializing enhanced features:', error);
   }
-});
+}
 
 // Enhanced Dashboard Setup
 function setupEnhancedDashboard() {
