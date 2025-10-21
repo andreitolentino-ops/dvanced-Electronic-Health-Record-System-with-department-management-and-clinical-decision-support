@@ -3001,16 +3001,16 @@
           <!-- Message Controls -->
           <div class="mb-6 flex flex-wrap gap-3 items-center justify-between">
             <div class="flex gap-3">
-              <button type="button" id="composeBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <button type="button" id="composeBtn" onclick="if(window.clinicalMessaging) clinicalMessaging.showComposeModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 ✉️ Compose Message
               </button>
-              <button type="button" id="templatesBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button type="button" id="templatesBtn" onclick="showMessagingTemplates()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 📋 Templates
               </button>
-              <button type="button" id="patientMessagesBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              <button type="button" id="patientMessagesBtn" onclick="showPatientMessages()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                 👤 Patient Messages
               </button>
-              <button type="button" id="alertsBtn" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+              <button type="button" id="alertsBtn" onclick="showCriticalAlerts()" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                 🚨 System Alerts
               </button>
             </div>
