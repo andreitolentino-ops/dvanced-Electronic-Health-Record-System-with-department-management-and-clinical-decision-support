@@ -103,6 +103,9 @@
         <button type="button" data-target="tab-meds" data-label="Medication & IV Order" title="Medication & IV Order" class="navbtn icon-only" aria-label="Medication & IV Order">
           <span class="nav-icon">💊</span>
         </button>
+        <button type="button" data-target="tab-messages" data-label="Messages" title="Clinical Messages & Alerts" class="navbtn icon-only" aria-label="Clinical Messages & Alerts">
+          <span class="nav-icon">💬</span>
+        </button>
         <button type="button" data-target="tab-vitals" data-label="Vitals" title="Vitals & Monitoring" class="navbtn icon-only" aria-label="Vitals & Monitoring">
           <span class="nav-icon">📊</span>
         </button>
@@ -134,6 +137,7 @@
             <button type="button" data-target="tab-assessment" data-label="Treatment Plan" title="Treatment Plan" class="navbtn icon-btn" aria-label="Treatment Plan">📋<span class="sr-only">Treatment Plan</span><div class="sr-name"> Plan</div></button>
             <button type="button" data-target="tab-labs" data-label="Labs" title="Laboratory & Diagnostics" class="navbtn icon-btn" aria-label="Laboratory & Diagnostics">🧪<span class="sr-only">Laboratory & Diagnostics</span><div class="sr-name"> Labs</div></button>
             <button type="button" data-target="tab-meds" data-label="Medication & IV Order" title="Medication & IV Order" class="navbtn icon-btn" aria-label="Medication & IV Order">💊<span class="sr-only">Medication & IV Order</span><div class="sr-name"> Meds</div></button>
+            <button type="button" data-target="tab-messages" data-label="Messages" title="Clinical Messages & Alerts" class="navbtn icon-btn" aria-label="Clinical Messages & Alerts">💬<span class="sr-only">Clinical Messages & Alerts</span><div class="sr-name"> Messages</div></button>
             <button type="button" data-target="tab-vitals" data-label="Vitals" title="Vitals & Monitoring" class="navbtn icon-btn" aria-label="Vitals & Monitoring">❤️<span class="sr-only">Vitals & Monitoring</span><div class="sr-name"> Vitals</div></button>
             <button type="button" data-target="tab-nurse" data-label="Nurse Notes" title="Nurse Notes (FDAR)" class="navbtn icon-btn" aria-label="Nurse Notes">👩‍⚕️<span class="sr-only">Nurse Notes (FDAR)</span><div class="sr-name"> Nurse</div></button>
             <button type="button" data-target="tab-doctor" data-label="Doctor Notes" title="Doctor Notes" class="navbtn icon-btn" aria-label="Doctor Notes">👨‍⚕️<span class="sr-only">Doctor Notes</span><div class="sr-name"> Doctor</div></button>
@@ -2987,9 +2991,87 @@
           </div>
         </div>
 
-        <!-- 8 • Vitals -->
+        <!-- 8 • Messages -->
+        <div id="tab-messages" class="panel hidden p-6 rounded-2xl glass soft-shadow">
+          <h3 class="text-xl font-bold mb-4 flex items-center gap-3">
+            💬 Clinical Messages & Alerts
+            <span id="unreadCount" class="px-3 py-1 bg-red-500 text-white text-sm rounded-full hidden">0</span>
+          </h3>
+          
+          <!-- Message Controls -->
+          <div class="mb-6 flex flex-wrap gap-3 items-center justify-between">
+            <div class="flex gap-3">
+              <button type="button" id="composeBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                ✉️ Compose Message
+              </button>
+              <button type="button" id="alertsBtn" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                🚨 System Alerts
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <select id="messageFilter" class="px-3 py-2 border rounded-lg">
+                <option value="all">All Messages</option>
+                <option value="unread">Unread</option>
+                <option value="alerts">Alerts</option>
+                <option value="clinical">Clinical</option>
+                <option value="administrative">Administrative</option>
+              </select>
+              <button type="button" id="refreshMessages" class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Message Threads -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Message List -->
+            <div class="lg:col-span-1">
+              <h4 class="font-semibold mb-3 flex items-center gap-2">
+                📬 Messages 
+                <span class="text-sm text-gray-500">(<span id="messageCount">0</span>)</span>
+              </h4>
+              <div id="messagesList" class="space-y-2 max-h-96 overflow-y-auto">
+                <!-- Messages will be populated here -->
+              </div>
+            </div>
+
+            <!-- Message Content -->
+            <div class="lg:col-span-2">
+              <div id="messageViewer" class="bg-white rounded-lg border p-4 min-h-96">
+                <div class="text-center text-gray-500 py-12">
+                  <div class="text-4xl mb-3">💬</div>
+                  <p>Select a message to view its content</p>
+                </div>
+              </div>
+              
+              <!-- Quick Reply -->
+              <div id="quickReply" class="mt-4 hidden">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2">Quick Reply</h5>
+                  <textarea id="replyText" class="w-full border rounded-lg p-3 mb-3" rows="3" placeholder="Type your reply..."></textarea>
+                  <div class="flex justify-end gap-2">
+                    <button type="button" id="cancelReply" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="button" id="sendReply" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Send Reply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Critical Alerts Section -->
+          <div id="criticalAlerts" class="mt-6 hidden">
+            <h4 class="font-semibold text-red-700 mb-3 flex items-center gap-2">
+              🚨 Critical Alerts
+            </h4>
+            <div id="alertsList" class="space-y-2">
+              <!-- Critical alerts will be shown here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 9 • Vitals -->
         <div id="tab-vitals" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">8 • Vitals & Monitoring</h3>
+          <h3 class="text-xl font-bold mb-3">9 • Vitals & Monitoring</h3>
           <form id="form-vitals">
             <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
               <input name="v_date" id="v_date" type="date" class="rounded-lg p-2 border"/>
@@ -3016,9 +3098,9 @@
           </form>
         </div>
 
-        <!-- 9 • Nurse Notes -->
+        <!-- 10 • Nurse Notes -->
         <div id="tab-nurse" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">9 • Nurse Notes (FDAR)</h3>
+          <h3 class="text-xl font-bold mb-3">10 • Nurse Notes (FDAR)</h3>
           <form id="form-nurse" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input name="nurse_date" type="date" class="rounded-lg p-2 border" />
@@ -3047,9 +3129,9 @@
           </form>
         </div>
 
-        <!-- 10 • Doctor Notes -->
+        <!-- 11 • Doctor Notes -->
         <div id="tab-doctor" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">10 • Doctor Notes</h3>
+          <h3 class="text-xl font-bold mb-3">11 • Doctor Notes</h3>
           <form id="form-doctor" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input name="doc_date" type="date" class="rounded-lg p-2 border" />
@@ -3078,9 +3160,9 @@
           </form>
         </div>
 
-        <!-- 11 • Discharge Plan -->
+        <!-- 12 • Discharge Plan -->
         <div id="tab-plan" class="panel hidden p-6 rounded-2xl glass soft-shadow">
-          <h3 class="text-xl font-bold mb-3">11 • Discharge Plan</h3>
+          <h3 class="text-xl font-bold mb-3">12 • Discharge Plan</h3>
           <form id="form-plan" class="grid grid-cols-1 gap-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
