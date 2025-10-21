@@ -3231,6 +3231,9 @@
               <button type="button" id="credentialsBtn" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                 📜 Credentials
               </button>
+              <button type="button" onclick="console.log('Staff System Check:', window.staffSystem); alert('Staff System: ' + (window.staffSystem ? 'LOADED' : 'NOT LOADED'))" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                🔧 Debug
+              </button>
             </div>
             <div class="flex gap-2">
               <select id="staffFilter" class="px-3 py-2 border rounded-lg">
