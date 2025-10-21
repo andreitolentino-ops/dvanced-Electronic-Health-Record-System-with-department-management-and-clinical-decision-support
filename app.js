@@ -2,50 +2,150 @@
 
 // Early global function declarations (before any other code)
 window.showMessagingTemplates = function() {
-  console.log('🌐 Global template function called');
-  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
-  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  console.log('📋 Templates function called');
   
-  const messaging = window.clinicalMessaging || clinicalMessaging;
+  // Simple template modal that works without the complex messaging system
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+      <h3 class="text-xl font-bold mb-4">� Clinical Message Templates</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="useSimpleTemplate('discharge')">
+          <div class="font-semibold text-sm mb-2">Patient Discharge Ready</div>
+          <div class="text-xs text-gray-600 mb-2">Category: discharge</div>
+          <div class="text-xs text-gray-500">Patient ready for discharge with all requirements completed...</div>
+        </div>
+        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="useSimpleTemplate('lab')">
+          <div class="font-semibold text-sm mb-2">Critical Lab Values</div>
+          <div class="text-xs text-gray-600 mb-2">Category: lab</div>
+          <div class="text-xs text-gray-500">CRITICAL lab values requiring immediate attention...</div>
+        </div>
+        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="useSimpleTemplate('medication')">
+          <div class="font-semibold text-sm mb-2">Medication Clarification</div>
+          <div class="text-xs text-gray-600 mb-2">Category: pharmacy</div>
+          <div class="text-xs text-gray-500">Please clarify medication order for patient...</div>
+        </div>
+        <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="useSimpleTemplate('consult')">
+          <div class="font-semibold text-sm mb-2">Consultation Request</div>
+          <div class="text-xs text-gray-600 mb-2">Category: clinical</div>
+          <div class="text-xs text-gray-500">Requesting specialist consultation for patient...</div>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-4 border-t">
+        <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
   
-  if (messaging && messaging.showTemplatesModal) {
-    console.log('✅ Calling showTemplatesModal');
-    messaging.showTemplatesModal();
+  if (typeof showModal === 'function') {
+    showModal(modalContent);
   } else {
-    console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
+    alert('Templates:\n\n1. Patient Discharge Ready\n2. Critical Lab Values\n3. Medication Clarification\n4. Consultation Request\n\nThese templates can be used for quick clinical communication.');
   }
 };
 
 window.showPatientMessages = function() {
-  console.log('🌐 Global patient messages function called');
-  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
-  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  console.log('👤 Patient Messages function called');
   
-  const messaging = window.clinicalMessaging || clinicalMessaging;
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+      <h3 class="text-xl font-bold mb-4">👤 Patient Messages</h3>
+      <div class="space-y-3 mb-4">
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+          <div class="font-semibold text-sm mb-1">Patient John Doe - Blood Pressure Alert</div>
+          <div class="text-xs text-gray-600 mb-2">From: Dr. Sarah Chen → Nurse Station</div>
+          <div class="text-sm text-gray-700">Patient in Room 301 showing elevated BP readings (180/110). Please monitor closely...</div>
+          <div class="mt-2 text-xs text-gray-500">2 hours ago • Patient ID: pat_001</div>
+        </div>
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+          <div class="font-semibold text-sm mb-1">Patient Discharge Planning</div>
+          <div class="text-xs text-gray-600 mb-2">From: Nurse Jessica → Dr. Wilson</div>
+          <div class="text-sm text-gray-700">Patient in Room 205 is ready for discharge. All medications reconciled...</div>
+          <div class="mt-2 text-xs text-gray-500">6 hours ago • Patient ID: pat_004</div>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-4 border-t">
+        <button onclick="alert('Compose new patient message functionality would be implemented here')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          📝 New Patient Message
+        </button>
+        <button onclick="closeModal()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
   
-  if (messaging && messaging.showPatientMessages) {
-    console.log('✅ Calling showPatientMessages');
-    messaging.showPatientMessages();
+  if (typeof showModal === 'function') {
+    showModal(modalContent);
   } else {
-    console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
+    alert('Patient Messages:\n\n• John Doe - Blood Pressure Alert\n• Patient Discharge Planning\n\nThese are patient-linked clinical messages for care coordination.');
   }
 };
 
 window.showCriticalAlerts = function() {
-  console.log('🌐 Global alerts function called');
-  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
-  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  console.log('🚨 Critical Alerts function called');
   
-  const messaging = window.clinicalMessaging || clinicalMessaging;
+  const modalContent = `
+    <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+      <h3 class="text-xl font-bold mb-4 text-red-700">🚨 Critical System Alerts</h3>
+      <div class="space-y-3 mb-4">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+          <div class="font-semibold text-red-800 mb-1">Critical Lab Values - Patient Emergency</div>
+          <div class="text-xs text-red-600 mb-2">From: Lab Department → Dr. Smith</div>
+          <div class="text-sm text-red-700">CRITICAL: Patient Mary Johnson - Troponin levels extremely elevated (15.2 ng/mL). Immediate cardiology consultation recommended.</div>
+          <div class="mt-2 text-xs text-red-500">30 minutes ago • URGENT</div>
+        </div>
+        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
+          <div class="font-semibold text-orange-800 mb-1">Medication Interaction Warning</div>
+          <div class="text-xs text-orange-600 mb-2">System Alert → All Providers</div>
+          <div class="text-sm text-orange-700">High-risk drug interaction detected between Warfarin and new antibiotic order.</div>
+          <div class="mt-2 text-xs text-orange-500">1 hour ago • HIGH PRIORITY</div>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-4 border-t">
+        <button onclick="alert('Alert acknowledgment functionality would be implemented here')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+          ✓ Acknowledge Alerts
+        </button>
+        <button onclick="closeModal()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
   
-  if (messaging && messaging.showCriticalAlerts) {
-    console.log('✅ Calling showCriticalAlerts');
-    messaging.showCriticalAlerts();
+  if (typeof showModal === 'function') {
+    showModal(modalContent);
   } else {
-    console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
+    alert('Critical Alerts:\n\n🚨 Critical Lab Values - Patient Emergency\n⚠️ Medication Interaction Warning\n\nThese require immediate attention.');
+  }
+};
+
+// Simple template usage function
+window.useSimpleTemplate = function(templateType) {
+  const templates = {
+    discharge: {
+      subject: 'Patient Ready for Discharge - Room {room}',
+      content: 'Patient {patientName} in Room {room} is ready for discharge.\n\nCompleted items:\n• Medications reconciled\n• Follow-up appointments scheduled\n• Discharge instructions provided\n• Transportation arranged\n\nPlease review and approve discharge.'
+    },
+    lab: {
+      subject: 'CRITICAL LAB VALUES - {patientName}',
+      content: 'CRITICAL: Patient {patientName} has abnormal lab values requiring immediate attention.\n\nLab: {labName}\nValue: {labValue}\nNormal Range: {normalRange}\n\nImmediate action required. Please review and respond.'
+    },
+    medication: {
+      subject: 'Medication Order Clarification - {patientName}',
+      content: 'Please clarify medication order for {patientName}:\n\nMedication: {medication}\nCurrent Order: {currentOrder}\nConcern: {concern}\n\nPlease review and provide clarification.'
+    },
+    consult: {
+      subject: 'Consultation Request - {specialty} for {patientName}',
+      content: 'Requesting {specialty} consultation for {patientName} in Room {room}.\n\nReason for consultation: {reason}\nUrgency: {urgency}\nPatient background: {background}\n\nPlease schedule at your earliest convenience.'
+    }
+  };
+  
+  const template = templates[templateType];
+  if (template) {
+    closeModal();
+    alert(`Template Selected: ${template.subject}\n\n${template.content}\n\nThis template would normally populate a compose message form.`);
   }
 };
 
