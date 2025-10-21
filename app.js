@@ -2296,6 +2296,502 @@ if(searchEl) searchEl.addEventListener('input', e=>{
   renderPatients(filtered);
 });
 
+// -------------------- Clinical Messaging System --------------------
+class ClinicalMessagingSystem {
+  constructor() {
+    this.messages = [];
+    this.currentThread = null;
+    this.unreadCount = 0;
+    this.initializeMessaging();
+  }
+
+  initializeMessaging() {
+    // Add demo messages
+    this.loadDemoMessages();
+    this.setupEventListeners();
+    this.renderMessages();
+    this.updateUnreadCount();
+  }
+
+  loadDemoMessages() {
+    const demoMessages = [
+      {
+        id: 'msg_001',
+        type: 'clinical',
+        priority: 'high',
+        from: 'Dr. Sarah Chen',
+        fromRole: 'Doctor',
+        to: 'Nurse Station',
+        subject: 'Patient John Doe - Blood Pressure Alert',
+        content: 'Patient in Room 301 showing elevated BP readings (180/110). Please monitor closely and notify if readings remain elevated for next 2 hours.',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        read: false,
+        urgent: true
+      },
+      {
+        id: 'msg_002',
+        type: 'administrative',
+        priority: 'medium',
+        from: 'Pharmacy',
+        fromRole: 'Pharmacist',
+        to: 'Dr. Martinez',
+        subject: 'Medication Clarification Required',
+        content: 'Please clarify dosage for Metformin prescription for Patient ID 12345. Current order shows 500mg BID, but patient history indicates 1000mg BID previously.',
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+        read: true,
+        urgent: false
+      },
+      {
+        id: 'msg_003',
+        type: 'alert',
+        priority: 'critical',
+        from: 'Lab Department',
+        fromRole: 'Lab Tech',
+        to: 'Dr. Smith',
+        subject: 'Critical Lab Values - Patient Emergency',
+        content: 'CRITICAL: Patient Mary Johnson - Troponin levels extremely elevated (15.2 ng/mL). Immediate cardiology consultation recommended.',
+        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        read: false,
+        urgent: true
+      },
+      {
+        id: 'msg_004',
+        type: 'clinical',
+        priority: 'low',
+        from: 'Nurse Jessica',
+        fromRole: 'Nurse',
+        to: 'Dr. Wilson',
+        subject: 'Patient Discharge Planning',
+        content: 'Patient in Room 205 is ready for discharge. All medications reconciled, follow-up appointments scheduled. Please review discharge summary.',
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+        read: true,
+        urgent: false
+      }
+    ];
+    
+    this.messages = demoMessages;
+    this.unreadCount = this.messages.filter(msg => !msg.read).length;
+  }
+
+  setupEventListeners() {
+    // Compose message button
+    const composeBtn = document.getElementById('composeBtn');
+    if (composeBtn) {
+      composeBtn.addEventListener('click', () => this.showComposeModal());
+    }
+
+    // Alerts button
+    const alertsBtn = document.getElementById('alertsBtn');
+    if (alertsBtn) {
+      alertsBtn.addEventListener('click', () => this.showCriticalAlerts());
+    }
+
+    // Message filter
+    const messageFilter = document.getElementById('messageFilter');
+    if (messageFilter) {
+      messageFilter.addEventListener('change', () => this.filterMessages());
+    }
+
+    // Refresh button
+    const refreshBtn = document.getElementById('refreshMessages');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => this.refreshMessages());
+    }
+
+    // Reply functionality
+    const sendReplyBtn = document.getElementById('sendReply');
+    const cancelReplyBtn = document.getElementById('cancelReply');
+    
+    if (sendReplyBtn) {
+      sendReplyBtn.addEventListener('click', () => this.sendReply());
+    }
+    
+    if (cancelReplyBtn) {
+      cancelReplyBtn.addEventListener('click', () => this.hideReply());
+    }
+  }
+
+  renderMessages() {
+    const messagesList = document.getElementById('messagesList');
+    const messageCount = document.getElementById('messageCount');
+    
+    if (!messagesList) return;
+
+    const filter = document.getElementById('messageFilter')?.value || 'all';
+    let filteredMessages = this.messages;
+
+    // Apply filters
+    if (filter !== 'all') {
+      filteredMessages = this.messages.filter(msg => {
+        switch (filter) {
+          case 'unread': return !msg.read;
+          case 'alerts': return msg.type === 'alert';
+          case 'clinical': return msg.type === 'clinical';
+          case 'administrative': return msg.type === 'administrative';
+          default: return true;
+        }
+      });
+    }
+
+    // Sort by timestamp (newest first)
+    filteredMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    messagesList.innerHTML = '';
+    
+    filteredMessages.forEach(message => {
+      const messageItem = document.createElement('div');
+      messageItem.className = `message-item p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+        !message.read ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+      } ${message.urgent ? 'border-l-4 border-l-red-500' : ''}`;
+      
+      messageItem.innerHTML = `
+        <div class="flex items-start justify-between mb-2">
+          <div class="font-semibold text-sm ${message.urgent ? 'text-red-700' : 'text-gray-800'}">
+            ${message.urgent ? '🚨 ' : ''}${message.from}
+          </div>
+          <div class="text-xs text-gray-500">
+            ${this.formatTime(message.timestamp)}
+          </div>
+        </div>
+        <div class="text-sm font-medium mb-1 ${!message.read ? 'font-bold' : ''}">${message.subject}</div>
+        <div class="text-xs text-gray-600 line-clamp-2">${message.content.substring(0, 80)}...</div>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-xs px-2 py-1 rounded ${this.getTypeColor(message.type)}">
+            ${message.type}
+          </span>
+          ${!message.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+        </div>
+      `;
+      
+      messageItem.addEventListener('click', () => this.selectMessage(message));
+      messagesList.appendChild(messageItem);
+    });
+
+    if (messageCount) {
+      messageCount.textContent = filteredMessages.length;
+    }
+  }
+
+  selectMessage(message) {
+    this.currentThread = message;
+    
+    // Mark as read
+    if (!message.read) {
+      message.read = true;
+      this.unreadCount--;
+      this.updateUnreadCount();
+      this.renderMessages(); // Re-render to update read status
+    }
+
+    this.renderMessageContent(message);
+    this.showReplySection();
+  }
+
+  renderMessageContent(message) {
+    const messageViewer = document.getElementById('messageViewer');
+    if (!messageViewer) return;
+
+    messageViewer.innerHTML = `
+      <div class="message-header mb-4 pb-4 border-b">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h4 class="text-lg font-bold ${message.urgent ? 'text-red-700' : 'text-gray-800'}">
+              ${message.urgent ? '🚨 ' : ''}${message.subject}
+            </h4>
+            <div class="text-sm text-gray-600 mt-1">
+              From: <span class="font-medium">${message.from}</span> (${message.fromRole})
+            </div>
+            <div class="text-sm text-gray-600">
+              To: <span class="font-medium">${message.to}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-sm text-gray-500">${this.formatDateTime(message.timestamp)}</div>
+            <span class="inline-block mt-1 text-xs px-2 py-1 rounded ${this.getPriorityColor(message.priority)}">
+              ${message.priority.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="message-content">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <p class="whitespace-pre-wrap leading-relaxed">${message.content}</p>
+        </div>
+      </div>
+
+      <div class="message-actions mt-4 pt-4 border-t flex gap-2">
+        <button onclick="clinicalMessaging.showReplySection()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          💬 Reply
+        </button>
+        <button onclick="clinicalMessaging.forwardMessage('${message.id}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+          ↗️ Forward
+        </button>
+        <button onclick="clinicalMessaging.markAsImportant('${message.id}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+          ⭐ Important
+        </button>
+      </div>
+    `;
+  }
+
+  showReplySection() {
+    const quickReply = document.getElementById('quickReply');
+    if (quickReply) {
+      quickReply.classList.remove('hidden');
+    }
+  }
+
+  hideReply() {
+    const quickReply = document.getElementById('quickReply');
+    const replyText = document.getElementById('replyText');
+    
+    if (quickReply) quickReply.classList.add('hidden');
+    if (replyText) replyText.value = '';
+  }
+
+  sendReply() {
+    const replyText = document.getElementById('replyText');
+    if (!replyText || !replyText.value.trim()) {
+      showToast('Please enter a reply message', 'error');
+      return;
+    }
+
+    // Create reply message
+    const reply = {
+      id: 'msg_' + Date.now(),
+      type: 'clinical',
+      priority: 'medium',
+      from: currentUser?.displayName || 'Current User',
+      fromRole: currentRole || 'Staff',
+      to: this.currentThread.from,
+      subject: 'Re: ' + this.currentThread.subject,
+      content: replyText.value.trim(),
+      timestamp: new Date(),
+      read: true,
+      urgent: false
+    };
+
+    this.messages.push(reply);
+    this.renderMessages();
+    this.hideReply();
+    
+    showToast('Reply sent successfully', 'success');
+  }
+
+  showComposeModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-2xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">📝 Compose New Message</h3>
+        <form id="composeForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">To:</label>
+              <select id="composeTo" class="w-full border rounded-lg px-3 py-2" required>
+                <option value="">Select recipient</option>
+                <option value="Dr. Smith">Dr. Smith (Doctor)</option>
+                <option value="Dr. Johnson">Dr. Johnson (Doctor)</option>
+                <option value="Nurse Station">Nurse Station</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Lab Department">Lab Department</option>
+                <option value="Radiology">Radiology</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Priority:</label>
+              <select id="composePriority" class="w-full border rounded-lg px-3 py-2" required>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Subject:</label>
+            <input type="text" id="composeSubject" class="w-full border rounded-lg px-3 py-2" placeholder="Enter message subject" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Message:</label>
+            <textarea id="composeContent" class="w-full border rounded-lg px-3 py-2" rows="6" placeholder="Enter your message..." required></textarea>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="composeUrgent" class="rounded">
+            <label for="composeUrgent" class="text-sm">Mark as urgent</label>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              📤 Send Message
+            </button>
+            <button type="button" onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    showModal(modalContent);
+    
+    // Handle form submission
+    const composeForm = document.getElementById('composeForm');
+    if (composeForm) {
+      composeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.sendNewMessage();
+      });
+    }
+  }
+
+  sendNewMessage() {
+    const to = document.getElementById('composeTo')?.value;
+    const priority = document.getElementById('composePriority')?.value;
+    const subject = document.getElementById('composeSubject')?.value;
+    const content = document.getElementById('composeContent')?.value;
+    const urgent = document.getElementById('composeUrgent')?.checked;
+
+    if (!to || !subject || !content) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    const newMessage = {
+      id: 'msg_' + Date.now(),
+      type: 'clinical',
+      priority: priority,
+      from: currentUser?.displayName || 'Current User',
+      fromRole: currentRole || 'Staff',
+      to: to,
+      subject: subject,
+      content: content,
+      timestamp: new Date(),
+      read: true,
+      urgent: urgent
+    };
+
+    this.messages.push(newMessage);
+    this.renderMessages();
+    closeModal();
+    
+    showToast('Message sent successfully', 'success');
+  }
+
+  showCriticalAlerts() {
+    const criticalMessages = this.messages.filter(msg => 
+      msg.priority === 'critical' || msg.urgent || msg.type === 'alert'
+    );
+    
+    const criticalAlerts = document.getElementById('criticalAlerts');
+    const alertsList = document.getElementById('alertsList');
+    
+    if (!criticalAlerts || !alertsList) return;
+
+    if (criticalMessages.length === 0) {
+      alertsList.innerHTML = '<div class="text-gray-500 py-4">No critical alerts at this time</div>';
+    } else {
+      alertsList.innerHTML = criticalMessages.map(alert => `
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg cursor-pointer hover:bg-red-100" onclick="clinicalMessaging.selectMessage(${JSON.stringify(alert).replace(/"/g, '&quot;')})">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-semibold text-red-800">${alert.subject}</div>
+              <div class="text-sm text-red-600 mt-1">From: ${alert.from}</div>
+              <div class="text-sm text-red-700 mt-2">${alert.content.substring(0, 100)}...</div>
+            </div>
+            <div class="text-xs text-red-500">${this.formatTime(alert.timestamp)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    criticalAlerts.classList.remove('hidden');
+  }
+
+  filterMessages() {
+    this.renderMessages();
+  }
+
+  refreshMessages() {
+    // Simulate receiving new messages
+    showToast('Messages refreshed', 'info');
+    this.renderMessages();
+    this.updateUnreadCount();
+  }
+
+  updateUnreadCount() {
+    const unreadCountElement = document.getElementById('unreadCount');
+    if (unreadCountElement) {
+      if (this.unreadCount > 0) {
+        unreadCountElement.textContent = this.unreadCount;
+        unreadCountElement.classList.remove('hidden');
+      } else {
+        unreadCountElement.classList.add('hidden');
+      }
+    }
+  }
+
+  formatTime(timestamp) {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMinutes = Math.floor((now - time) / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
+    return time.toLocaleDateString();
+  }
+
+  formatDateTime(timestamp) {
+    return new Date(timestamp).toLocaleString();
+  }
+
+  getTypeColor(type) {
+    const colors = {
+      clinical: 'bg-blue-100 text-blue-800',
+      administrative: 'bg-green-100 text-green-800',
+      alert: 'bg-red-100 text-red-800'
+    };
+    return colors[type] || 'bg-gray-100 text-gray-800';
+  }
+
+  getPriorityColor(priority) {
+    const colors = {
+      low: 'bg-gray-100 text-gray-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      high: 'bg-orange-100 text-orange-800',
+      critical: 'bg-red-100 text-red-800'
+    };
+    return colors[priority] || 'bg-gray-100 text-gray-800';
+  }
+
+  forwardMessage(messageId) {
+    const message = this.messages.find(msg => msg.id === messageId);
+    if (message) {
+      // Pre-fill compose form with forwarded message
+      this.showComposeModal();
+      setTimeout(() => {
+        const subjectField = document.getElementById('composeSubject');
+        const contentField = document.getElementById('composeContent');
+        
+        if (subjectField) subjectField.value = 'Fwd: ' + message.subject;
+        if (contentField) {
+          contentField.value = `\n\n--- Forwarded Message ---\nFrom: ${message.from}\nDate: ${this.formatDateTime(message.timestamp)}\nSubject: ${message.subject}\n\n${message.content}`;
+        }
+      }, 100);
+    }
+  }
+
+  markAsImportant(messageId) {
+    const message = this.messages.find(msg => msg.id === messageId);
+    if (message) {
+      message.important = !message.important;
+      showToast(message.important ? 'Message marked as important' : 'Removed important flag', 'success');
+      this.renderMessages();
+    }
+  }
+}
+
+// Initialize messaging system
+let clinicalMessaging;
+
 // -------------------- Auto-fill date/time functions --------------------
 function setCurrentDateTime() {
   const now = new Date();
@@ -3137,6 +3633,12 @@ function initializeEHRApplication() {
     // Auto-fill current date and time for new patients
     setCurrentDateTime();
     console.log('✅ Auto date/time filling initialized');
+    
+    // Initialize clinical messaging system
+    if (typeof ClinicalMessagingSystem !== 'undefined') {
+      clinicalMessaging = new ClinicalMessagingSystem();
+      console.log('✅ Clinical messaging system initialized');
+    }
     
     // Initialize enhanced features
     if (typeof initializeEnhancedFeatures === 'function') {
