@@ -8297,3 +8297,541 @@ window.printEnhancedPatientSummary = function(patientIndex) {
   printWindow.document.write(printDocument);
   printWindow.document.close();
 };
+
+// =============================================
+// STAFF MANAGEMENT SYSTEM
+// =============================================
+
+// Staff Management Class
+class StaffManagementSystem {
+  constructor() {
+    this.staff = JSON.parse(localStorage.getItem('ehrStaff') || '[]');
+    this.departments = [
+      'Emergency Department',
+      'Medical Ward',
+      'Surgical Ward',
+      'ICU',
+      'Pediatrics',
+      'Obstetrics',
+      'Laboratory',
+      'Radiology',
+      'Pharmacy',
+      'Administration'
+    ];
+    this.roles = [
+      'Chief of Staff',
+      'Department Head',
+      'Senior Physician',
+      'Resident Doctor',
+      'Nurse Manager',
+      'Registered Nurse',
+      'Licensed Practical Nurse',
+      'Nurse Aide',
+      'Lab Technician',
+      'Pharmacist',
+      'Radiologic Technologist',
+      'Administrative Staff',
+      'Support Staff'
+    ];
+    this.init();
+  }
+
+  init() {
+    console.log('Initializing Staff Management System...');
+    this.updateStaffStats();
+    this.renderStaffList();
+    this.bindEvents();
+    
+    // Add sample data if empty
+    if (this.staff.length === 0) {
+      this.addSampleStaff();
+    }
+  }
+
+  bindEvents() {
+    // Staff management buttons
+    const addStaffBtn = document.getElementById('addStaffBtn');
+    if (addStaffBtn) {
+      addStaffBtn.addEventListener('click', () => this.showAddStaffModal());
+    }
+
+    const viewSchedulesBtn = document.getElementById('viewSchedulesBtn');
+    if (viewSchedulesBtn) {
+      viewSchedulesBtn.addEventListener('click', () => this.showSchedulesModal());
+    }
+
+    const departmentStaffBtn = document.getElementById('departmentStaffBtn');
+    if (departmentStaffBtn) {
+      departmentStaffBtn.addEventListener('click', () => this.showDepartmentStaffModal());
+    }
+
+    const credentialsBtn = document.getElementById('credentialsBtn');
+    if (credentialsBtn) {
+      credentialsBtn.addEventListener('click', () => this.showCredentialsModal());
+    }
+
+    // Filter change
+    const staffFilter = document.getElementById('staffFilter');
+    if (staffFilter) {
+      staffFilter.addEventListener('change', () => this.filterStaff());
+    }
+
+    // Refresh button
+    const refreshStaff = document.getElementById('refreshStaff');
+    if (refreshStaff) {
+      refreshStaff.addEventListener('click', () => this.refreshStaffData());
+    }
+  }
+
+  addSampleStaff() {
+    const sampleStaff = [
+      {
+        id: 'ST001',
+        firstName: 'Dr. Maria',
+        lastName: 'Santos',
+        role: 'Chief of Staff',
+        department: 'Administration',
+        email: 'maria.santos@hospital.com',
+        phone: '+63 917 123 4567',
+        licenseNumber: 'MD-12345',
+        status: 'active',
+        shift: 'day',
+        specialization: 'Internal Medicine',
+        hireDate: '2020-01-15',
+        lastLogin: new Date().toISOString()
+      },
+      {
+        id: 'ST002',
+        firstName: 'Nurse Ana',
+        lastName: 'Cruz',
+        role: 'Nurse Manager',
+        department: 'Emergency Department',
+        email: 'ana.cruz@hospital.com',
+        phone: '+63 918 234 5678',
+        licenseNumber: 'RN-67890',
+        status: 'active',
+        shift: 'night',
+        specialization: 'Emergency Nursing',
+        hireDate: '2019-03-20',
+        lastLogin: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 mins ago
+      },
+      {
+        id: 'ST003',
+        firstName: 'Dr. Jose',
+        lastName: 'Reyes',
+        role: 'Senior Physician',
+        department: 'ICU',
+        email: 'jose.reyes@hospital.com',
+        phone: '+63 919 345 6789',
+        licenseNumber: 'MD-23456',
+        status: 'active',
+        shift: 'day',
+        specialization: 'Critical Care',
+        hireDate: '2021-06-10',
+        lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() // 2 hours ago
+      }
+    ];
+
+    this.staff = sampleStaff;
+    this.saveStaff();
+    this.updateStaffStats();
+    this.renderStaffList();
+  }
+
+  updateStaffStats() {
+    const totalCount = this.staff.length;
+    const onDutyCount = this.staff.filter(s => s.status === 'active' && this.isOnDuty(s)).length;
+    
+    const totalEl = document.getElementById('totalStaffCount');
+    const onDutyEl = document.getElementById('onDutyCount');
+    const staffCountEl = document.getElementById('staffCount');
+    
+    if (totalEl) totalEl.textContent = totalCount;
+    if (onDutyEl) onDutyEl.textContent = onDutyCount;
+    if (staffCountEl) staffCountEl.textContent = totalCount;
+  }
+
+  isOnDuty(staff) {
+    // Simple logic - could be enhanced with actual shift schedules
+    const now = new Date();
+    const hour = now.getHours();
+    
+    if (staff.shift === 'day') {
+      return hour >= 7 && hour < 19; // 7 AM to 7 PM
+    } else if (staff.shift === 'night') {
+      return hour >= 19 || hour < 7; // 7 PM to 7 AM
+    }
+    return true; // Default for other shifts
+  }
+
+  renderStaffList() {
+    const container = document.getElementById('staffList');
+    if (!container) return;
+
+    if (this.staff.length === 0) {
+      container.innerHTML = `
+        <div class="text-center text-gray-500 py-8">
+          <div class="text-4xl mb-3">👥</div>
+          <p>No staff members found</p>
+          <button type="button" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onclick="staffSystem.showAddStaffModal()">
+            Add First Staff Member
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const staffHtml = this.staff.map(staff => {
+      const statusColor = staff.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+      const onDuty = this.isOnDuty(staff);
+      const dutyBadge = onDuty ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">On Duty</span>' : '';
+      
+      return `
+        <div class="staff-item bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="staffSystem.showStaffDetails('${staff.id}')">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center font-semibold">
+                ${staff.firstName.charAt(0)}${staff.lastName.charAt(0)}
+              </div>
+              <div>
+                <h5 class="font-semibold">${staff.firstName} ${staff.lastName}</h5>
+                <p class="text-sm text-gray-600">${staff.role} • ${staff.department}</p>
+                <p class="text-xs text-gray-500">${staff.specialization || 'General'}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="px-2 py-1 ${statusColor} text-xs rounded-full">${staff.status}</span>
+              ${dutyBadge}
+              <p class="text-xs text-gray-500 mt-1">${staff.shift} shift</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = staffHtml;
+  }
+
+  showStaffDetails(staffId) {
+    const staff = this.staff.find(s => s.id === staffId);
+    if (!staff) return;
+
+    const panel = document.getElementById('staffDetailsPanel');
+    if (!panel) return;
+
+    const lastLoginFormatted = new Date(staff.lastLogin).toLocaleString();
+    const hireDateFormatted = new Date(staff.hireDate).toLocaleDateString();
+    const onDuty = this.isOnDuty(staff);
+
+    panel.innerHTML = `
+      <div class="staff-details">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold text-xl mx-auto mb-3">
+            ${staff.firstName.charAt(0)}${staff.lastName.charAt(0)}
+          </div>
+          <h4 class="font-bold text-lg">${staff.firstName} ${staff.lastName}</h4>
+          <p class="text-gray-600">${staff.role}</p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Department:</span>
+            <span class="font-medium">${staff.department}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Status:</span>
+            <span class="px-2 py-1 ${staff.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} text-xs rounded-full">${staff.status}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Shift:</span>
+            <span class="font-medium">${staff.shift} ${onDuty ? '🟢 On Duty' : '🔴 Off Duty'}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Email:</span>
+            <span class="font-medium text-sm">${staff.email}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Phone:</span>
+            <span class="font-medium">${staff.phone}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">License:</span>
+            <span class="font-medium">${staff.licenseNumber}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Specialization:</span>
+            <span class="font-medium">${staff.specialization || 'General'}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Hire Date:</span>
+            <span class="font-medium">${hireDateFormatted}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-600">Last Login:</span>
+            <span class="font-medium text-sm">${lastLoginFormatted}</span>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-2">
+          <button type="button" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onclick="staffSystem.editStaff('${staff.id}')">
+            ✏️ Edit Details
+          </button>
+          <button type="button" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" onclick="staffSystem.viewSchedule('${staff.id}')">
+            📅 View Schedule
+          </button>
+          <button type="button" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700" onclick="staffSystem.viewCredentials('${staff.id}')">
+            📜 Credentials
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  showAddStaffModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4">➕ Add New Staff Member</h3>
+        <form id="addStaffForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">First Name *</label>
+              <input type="text" name="firstName" required class="w-full border rounded-lg px-3 py-2" placeholder="Enter first name">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Last Name *</label>
+              <input type="text" name="lastName" required class="w-full border rounded-lg px-3 py-2" placeholder="Enter last name">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Role *</label>
+              <select name="role" required class="w-full border rounded-lg px-3 py-2">
+                <option value="">Select Role</option>
+                ${this.roles.map(role => `<option value="${role}">${role}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Department *</label>
+              <select name="department" required class="w-full border rounded-lg px-3 py-2">
+                <option value="">Select Department</option>
+                ${this.departments.map(dept => `<option value="${dept}">${dept}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Email *</label>
+              <input type="email" name="email" required class="w-full border rounded-lg px-3 py-2" placeholder="email@hospital.com">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Phone *</label>
+              <input type="tel" name="phone" required class="w-full border rounded-lg px-3 py-2" placeholder="+63 XXX XXX XXXX">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">License Number</label>
+              <input type="text" name="licenseNumber" class="w-full border rounded-lg px-3 py-2" placeholder="License/ID Number">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Shift</label>
+              <select name="shift" class="w-full border rounded-lg px-3 py-2">
+                <option value="day">Day Shift (7 AM - 7 PM)</option>
+                <option value="night">Night Shift (7 PM - 7 AM)</option>
+                <option value="rotating">Rotating</option>
+                <option value="on-call">On-Call</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Specialization</label>
+              <input type="text" name="specialization" class="w-full border rounded-lg px-3 py-2" placeholder="Area of expertise">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Hire Date</label>
+              <input type="date" name="hireDate" class="w-full border rounded-lg px-3 py-2" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+          </div>
+          <div class="flex gap-3 pt-4 border-t">
+            <button type="submit" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+              ➕ Add Staff Member
+            </button>
+            <button type="button" onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    if (typeof showModal === 'function') {
+      showModal(modalContent);
+      
+      // Bind form submission
+      const form = document.getElementById('addStaffForm');
+      if (form) {
+        form.addEventListener('submit', (e) => this.handleAddStaff(e));
+      }
+    }
+  }
+
+  handleAddStaff(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const newStaff = {
+      id: 'ST' + String(Date.now()).slice(-6),
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      role: formData.get('role'),
+      department: formData.get('department'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      licenseNumber: formData.get('licenseNumber') || '',
+      status: 'active',
+      shift: formData.get('shift') || 'day',
+      specialization: formData.get('specialization') || '',
+      hireDate: formData.get('hireDate') || new Date().toISOString().split('T')[0],
+      lastLogin: new Date().toISOString()
+    };
+
+    this.staff.push(newStaff);
+    this.saveStaff();
+    this.updateStaffStats();
+    this.renderStaffList();
+    
+    if (typeof closeModal === 'function') {
+      closeModal();
+    }
+    
+    if (typeof showToast === 'function') {
+      showToast('Staff member added successfully!', 'success');
+    }
+  }
+
+  filterStaff() {
+    const filter = document.getElementById('staffFilter')?.value || 'all';
+    let filteredStaff = this.staff;
+
+    switch (filter) {
+      case 'active':
+        filteredStaff = this.staff.filter(s => s.status === 'active');
+        break;
+      case 'inactive':
+        filteredStaff = this.staff.filter(s => s.status !== 'active');
+        break;
+      case 'doctors':
+        filteredStaff = this.staff.filter(s => s.role.toLowerCase().includes('doctor') || s.role.toLowerCase().includes('physician'));
+        break;
+      case 'nurses':
+        filteredStaff = this.staff.filter(s => s.role.toLowerCase().includes('nurse'));
+        break;
+      case 'admin':
+        filteredStaff = this.staff.filter(s => s.role.toLowerCase().includes('admin') || s.department === 'Administration');
+        break;
+      case 'support':
+        filteredStaff = this.staff.filter(s => s.role.toLowerCase().includes('support') || s.role.toLowerCase().includes('aide'));
+        break;
+    }
+
+    // Temporarily store filtered results and re-render
+    const originalStaff = this.staff;
+    this.staff = filteredStaff;
+    this.renderStaffList();
+    this.staff = originalStaff;
+  }
+
+  refreshStaffData() {
+    this.updateStaffStats();
+    this.renderStaffList();
+    if (typeof showToast === 'function') {
+      showToast('Staff data refreshed', 'success');
+    }
+  }
+
+  saveStaff() {
+    localStorage.setItem('ehrStaff', JSON.stringify(this.staff));
+  }
+
+  // Additional methods for modal functionality
+  showSchedulesModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-6xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">📅 Staff Schedules</h3>
+        <div class="mb-4">
+          <p class="text-gray-600">Schedule management feature - view and manage staff work schedules, shifts, and time off requests.</p>
+        </div>
+        <div class="text-center py-8 text-gray-500">
+          <div class="text-4xl mb-3">📅</div>
+          <p>Schedule management interface would be implemented here</p>
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    if (typeof showModal === 'function') showModal(modalContent);
+  }
+
+  showDepartmentStaffModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-6xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">🏥 Department Staff Overview</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${this.departments.map(dept => {
+            const deptStaff = this.staff.filter(s => s.department === dept);
+            return `
+              <div class="border rounded-lg p-4">
+                <h4 class="font-semibold mb-2">${dept}</h4>
+                <p class="text-sm text-gray-600">${deptStaff.length} staff members</p>
+                <div class="text-xs text-gray-500 mt-2">
+                  ${deptStaff.slice(0, 3).map(s => s.firstName + ' ' + s.lastName).join(', ')}
+                  ${deptStaff.length > 3 ? ` and ${deptStaff.length - 3} more...` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    if (typeof showModal === 'function') showModal(modalContent);
+  }
+
+  showCredentialsModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-6xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">📜 Staff Credentials & Certifications</h3>
+        <div class="mb-4">
+          <p class="text-gray-600">Manage professional licenses, certifications, and credentials for all staff members.</p>
+        </div>
+        <div class="text-center py-8 text-gray-500">
+          <div class="text-4xl mb-3">📜</div>
+          <p>Credentials management interface would be implemented here</p>
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    if (typeof showModal === 'function') showModal(modalContent);
+  }
+}
+
+// Global staff management functions
+window.showAddStaffModal = function() {
+  if (window.staffSystem) {
+    window.staffSystem.showAddStaffModal();
+  }
+};
+
+// Initialize staff management system when tab is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize staff system when needed
+  setTimeout(() => {
+    if (!window.staffSystem) {
+      window.staffSystem = new StaffManagementSystem();
+    }
+  }, 1000);
+});
