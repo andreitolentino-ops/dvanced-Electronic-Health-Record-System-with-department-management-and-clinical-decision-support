@@ -1,4 +1,36 @@
 // app.js - Full application logic (updated to address top-priority fixes)
+
+// Early global function declarations (before any other code)
+window.showMessagingTemplates = function() {
+  console.log('🌐 Global template function called');
+  if (window.clinicalMessaging && window.clinicalMessaging.showTemplatesModal) {
+    window.clinicalMessaging.showTemplatesModal();
+  } else {
+    console.error('❌ Clinical messaging not initialized');
+    if (window.showToast) showToast('Messaging system not ready', 'error');
+  }
+};
+
+window.showPatientMessages = function() {
+  console.log('🌐 Global patient messages function called');
+  if (window.clinicalMessaging && window.clinicalMessaging.showPatientMessages) {
+    window.clinicalMessaging.showPatientMessages();
+  } else {
+    console.error('❌ Clinical messaging not initialized');
+    if (window.showToast) showToast('Messaging system not ready', 'error');
+  }
+};
+
+window.showCriticalAlerts = function() {
+  console.log('🌐 Global alerts function called');
+  if (window.clinicalMessaging && window.clinicalMessaging.showCriticalAlerts) {
+    window.clinicalMessaging.showCriticalAlerts();
+  } else {
+    console.error('❌ Clinical messaging not initialized');
+    if (window.showToast) showToast('Messaging system not ready', 'error');
+  }
+};
+
 // -------------------- Firebase init --------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAojqcg_UGpamJjTJHb6H-BRoVF5mDZgrU",
@@ -199,6 +231,20 @@ function generateBedsForDepartment(dept) {
 // Initialize departments and beds
 async function initializeDepartments() {
   try {
+    console.log('🏥 Initializing departments...');
+    
+    // Check if running locally (no Firebase access)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('🔧 Running locally - using default departments');
+      departments = [...defaultDepartments];
+      beds = [];
+      defaultDepartments.forEach(dept => {
+        beds.push(...generateBedsForDepartment(dept));
+      });
+      console.log('✅ Local departments initialized:', departments.length);
+      return;
+    }
+    
     // Check if departments already exist
     const deptSnapshot = await db.collection('departments').get();
     if (deptSnapshot.empty) {
@@ -2572,40 +2618,78 @@ class ClinicalMessagingSystem {
   }
 
   setupEventListeners() {
+    console.log('🔧 Setting up messaging event listeners...');
+    
     // Compose message button
     const composeBtn = document.getElementById('composeBtn');
     if (composeBtn) {
-      composeBtn.addEventListener('click', () => this.showComposeModal());
+      composeBtn.addEventListener('click', () => {
+        console.log('📝 Compose button clicked');
+        this.showComposeModal();
+      });
+      console.log('✅ Compose button listener added');
+    } else {
+      console.warn('❌ Compose button not found');
     }
 
     // Alerts button
     const alertsBtn = document.getElementById('alertsBtn');
     if (alertsBtn) {
-      alertsBtn.addEventListener('click', () => this.showCriticalAlerts());
+      alertsBtn.addEventListener('click', () => {
+        console.log('🚨 Alerts button clicked');
+        this.showCriticalAlerts();
+      });
+      console.log('✅ Alerts button listener added');
+    } else {
+      console.warn('❌ Alerts button not found');
     }
 
     // Message filter
     const messageFilter = document.getElementById('messageFilter');
     if (messageFilter) {
-      messageFilter.addEventListener('change', () => this.filterMessages());
+      messageFilter.addEventListener('change', () => {
+        console.log('🔍 Filter changed to:', messageFilter.value);
+        this.filterMessages();
+      });
+      console.log('✅ Message filter listener added');
+    } else {
+      console.warn('❌ Message filter not found');
     }
 
     // Refresh button
     const refreshBtn = document.getElementById('refreshMessages');
     if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => this.refreshMessages());
+      refreshBtn.addEventListener('click', () => {
+        console.log('🔄 Refresh button clicked');
+        this.refreshMessages();
+      });
+      console.log('✅ Refresh button listener added');
+    } else {
+      console.warn('❌ Refresh button not found');
     }
 
     // Templates button
     const templatesBtn = document.getElementById('templatesBtn');
     if (templatesBtn) {
-      templatesBtn.addEventListener('click', () => this.showTemplatesModal());
+      templatesBtn.addEventListener('click', () => {
+        console.log('📋 Templates button clicked');
+        this.showTemplatesModal();
+      });
+      console.log('✅ Templates button listener added');
+    } else {
+      console.warn('❌ Templates button not found');
     }
 
     // Patient messages button
     const patientMsgsBtn = document.getElementById('patientMessagesBtn');
     if (patientMsgsBtn) {
-      patientMsgsBtn.addEventListener('click', () => this.showPatientMessages());
+      patientMsgsBtn.addEventListener('click', () => {
+        console.log('👤 Patient messages button clicked');
+        this.showPatientMessages();
+      });
+      console.log('✅ Patient messages button listener added');
+    } else {
+      console.warn('❌ Patient messages button not found');
     }
 
     // Reply functionality
@@ -2613,17 +2697,29 @@ class ClinicalMessagingSystem {
     const cancelReplyBtn = document.getElementById('cancelReply');
     
     if (sendReplyBtn) {
-      sendReplyBtn.addEventListener('click', () => this.sendReply());
+      sendReplyBtn.addEventListener('click', () => {
+        console.log('💬 Send reply button clicked');
+        this.sendReply();
+      });
+      console.log('✅ Send reply button listener added');
     }
     
     if (cancelReplyBtn) {
-      cancelReplyBtn.addEventListener('click', () => this.hideReply());
+      cancelReplyBtn.addEventListener('click', () => {
+        console.log('❌ Cancel reply button clicked');
+        this.hideReply();
+      });
+      console.log('✅ Cancel reply button listener added');
     }
 
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      Notification.requestPermission().then(permission => {
+        console.log('🔔 Notification permission:', permission);
+      });
     }
+    
+    console.log('✅ All messaging event listeners setup complete');
   }
 
   renderMessages() {
@@ -4159,8 +4255,33 @@ function initializeEHRApplication() {
     
     // Initialize clinical messaging system
     if (typeof ClinicalMessagingSystem !== 'undefined') {
-      clinicalMessaging = new ClinicalMessagingSystem();
-      console.log('✅ Clinical messaging system initialized');
+      try {
+        clinicalMessaging = new ClinicalMessagingSystem();
+        
+        // Make it globally accessible
+        window.clinicalMessaging = clinicalMessaging;
+        
+        console.log('✅ Clinical messaging system initialized');
+        console.log('📋 Templates available:', clinicalMessaging.templates.length);
+        console.log('💬 Demo messages loaded:', clinicalMessaging.messages.length);
+        
+        // Test that buttons exist
+        setTimeout(() => {
+          const templatesBtn = document.getElementById('templatesBtn');
+          const patientBtn = document.getElementById('patientMessagesBtn');
+          const alertsBtn = document.getElementById('alertsBtn');
+          
+          console.log('🔍 Button check:');
+          console.log('  Templates button:', templatesBtn ? '✅ Found' : '❌ Missing');
+          console.log('  Patient button:', patientBtn ? '✅ Found' : '❌ Missing');
+          console.log('  Alerts button:', alertsBtn ? '✅ Found' : '❌ Missing');
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ Error initializing clinical messaging:', error);
+      }
+    } else {
+      console.error('❌ ClinicalMessagingSystem class not found');
     }
     
     // Initialize enhanced features
@@ -4742,21 +4863,36 @@ function renderDashboardForPatient(patientId){
   }
 
   // meds
-  const medsBody = $('medsTableBody'); if(medsBody){ medsBody.innerHTML = ''; if(p && Array.isArray(p.medOrders) && p.medOrders.length){ p.medOrders.forEach(m=>{ const tr = document.createElement('tr'); const ivParts = [];
-      if(m.iv_fluid) ivParts.push(esc(m.iv_fluid));
-      if(m.iv_ml_hr) ivParts.push(esc(m.iv_ml_hr) + ' mL/hr');
-      if(m.iv_gtt_min) ivParts.push(esc(m.iv_gtt_min) + ' gtt/min');
-      const ivText = ivParts.length ? ivParts.join(' • ') : '—';
-      tr.innerHTML = `<td>${esc(m.drug||'')}</td><td>${esc(m.dosage||'')}</td><td>${esc(m.frequency||'')}</td><td>${ivText}</td>`; medsBody.appendChild(tr); }); } else { medsBody.innerHTML = '<tr><td colspan="4" class="muted text-sm">No active medications</td></tr>'; } }
-  // add small badges for meds due/missed (placeholder logic)
-  if(p && Array.isArray(p.medOrders) && p.medOrders.length){
-    const rows = medsBody.querySelectorAll('tr');
-    p.medOrders.forEach((m,i)=>{
-      const badge = document.createElement('span');
-      if(m.missed) { badge.className = 'med-badge missed'; badge.textContent = ' ⚠️ missed'; }
-      else if(m.due) { badge.className = 'med-badge due'; badge.textContent = ' ⏱ due'; }
-      if(badge.textContent) rows[i] && rows[i].children[0] && rows[i].children[0].appendChild(badge);
-    });
+  const medsBody = $('medsTableBody'); 
+  if (medsBody) { 
+    medsBody.innerHTML = ''; 
+    if (p && Array.isArray(p.medOrders) && p.medOrders.length) { 
+      p.medOrders.forEach(m => { 
+        const tr = document.createElement('tr'); 
+        const ivParts = [];
+        if(m.iv_fluid) ivParts.push(esc(m.iv_fluid));
+        if(m.iv_ml_hr) ivParts.push(esc(m.iv_ml_hr) + ' mL/hr');
+        if(m.iv_gtt_min) ivParts.push(esc(m.iv_gtt_min) + ' gtt/min');
+        const ivText = ivParts.length ? ivParts.join(' • ') : '—';
+        tr.innerHTML = `<td>${esc(m.drug||'')}</td><td>${esc(m.dosage||'')}</td><td>${esc(m.frequency||'')}</td><td>${ivText}</td>`; 
+        medsBody.appendChild(tr); 
+      }); 
+    } else { 
+      medsBody.innerHTML = '<tr><td colspan="4" class="muted text-sm">No active medications</td></tr>'; 
+    } 
+    
+    // add small badges for meds due/missed (placeholder logic)
+    if(p && Array.isArray(p.medOrders) && p.medOrders.length){
+      const rows = medsBody.querySelectorAll('tr');
+      p.medOrders.forEach((m,i)=>{
+        const badge = document.createElement('span');
+        if(m.missed) { badge.className = 'med-badge missed'; badge.textContent = ' ⚠️ missed'; }
+        else if(m.due) { badge.className = 'med-badge due'; badge.textContent = ' ⏱ due'; }
+        if(badge.textContent && rows[i] && rows[i].children[0]) {
+          rows[i].children[0].appendChild(badge);
+        }
+      });
+    }
   }
 
   // labs
