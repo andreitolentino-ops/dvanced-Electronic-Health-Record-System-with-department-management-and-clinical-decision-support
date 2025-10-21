@@ -2302,15 +2302,140 @@ class ClinicalMessagingSystem {
     this.messages = [];
     this.currentThread = null;
     this.unreadCount = 0;
+    this.templates = [];
+    this.messageThreads = new Map();
+    this.readReceipts = new Map();
+    this.patientLinkedMessages = new Map();
     this.initializeMessaging();
   }
 
   initializeMessaging() {
+    // Load templates
+    this.loadMessageTemplates();
     // Add demo messages
     this.loadDemoMessages();
     this.setupEventListeners();
     this.renderMessages();
     this.updateUnreadCount();
+    // Initialize real-time notifications
+    this.initializeRealTimeNotifications();
+  }
+
+  loadMessageTemplates() {
+    this.templates = [
+      {
+        id: 'discharge_ready',
+        name: 'Patient Discharge Ready',
+        category: 'discharge',
+        subject: 'Patient Ready for Discharge - Room {room}',
+        content: 'Patient {patientName} in Room {room} is ready for discharge.\n\nCompleted items:\n• Medications reconciled\n• Follow-up appointments scheduled\n• Discharge instructions provided\n• Transportation arranged\n\nPlease review and approve discharge.'
+      },
+      {
+        id: 'lab_critical',
+        name: 'Critical Lab Values',
+        category: 'lab',
+        subject: 'CRITICAL LAB VALUES - {patientName}',
+        content: 'CRITICAL: Patient {patientName} has abnormal lab values requiring immediate attention.\n\nLab: {labName}\nValue: {labValue}\nNormal Range: {normalRange}\n\nImmediate action required. Please review and respond.'
+      },
+      {
+        id: 'med_clarification',
+        name: 'Medication Clarification',
+        category: 'pharmacy',
+        subject: 'Medication Order Clarification - {patientName}',
+        content: 'Please clarify medication order for {patientName}:\n\nMedication: {medication}\nCurrent Order: {currentOrder}\nConcern: {concern}\n\nPlease review and provide clarification.'
+      },
+      {
+        id: 'consult_request',
+        name: 'Consultation Request',
+        category: 'clinical',
+        subject: 'Consultation Request - {specialty} for {patientName}',
+        content: 'Requesting {specialty} consultation for {patientName} in Room {room}.\n\nReason for consultation: {reason}\nUrgency: {urgency}\nPatient background: {background}\n\nPlease schedule at your earliest convenience.'
+      },
+      {
+        id: 'shift_handoff',
+        name: 'Shift Handoff',
+        category: 'nursing',
+        subject: 'Shift Handoff - {department}',
+        content: 'Shift handoff for {department}:\n\nKey patients to monitor:\n{keyPatients}\n\nPending orders:\n{pendingOrders}\n\nSpecial instructions:\n{specialInstructions}'
+      }
+    ];
+  }
+
+  initializeRealTimeNotifications() {
+    // Simulate real-time notifications every 30 seconds
+    setInterval(() => {
+      this.checkForNewMessages();
+    }, 30000);
+  }
+
+  checkForNewMessages() {
+    // Simulate receiving new messages (in real implementation, this would be WebSocket/SSE)
+    const randomMessages = [
+      {
+        type: 'alert',
+        priority: 'high',
+        from: 'Lab Department',
+        fromRole: 'Lab Tech',
+        subject: 'New Lab Results Available',
+        content: 'Lab results are ready for review.',
+        urgent: false
+      },
+      {
+        type: 'clinical',
+        priority: 'medium',
+        from: 'Nurse Station',
+        fromRole: 'Nurse',
+        subject: 'Patient Status Update',
+        content: 'Patient condition update available.',
+        urgent: false
+      }
+    ];
+
+    // Randomly add a new message (10% chance)
+    if (Math.random() < 0.1) {
+      const randomMsg = randomMessages[Math.floor(Math.random() * randomMessages.length)];
+      this.receiveNewMessage(randomMsg);
+    }
+  }
+
+  receiveNewMessage(messageData) {
+    const newMessage = {
+      id: 'msg_' + Date.now(),
+      type: messageData.type,
+      priority: messageData.priority,
+      from: messageData.from,
+      fromRole: messageData.fromRole,
+      to: currentUser?.displayName || 'Current User',
+      subject: messageData.subject,
+      content: messageData.content,
+      timestamp: new Date(),
+      read: false,
+      urgent: messageData.urgent,
+      threadId: null,
+      patientId: messageData.patientId || null,
+      readReceipts: []
+    };
+
+    this.messages.push(newMessage);
+    this.unreadCount++;
+    this.updateUnreadCount();
+    this.renderMessages();
+    
+    // Show notification
+    this.showNotification(newMessage);
+  }
+
+  showNotification(message) {
+    // Browser notification if permission granted
+    if (Notification.permission === 'granted') {
+      new Notification(`New ${message.type} message`, {
+        body: `From: ${message.from}\n${message.subject}`,
+        icon: '/favicon.ico'
+      });
+    }
+    
+    // In-app notification
+    showToast(`New message from ${message.from}: ${message.subject}`, 'info');
   }
 
   loadDemoMessages() {
@@ -2326,7 +2451,12 @@ class ClinicalMessagingSystem {
         content: 'Patient in Room 301 showing elevated BP readings (180/110). Please monitor closely and notify if readings remain elevated for next 2 hours.',
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
         read: false,
-        urgent: true
+        urgent: true,
+        threadId: 'thread_001',
+        patientId: 'pat_001',
+        readReceipts: [
+          { userId: 'nurse_001', readAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000), userName: 'Nurse Maria' }
+        ]
       },
       {
         id: 'msg_002',
@@ -2339,7 +2469,12 @@ class ClinicalMessagingSystem {
         content: 'Please clarify dosage for Metformin prescription for Patient ID 12345. Current order shows 500mg BID, but patient history indicates 1000mg BID previously.',
         timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
         read: true,
-        urgent: false
+        urgent: false,
+        threadId: 'thread_002',
+        patientId: 'pat_002',
+        readReceipts: [
+          { userId: 'dr_martinez', readAt: new Date(Date.now() - 3 * 60 * 60 * 1000), userName: 'Dr. Martinez' }
+        ]
       },
       {
         id: 'msg_003',
@@ -2352,7 +2487,10 @@ class ClinicalMessagingSystem {
         content: 'CRITICAL: Patient Mary Johnson - Troponin levels extremely elevated (15.2 ng/mL). Immediate cardiology consultation recommended.',
         timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
         read: false,
-        urgent: true
+        urgent: true,
+        threadId: 'thread_003',
+        patientId: 'pat_003',
+        readReceipts: []
       },
       {
         id: 'msg_004',
@@ -2365,12 +2503,72 @@ class ClinicalMessagingSystem {
         content: 'Patient in Room 205 is ready for discharge. All medications reconciled, follow-up appointments scheduled. Please review discharge summary.',
         timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
         read: true,
-        urgent: false
+        urgent: false,
+        threadId: 'thread_004',
+        patientId: 'pat_004',
+        readReceipts: [
+          { userId: 'dr_wilson', readAt: new Date(Date.now() - 5 * 60 * 60 * 1000), userName: 'Dr. Wilson' }
+        ]
+      },
+      // Reply message in thread
+      {
+        id: 'msg_005',
+        type: 'clinical',
+        priority: 'medium',
+        from: 'Dr. Wilson',
+        fromRole: 'Doctor',
+        to: 'Nurse Jessica',
+        subject: 'Re: Patient Discharge Planning',
+        content: 'Thank you for the update. Discharge approved. Please ensure patient has transportation arranged and understands follow-up instructions.',
+        timestamp: new Date(Date.now() - 5.5 * 60 * 60 * 1000),
+        read: true,
+        urgent: false,
+        threadId: 'thread_004',
+        patientId: 'pat_004',
+        replyTo: 'msg_004',
+        readReceipts: [
+          { userId: 'nurse_jessica', readAt: new Date(Date.now() - 5 * 60 * 60 * 1000), userName: 'Nurse Jessica' }
+        ]
       }
     ];
     
     this.messages = demoMessages;
     this.unreadCount = this.messages.filter(msg => !msg.read).length;
+    
+    // Build thread map
+    this.buildThreadMap();
+    
+    // Build patient message map
+    this.buildPatientMessageMap();
+  }
+
+  buildThreadMap() {
+    this.messageThreads.clear();
+    this.messages.forEach(msg => {
+      if (msg.threadId) {
+        if (!this.messageThreads.has(msg.threadId)) {
+          this.messageThreads.set(msg.threadId, []);
+        }
+        this.messageThreads.get(msg.threadId).push(msg);
+      }
+    });
+    
+    // Sort messages in each thread by timestamp
+    this.messageThreads.forEach(thread => {
+      thread.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    });
+  }
+
+  buildPatientMessageMap() {
+    this.patientLinkedMessages.clear();
+    this.messages.forEach(msg => {
+      if (msg.patientId) {
+        if (!this.patientLinkedMessages.has(msg.patientId)) {
+          this.patientLinkedMessages.set(msg.patientId, []);
+        }
+        this.patientLinkedMessages.get(msg.patientId).push(msg);
+      }
+    });
   }
 
   setupEventListeners() {
@@ -2398,6 +2596,18 @@ class ClinicalMessagingSystem {
       refreshBtn.addEventListener('click', () => this.refreshMessages());
     }
 
+    // Templates button
+    const templatesBtn = document.getElementById('templatesBtn');
+    if (templatesBtn) {
+      templatesBtn.addEventListener('click', () => this.showTemplatesModal());
+    }
+
+    // Patient messages button
+    const patientMsgsBtn = document.getElementById('patientMessagesBtn');
+    if (patientMsgsBtn) {
+      patientMsgsBtn.addEventListener('click', () => this.showPatientMessages());
+    }
+
     // Reply functionality
     const sendReplyBtn = document.getElementById('sendReply');
     const cancelReplyBtn = document.getElementById('cancelReply');
@@ -2408,6 +2618,11 @@ class ClinicalMessagingSystem {
     
     if (cancelReplyBtn) {
       cancelReplyBtn.addEventListener('click', () => this.hideReply());
+    }
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }
 
@@ -2428,48 +2643,226 @@ class ClinicalMessagingSystem {
           case 'alerts': return msg.type === 'alert';
           case 'clinical': return msg.type === 'clinical';
           case 'administrative': return msg.type === 'administrative';
+          case 'threaded': return msg.threadId && this.messageThreads.get(msg.threadId)?.length > 1;
+          case 'patient-linked': return msg.patientId;
           default: return true;
         }
       });
     }
 
-    // Sort by timestamp (newest first)
-    filteredMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Group by threads for display
+    const displayMessages = this.groupMessagesForDisplay(filteredMessages);
 
     messagesList.innerHTML = '';
     
-    filteredMessages.forEach(message => {
-      const messageItem = document.createElement('div');
-      messageItem.className = `message-item p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-        !message.read ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-      } ${message.urgent ? 'border-l-4 border-l-red-500' : ''}`;
-      
-      messageItem.innerHTML = `
-        <div class="flex items-start justify-between mb-2">
-          <div class="font-semibold text-sm ${message.urgent ? 'text-red-700' : 'text-gray-800'}">
-            ${message.urgent ? '🚨 ' : ''}${message.from}
-          </div>
-          <div class="text-xs text-gray-500">
-            ${this.formatTime(message.timestamp)}
-          </div>
-        </div>
-        <div class="text-sm font-medium mb-1 ${!message.read ? 'font-bold' : ''}">${message.subject}</div>
-        <div class="text-xs text-gray-600 line-clamp-2">${message.content.substring(0, 80)}...</div>
-        <div class="flex items-center justify-between mt-2">
-          <span class="text-xs px-2 py-1 rounded ${this.getTypeColor(message.type)}">
-            ${message.type}
-          </span>
-          ${!message.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
-        </div>
-      `;
-      
-      messageItem.addEventListener('click', () => this.selectMessage(message));
-      messagesList.appendChild(messageItem);
+    displayMessages.forEach(item => {
+      if (item.isThread) {
+        // Render thread
+        this.renderThreadItem(item, messagesList);
+      } else {
+        // Render individual message
+        this.renderMessageItem(item.message, messagesList);
+      }
     });
 
     if (messageCount) {
       messageCount.textContent = filteredMessages.length;
     }
+  }
+
+  groupMessagesForDisplay(messages) {
+    const threadMap = new Map();
+    const singleMessages = [];
+    
+    messages.forEach(msg => {
+      if (msg.threadId && !msg.replyTo) {
+        // This is a thread starter
+        if (!threadMap.has(msg.threadId)) {
+          const threadMessages = this.messageThreads.get(msg.threadId) || [];
+          threadMap.set(msg.threadId, {
+            isThread: true,
+            threadId: msg.threadId,
+            messages: threadMessages.filter(tm => messages.includes(tm)),
+            latestMessage: threadMessages[threadMessages.length - 1],
+            unreadCount: threadMessages.filter(tm => !tm.read && messages.includes(tm)).length
+          });
+        }
+      } else if (!msg.threadId || !msg.replyTo) {
+        // Single message (not part of thread or already handled)
+        singleMessages.push({ isThread: false, message: msg });
+      }
+    });
+    
+    // Combine and sort by latest timestamp
+    const allItems = [...Array.from(threadMap.values()), ...singleMessages];
+    return allItems.sort((a, b) => {
+      const timeA = a.isThread ? a.latestMessage.timestamp : a.message.timestamp;
+      const timeB = b.isThread ? b.latestMessage.timestamp : b.message.timestamp;
+      return new Date(timeB) - new Date(timeA);
+    });
+  }
+
+  renderThreadItem(threadItem, container) {
+    const thread = threadItem.messages;
+    const latest = threadItem.latestMessage;
+    const unreadCount = threadItem.unreadCount;
+    
+    const threadElement = document.createElement('div');
+    threadElement.className = `thread-item p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+      unreadCount > 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+    } ${latest.urgent ? 'border-l-4 border-l-red-500' : ''}`;
+    
+    threadElement.innerHTML = `
+      <div class="flex items-start justify-between mb-2">
+        <div class="font-semibold text-sm ${latest.urgent ? 'text-red-700' : 'text-gray-800'}">
+          💬 ${latest.urgent ? '🚨 ' : ''}Thread (${thread.length} messages)
+        </div>
+        <div class="text-xs text-gray-500">
+          ${this.formatTime(latest.timestamp)}
+        </div>
+      </div>
+      <div class="text-sm font-medium mb-1 ${unreadCount > 0 ? 'font-bold' : ''}">${thread[0].subject}</div>
+      <div class="text-xs text-gray-600 line-clamp-2">${latest.content.substring(0, 80)}...</div>
+      <div class="flex items-center justify-between mt-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs px-2 py-1 rounded ${this.getTypeColor(latest.type)}">
+            ${latest.type}
+          </span>
+          <span class="text-xs text-gray-500">Latest: ${latest.from}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          ${unreadCount > 0 ? `<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">${unreadCount}</span>` : ''}
+          <div class="w-2 h-2 bg-purple-500 rounded-full" title="Thread"></div>
+        </div>
+      </div>
+    `;
+    
+    threadElement.addEventListener('click', () => this.selectThread(threadItem));
+    container.appendChild(threadElement);
+  }
+
+  renderMessageItem(message, container) {
+    const messageItem = document.createElement('div');
+    messageItem.className = `message-item p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+      !message.read ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+    } ${message.urgent ? 'border-l-4 border-l-red-500' : ''}`;
+    
+    const readReceiptInfo = message.readReceipts?.length > 0 ? 
+      `<span class="text-xs text-green-600" title="Read by ${message.readReceipts.map(r => r.userName).join(', ')}">✓✓</span>` : 
+      '<span class="text-xs text-gray-400" title="Delivered">✓</span>';
+    
+    messageItem.innerHTML = `
+      <div class="flex items-start justify-between mb-2">
+        <div class="font-semibold text-sm ${message.urgent ? 'text-red-700' : 'text-gray-800'}">
+          ${message.urgent ? '🚨 ' : ''}${message.from}
+          ${message.patientId ? '<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded ml-2">Patient Linked</span>' : ''}
+        </div>
+        <div class="text-xs text-gray-500 flex items-center gap-1">
+          ${this.formatTime(message.timestamp)}
+          ${readReceiptInfo}
+        </div>
+      </div>
+      <div class="text-sm font-medium mb-1 ${!message.read ? 'font-bold' : ''}">${message.subject}</div>
+      <div class="text-xs text-gray-600 line-clamp-2">${message.content.substring(0, 80)}...</div>
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-xs px-2 py-1 rounded ${this.getTypeColor(message.type)}">
+          ${message.type}
+        </span>
+        ${!message.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+      </div>
+    `;
+    
+    messageItem.addEventListener('click', () => this.selectMessage(message));
+    container.appendChild(messageItem);
+  }
+
+  selectThread(threadItem) {
+    this.currentThread = threadItem;
+    
+    // Mark all messages in thread as read
+    threadItem.messages.forEach(msg => {
+      if (!msg.read) {
+        msg.read = true;
+        this.unreadCount--;
+      }
+    });
+    
+    this.updateUnreadCount();
+    this.renderMessages();
+    this.renderThreadContent(threadItem);
+    this.showReplySection();
+  }
+
+  renderThreadContent(threadItem) {
+    const messageViewer = document.getElementById('messageViewer');
+    if (!messageViewer) return;
+
+    const thread = threadItem.messages;
+    const firstMessage = thread[0];
+    
+    let threadHtml = `
+      <div class="thread-header mb-4 pb-4 border-b">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h4 class="text-lg font-bold ${firstMessage.urgent ? 'text-red-700' : 'text-gray-800'}">
+              💬 ${firstMessage.urgent ? '🚨 ' : ''}${firstMessage.subject}
+            </h4>
+            <div class="text-sm text-gray-600 mt-1">
+              Thread with ${thread.length} messages
+            </div>
+            ${firstMessage.patientId ? '<span class="inline-block mt-2 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">Patient Linked</span>' : ''}
+          </div>
+          <div class="text-right">
+            <div class="text-sm text-gray-500">Started ${this.formatDateTime(firstMessage.timestamp)}</div>
+            <span class="inline-block mt-1 text-xs px-2 py-1 rounded ${this.getPriorityColor(firstMessage.priority)}">
+              ${firstMessage.priority.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="thread-messages space-y-4">
+    `;
+    
+    thread.forEach((message, index) => {
+      const isOwnMessage = message.from === (currentUser?.displayName || 'Current User');
+      const readReceiptInfo = message.readReceipts?.length > 0 ? 
+        message.readReceipts.map(r => `${r.userName} (${this.formatTime(r.readAt)})`).join(', ') : 
+        'Delivered';
+      
+      threadHtml += `
+        <div class="message-in-thread ${isOwnMessage ? 'ml-8' : 'mr-8'}">
+          <div class="bg-gray-50 p-4 rounded-lg ${isOwnMessage ? 'bg-blue-50' : ''}">
+            <div class="flex items-start justify-between mb-2">
+              <div class="font-semibold text-sm">${message.from} (${message.fromRole})</div>
+              <div class="text-xs text-gray-500">${this.formatDateTime(message.timestamp)}</div>
+            </div>
+            <div class="text-sm whitespace-pre-wrap">${message.content}</div>
+            <div class="text-xs text-gray-400 mt-2 flex items-center justify-between">
+              <span>Read by: ${readReceiptInfo}</span>
+              ${message.readReceipts?.length > 0 ? '<span class="text-green-600">✓✓</span>' : '<span>✓</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    threadHtml += `
+      </div>
+      <div class="thread-actions mt-6 pt-4 border-t flex gap-2">
+        <button onclick="clinicalMessaging.showReplySection()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          💬 Reply to Thread
+        </button>
+        <button onclick="clinicalMessaging.forwardThread('${threadItem.threadId}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+          ↗️ Forward Thread
+        </button>
+        <button onclick="clinicalMessaging.markThreadAsImportant('${threadItem.threadId}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+          ⭐ Mark Important
+        </button>
+      </div>
+    `;
+    
+    messageViewer.innerHTML = threadHtml;
   }
 
   selectMessage(message) {
@@ -2786,6 +3179,136 @@ class ClinicalMessagingSystem {
       showToast(message.important ? 'Message marked as important' : 'Removed important flag', 'success');
       this.renderMessages();
     }
+  }
+
+  showTemplatesModal() {
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">📋 Message Templates</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          ${this.templates.map(template => `
+            <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="clinicalMessaging.useTemplate('${template.id}')">
+              <div class="font-semibold text-sm mb-2">${template.name}</div>
+              <div class="text-xs text-gray-600 mb-2">Category: ${template.category}</div>
+              <div class="text-xs text-gray-500">${template.content.substring(0, 100)}...</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+          <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    showModal(modalContent);
+  }
+
+  useTemplate(templateId) {
+    const template = this.templates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    closeModal();
+    
+    // Show compose modal with template pre-filled
+    setTimeout(() => {
+      this.showComposeModal();
+      setTimeout(() => {
+        const subjectField = document.getElementById('composeSubject');
+        const contentField = document.getElementById('composeContent');
+        
+        if (subjectField) subjectField.value = template.subject;
+        if (contentField) contentField.value = template.content;
+        
+        showToast('Template loaded - customize as needed', 'success');
+      }, 100);
+    }, 100);
+  }
+
+  showPatientMessages() {
+    if (!selectedPatientId) {
+      showToast('Please select a patient first', 'error');
+      return;
+    }
+    
+    const patientMessages = this.patientLinkedMessages.get(selectedPatientId) || [];
+    const currentPatient = patients.find(p => p.id === selectedPatientId);
+    
+    const modalContent = `
+      <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+        <h3 class="text-xl font-bold mb-4">👤 Messages for ${currentPatient?.name || 'Selected Patient'}</h3>
+        <div class="space-y-3 mb-4 max-h-96 overflow-y-auto">
+          ${patientMessages.length === 0 ? 
+            '<div class="text-gray-500 py-8 text-center">No messages linked to this patient</div>' :
+            patientMessages.map(msg => `
+              <div class="border rounded-lg p-3 hover:bg-gray-50">
+                <div class="flex justify-between items-start mb-2">
+                  <div class="font-semibold text-sm">${msg.subject}</div>
+                  <div class="text-xs text-gray-500">${this.formatDateTime(msg.timestamp)}</div>
+                </div>
+                <div class="text-xs text-gray-600 mb-2">From: ${msg.from} → ${msg.to}</div>
+                <div class="text-sm text-gray-700">${msg.content.substring(0, 150)}...</div>
+                <div class="mt-2">
+                  <span class="text-xs px-2 py-1 rounded ${this.getTypeColor(msg.type)}">${msg.type}</span>
+                  <span class="text-xs px-2 py-1 rounded ${this.getPriorityColor(msg.priority)} ml-2">${msg.priority}</span>
+                </div>
+              </div>
+            `).join('')
+          }
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+          <button onclick="clinicalMessaging.composePatientMessage('${selectedPatientId}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            📝 New Patient Message
+          </button>
+          <button onclick="closeModal()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
+    `;
+    showModal(modalContent);
+  }
+
+  composePatientMessage(patientId) {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient) return;
+    
+    closeModal();
+    
+    setTimeout(() => {
+      this.showComposeModal();
+      setTimeout(() => {
+        const subjectField = document.getElementById('composeSubject');
+        if (subjectField) {
+          subjectField.value = `Patient Update - ${patient.name}`;
+        }
+        
+        // Add hidden field to link to patient
+        const form = document.getElementById('composeForm');
+        if (form) {
+          const patientInput = document.createElement('input');
+          patientInput.type = 'hidden';
+          patientInput.name = 'patientId';
+          patientInput.value = patientId;
+          form.appendChild(patientInput);
+        }
+        
+        showToast(`Composing message for patient: ${patient.name}`, 'info');
+      }, 100);
+    }, 100);
+  }
+
+  forwardThread(threadId) {
+    showToast('Thread forwarding functionality would be implemented here', 'info');
+  }
+
+  markThreadAsImportant(threadId) {
+    const threadMessages = this.messageThreads.get(threadId) || [];
+    threadMessages.forEach(msg => {
+      msg.important = true;
+    });
+    showToast('Thread marked as important', 'success');
+    this.renderMessages();
   }
 }
 
