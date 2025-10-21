@@ -6117,6 +6117,29 @@ if(document.getElementById('loginCancel')) document.getElementById('loginCancel'
     const bc = $('breadcrumb-current');
     const activeBtn = document.querySelector('.navbtn[data-target="'+id+'"]');
     if(bc) bc.textContent = activeBtn ? (activeBtn.dataset.label || activeBtn.title || activeBtn.textContent.trim()) : id;
+    
+    // Initialize staff management system when staff tab is shown
+    if(id === 'tab-staff') {
+      console.log('🏥 Staff tab activated - checking system...');
+      if(!window.staffSystem) {
+        console.log('🔄 Initializing staff system on tab switch...');
+        try {
+          if (typeof StaffManagementSystem !== 'undefined') {
+            window.staffSystem = new StaffManagementSystem();
+            console.log('✅ Staff system initialized on tab switch');
+          } else {
+            console.error('❌ StaffManagementSystem class not found on tab switch');
+          }
+        } catch (error) {
+          console.error('❌ Failed to initialize staff system on tab switch:', error);
+        }
+      } else {
+        console.log('✅ Staff system already available');
+        // Refresh the staff display
+        window.staffSystem.updateStaffStats();
+        window.staffSystem.renderStaffList();
+      }
+    }
   }
   navbtns.forEach(b => b.addEventListener('click', ()=> showPanel(b.dataset.target)));
   // default to dashboard
@@ -8364,49 +8387,76 @@ class StaffManagementSystem {
 
   init() {
     console.log('Initializing Staff Management System...');
-    this.updateStaffStats();
-    this.renderStaffList();
-    this.bindEvents();
     
-    // Add sample data if empty
-    if (this.staff.length === 0) {
-      this.addSampleStaff();
-    }
+    // Delay initialization to ensure DOM elements exist
+    setTimeout(() => {
+      this.updateStaffStats();
+      this.renderStaffList();
+      this.bindEvents();
+      
+      // Add sample data if empty
+      if (this.staff.length === 0) {
+        this.addSampleStaff();
+      }
+      console.log('✅ Staff Management System fully initialized');
+    }, 100);
   }
 
   bindEvents() {
+    console.log('🔗 Binding staff management events...');
+    
     // Staff management buttons
     const addStaffBtn = document.getElementById('addStaffBtn');
     if (addStaffBtn) {
       addStaffBtn.addEventListener('click', () => this.showAddStaffModal());
+      console.log('✅ Add staff button bound');
+    } else {
+      console.warn('⚠️ Add staff button not found');
     }
 
     const viewSchedulesBtn = document.getElementById('viewSchedulesBtn');
     if (viewSchedulesBtn) {
       viewSchedulesBtn.addEventListener('click', () => this.showSchedulesModal());
+      console.log('✅ View schedules button bound');
+    } else {
+      console.warn('⚠️ View schedules button not found');
     }
 
     const departmentStaffBtn = document.getElementById('departmentStaffBtn');
     if (departmentStaffBtn) {
       departmentStaffBtn.addEventListener('click', () => this.showDepartmentStaffModal());
+      console.log('✅ Department staff button bound');
+    } else {
+      console.warn('⚠️ Department staff button not found');
     }
 
     const credentialsBtn = document.getElementById('credentialsBtn');
     if (credentialsBtn) {
       credentialsBtn.addEventListener('click', () => this.showCredentialsModal());
+      console.log('✅ Credentials button bound');
+    } else {
+      console.warn('⚠️ Credentials button not found');
     }
 
     // Filter change
     const staffFilter = document.getElementById('staffFilter');
     if (staffFilter) {
       staffFilter.addEventListener('change', () => this.filterStaff());
+      console.log('✅ Staff filter bound');
+    } else {
+      console.warn('⚠️ Staff filter not found');
     }
 
     // Refresh button
     const refreshStaff = document.getElementById('refreshStaff');
     if (refreshStaff) {
       refreshStaff.addEventListener('click', () => this.refreshStaffData());
+      console.log('✅ Refresh staff button bound');
+    } else {
+      console.warn('⚠️ Refresh staff button not found');
     }
+    
+    console.log('🔗 Staff event binding completed');
   }
 
   addSampleStaff() {
