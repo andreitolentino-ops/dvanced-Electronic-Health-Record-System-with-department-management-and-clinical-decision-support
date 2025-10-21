@@ -3,31 +3,34 @@
 // Early global function declarations (before any other code)
 window.showMessagingTemplates = function() {
   console.log('🌐 Global template function called');
+  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
   if (window.clinicalMessaging && window.clinicalMessaging.showTemplatesModal) {
     window.clinicalMessaging.showTemplatesModal();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    if (window.showToast) showToast('Messaging system not ready', 'error');
+    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
   }
 };
 
 window.showPatientMessages = function() {
   console.log('🌐 Global patient messages function called');
+  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
   if (window.clinicalMessaging && window.clinicalMessaging.showPatientMessages) {
     window.clinicalMessaging.showPatientMessages();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    if (window.showToast) showToast('Messaging system not ready', 'error');
+    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
   }
 };
 
 window.showCriticalAlerts = function() {
   console.log('🌐 Global alerts function called');
+  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
   if (window.clinicalMessaging && window.clinicalMessaging.showCriticalAlerts) {
     window.clinicalMessaging.showCriticalAlerts();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    if (window.showToast) showToast('Messaging system not ready', 'error');
+    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
   }
 };
 
@@ -1974,6 +1977,18 @@ auth.onAuthStateChanged(async user => {
     const loginModalEl = $('loginModal'); if(loginModalEl) loginModalEl.classList.add('hidden');
     // enable realtime updates for patients
     enableRealtimePatients();
+    
+    // Initialize clinical messaging system early
+    if (typeof ClinicalMessagingSystem !== 'undefined' && !window.clinicalMessaging) {
+      try {
+        console.log('🔧 Early messaging initialization...');
+        window.clinicalMessaging = new ClinicalMessagingSystem();
+        console.log('✅ Messaging system initialized early');
+      } catch (error) {
+        console.error('❌ Early messaging initialization failed:', error);
+      }
+    }
+    
     // initialize departments and beds
     initializeSystemForUser();
   } else {
