@@ -3543,7 +3543,9 @@ let clinicalMessaging;
 
 // Initialize messaging immediately when script loads
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 DOM loaded - initializing messaging system');
+  console.log('🚀 DOM loaded - initializing systems');
+  
+  // Initialize messaging system
   try {
     if (typeof ClinicalMessagingSystem !== 'undefined') {
       clinicalMessaging = new ClinicalMessagingSystem();
@@ -3555,6 +3557,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   } catch (error) {
     console.error('❌ Failed to initialize messaging:', error);
+  }
+
+  // Initialize staff management system
+  try {
+    if (typeof StaffManagementSystem !== 'undefined') {
+      window.staffSystem = new StaffManagementSystem();
+      console.log('✅ Staff management system initialized');
+    } else {
+      console.error('❌ StaffManagementSystem class not found');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize staff system:', error);
   }
 });
 
@@ -3570,6 +3584,18 @@ setTimeout(function() {
       }
     } catch (error) {
       console.error('❌ Fallback messaging initialization failed:', error);
+    }
+  }
+
+  if (!window.staffSystem) {
+    console.log('🔄 Fallback staff system initialization');
+    try {
+      if (typeof StaffManagementSystem !== 'undefined') {
+        window.staffSystem = new StaffManagementSystem();
+        console.log('✅ Fallback staff system initialized');
+      }
+    } catch (error) {
+      console.error('❌ Fallback staff initialization failed:', error);
     }
   }
 }, 2000);
@@ -8825,13 +8851,3 @@ window.showAddStaffModal = function() {
     window.staffSystem.showAddStaffModal();
   }
 };
-
-// Initialize staff management system when tab is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize staff system when needed
-  setTimeout(() => {
-    if (!window.staffSystem) {
-      window.staffSystem = new StaffManagementSystem();
-    }
-  }, 1000);
-});
