@@ -3,34 +3,49 @@
 // Early global function declarations (before any other code)
 window.showMessagingTemplates = function() {
   console.log('🌐 Global template function called');
-  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
-  if (window.clinicalMessaging && window.clinicalMessaging.showTemplatesModal) {
-    window.clinicalMessaging.showTemplatesModal();
+  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
+  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  
+  const messaging = window.clinicalMessaging || clinicalMessaging;
+  
+  if (messaging && messaging.showTemplatesModal) {
+    console.log('✅ Calling showTemplatesModal');
+    messaging.showTemplatesModal();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
+    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
   }
 };
 
 window.showPatientMessages = function() {
   console.log('🌐 Global patient messages function called');
-  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
-  if (window.clinicalMessaging && window.clinicalMessaging.showPatientMessages) {
-    window.clinicalMessaging.showPatientMessages();
+  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
+  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  
+  const messaging = window.clinicalMessaging || clinicalMessaging;
+  
+  if (messaging && messaging.showPatientMessages) {
+    console.log('✅ Calling showPatientMessages');
+    messaging.showPatientMessages();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
+    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
   }
 };
 
 window.showCriticalAlerts = function() {
   console.log('🌐 Global alerts function called');
-  console.log('🔍 Checking clinicalMessaging:', window.clinicalMessaging);
-  if (window.clinicalMessaging && window.clinicalMessaging.showCriticalAlerts) {
-    window.clinicalMessaging.showCriticalAlerts();
+  console.log('🔍 window.clinicalMessaging exists:', !!window.clinicalMessaging);
+  console.log('🔍 clinicalMessaging exists:', !!clinicalMessaging);
+  
+  const messaging = window.clinicalMessaging || clinicalMessaging;
+  
+  if (messaging && messaging.showCriticalAlerts) {
+    console.log('✅ Calling showCriticalAlerts');
+    messaging.showCriticalAlerts();
   } else {
     console.error('❌ Clinical messaging not initialized');
-    alert('Clinical messaging system is not ready yet. Please wait a moment and try again.');
+    alert('Clinical messaging system is not ready yet. The page may still be loading. Please wait a moment and try again.');
   }
 };
 
@@ -3425,6 +3440,39 @@ class ClinicalMessagingSystem {
 
 // Initialize messaging system
 let clinicalMessaging;
+
+// Initialize messaging immediately when script loads
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 DOM loaded - initializing messaging system');
+  try {
+    if (typeof ClinicalMessagingSystem !== 'undefined') {
+      clinicalMessaging = new ClinicalMessagingSystem();
+      window.clinicalMessaging = clinicalMessaging;
+      console.log('✅ Messaging system initialized on DOM ready');
+      console.log('📋 Templates available:', clinicalMessaging.templates?.length || 0);
+    } else {
+      console.error('❌ ClinicalMessagingSystem class not found');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize messaging:', error);
+  }
+});
+
+// Fallback initialization with a small delay
+setTimeout(function() {
+  if (!window.clinicalMessaging) {
+    console.log('🔄 Fallback messaging initialization');
+    try {
+      if (typeof ClinicalMessagingSystem !== 'undefined') {
+        clinicalMessaging = new ClinicalMessagingSystem();
+        window.clinicalMessaging = clinicalMessaging;
+        console.log('✅ Fallback messaging system initialized');
+      }
+    } catch (error) {
+      console.error('❌ Fallback messaging initialization failed:', error);
+    }
+  }
+}, 2000);
 
 // -------------------- Auto-fill date/time functions --------------------
 function setCurrentDateTime() {
