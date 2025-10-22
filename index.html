@@ -66,16 +66,6 @@
           </div>
         </div>
         
-        <!-- Role Selector -->
-        <div class="role-selector flex items-center gap-2 text-sm bg-white/10 px-3 py-1 rounded">
-          <span class="text-slate-200 text-xs">Role:</span>
-          <select id="roleSelect" class="px-2 py-1 border rounded text-sm bg-white text-gray-800">
-            <option value="admin">Administrator</option>
-            <option value="admission">Admission Staff</option>
-            <option value="bednav">Bed Navigator</option>
-          </select>
-        </div>
-        
         <button id="btnNew" class="btn btn-primary" title="New patient">+ New</button>
         <button id="helpBtn" class="btn btn-ghost" title="Help & Documentation">❓</button>
         <button id="btnLogout" class="btn btn-ghost" title="Logout">Sign out</button>
@@ -3380,6 +3370,21 @@
           </div>
           <div id="loginError" class="text-sm text-red-600 mt-2 hidden" role="alert"></div>
         </form>
+        
+        <!-- Role Information -->
+        <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 class="text-sm font-semibold text-blue-800 mb-2">Available User Roles:</h4>
+          <div class="text-xs text-blue-700 space-y-1">
+            <div><strong>👑 Administrator:</strong> Full system access</div>
+            <div><strong>👨‍⚕️ Doctor:</strong> Complete clinical access</div>
+            <div><strong>👩‍⚕️ Nurse:</strong> Clinical access (limited)</div>
+            <div><strong>🏥 Admission Staff:</strong> Patient registration & bed management</div>
+            <div><strong>🛏️ Bed Navigator:</strong> Bed management only</div>
+          </div>
+          <div class="text-xs text-blue-600 mt-2 italic">
+            Your role is automatically assigned based on your login credentials.
+          </div>
+        </div>
       </div>
     </div>
   </div>
