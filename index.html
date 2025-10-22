@@ -45,88 +45,28 @@
       </div>
 
       <div class="header-right flex items-center gap-3">
-        <div id="userDisplayName" class="text-sm text-slate-700 font-medium">
-          <span id="currentUserName">Not signed in</span> 
-          <span id="currentUserRole" class="text-xs text-slate-500 ml-1">(GUEST)</span>
-        </div>
-        <div id="userInfo" class="text-sm text-slate-700">
-          <div class="relative" id="userMenuWrap">
-            <button id="userMenuBtn" class="flex items-center gap-2 px-3 py-1 rounded bg-white/10">
-              <span id="userMenuEmail" class="font-medium">Not signed in</span>
-              <span class="text-xs opacity-60">▾</span>
-            </button>
-            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 rounded bg-white shadow p-0 z-50">
-              <div class="text-sm p-3 border-b">
-                <strong id="userMenuEmailStrong">Not signed in</strong>
-                <div id="userRole" class="text-xs text-slate-500">GUEST</div>
-              </div>
-              <button id="themeToggleBtn" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Toggle theme</button>
-              <button id="userSignOut" class="w-full text-left px-3 py-2 text-sm text-rose-600 hover:bg-slate-50">Sign out</button>
+        <div class="relative" id="userMenuWrap">
+          <button id="userMenuBtn" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border hover:bg-gray-50">
+            <span id="userMenuEmail" class="font-medium text-sm">Not signed in</span>
+            <span id="currentUserRole" class="text-xs text-slate-500 px-2 py-1 bg-gray-100 rounded">(GUEST)</span>
+            <span class="text-xs opacity-60 ml-1">▾</span>
+          </button>
+          <div id="userMenu" class="hidden absolute right-0 mt-2 w-64 rounded-lg bg-white shadow-lg border p-0 z-50">
+            <div class="text-sm p-4 border-b bg-gray-50">
+              <strong id="userMenuEmailStrong" class="block">Not signed in</strong>
+              <div id="userRole" class="text-xs text-slate-500 mt-1">GUEST</div>
+            </div>
+            <div class="p-2">
+              <button id="themeToggleBtn" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 rounded">🌙 Toggle Theme</button>
+              <button id="helpBtn" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 rounded">❓ Help & Documentation</button>
+              <hr class="my-1">
+              <button id="btnLogout" class="w-full text-left px-3 py-2 text-sm text-rose-600 hover:bg-red-50 rounded">🚪 Sign Out</button>
             </div>
           </div>
         </div>
-        
-        <button id="helpBtn" class="btn btn-ghost" title="Help & Documentation">❓</button>
-        <button id="btnLogout" class="btn btn-ghost" title="Logout">Sign out</button>
       </div>
     </div>
   </header>
-
-  <!-- Top Navigation Bar -->
-  <div class="top-nav-wrap">
-    <div class="top-nav-container">
-      <nav class="top-nav" id="topNav">
-        <button type="button" data-target="tab-dashboard" data-label="Dashboard" title="Dashboard" class="navbtn icon-only" aria-label="Dashboard">
-          <span class="nav-icon">🏠</span>
-        </button>
-        <button type="button" data-target="tab-departments" data-label="Departments & Beds" title="Departments & Beds" class="navbtn icon-only" aria-label="Departments & Beds">
-          <span class="nav-icon">🏥</span>
-        </button>
-        <button type="button" data-target="tab-info" data-label="Patient Information" title="Patient Information" class="navbtn icon-only" aria-label="Patient Information">
-          <span class="nav-icon">👤</span>
-        </button>
-        <button type="button" data-target="tab-id" data-label="Identification" title="Identification & Insurance" class="navbtn icon-only" aria-label="Identification & Insurance">
-          <span class="nav-icon">🆔</span>
-        </button>
-        <button type="button" data-target="tab-history" data-label="Medical History" title="Medical History" class="navbtn icon-only" aria-label="Medical History">
-          <span class="nav-icon">📋</span>
-        </button>
-        <button type="button" data-target="tab-physical" data-label="Physical Assessment" title="Physical Assessment" class="navbtn icon-only" aria-label="Physical Assessment">
-          <span class="nav-icon">🔍</span>
-        </button>
-        <button type="button" data-target="tab-assessment" data-label="Treatment Plan" title="Treatment Plan" class="navbtn icon-only" aria-label="Treatment Plan">
-          <span class="nav-icon">⚕️</span>
-        </button>
-        <button type="button" data-target="tab-labs" data-label="Labs" title="Laboratory & Diagnostics" class="navbtn icon-only" aria-label="Laboratory & Diagnostics">
-          <span class="nav-icon">🧪</span>
-        </button>
-        <button type="button" data-target="tab-meds" data-label="Medication & IV Order" title="Medication & IV Order" class="navbtn icon-only" aria-label="Medication & IV Order">
-          <span class="nav-icon">💊</span>
-        </button>
-        <button type="button" data-target="tab-messages" data-label="Messages" title="Clinical Messages & Alerts" class="navbtn icon-only" aria-label="Clinical Messages & Alerts">
-          <span class="nav-icon">💬</span>
-        </button>
-        <button type="button" data-target="tab-vitals" data-label="Vitals" title="Vitals & Monitoring" class="navbtn icon-only" aria-label="Vitals & Monitoring">
-          <span class="nav-icon">📊</span>
-        </button>
-        <button type="button" data-target="tab-nurse" data-label="Nurse Notes" title="Nurse Notes (FDAR)" class="navbtn icon-only" aria-label="Nurse Notes">
-          <span class="nav-icon">👩‍⚕️</span>
-        </button>
-        <button type="button" data-target="tab-doctor" data-label="Doctor Notes" title="Doctor Notes" class="navbtn icon-only" aria-label="Doctor Notes">
-          <span class="nav-icon">👨‍⚕️</span>
-        </button>
-        <button type="button" data-target="tab-admission" data-label="Patient Admission" title="Patient Admission/Registration" class="navbtn icon-only" aria-label="Patient Admission">
-          <span class="nav-icon">🏥</span>
-        </button>
-        <button type="button" data-target="tab-plan" data-label="Discharge Plan" title="Discharge Plan" class="navbtn icon-only" aria-label="Discharge Plan">
-          <span class="nav-icon">📋</span>
-        </button>
-        <button type="button" data-target="tab-staff" data-label="Staff Management" title="Staff Management" class="navbtn icon-only" aria-label="Staff Management">
-          <span class="nav-icon">👥</span>
-        </button>
-      </nav>
-    </div>
-  </div>
 
   <main class="pt-4 px-6 pb-12">
     <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
