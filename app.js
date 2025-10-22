@@ -2156,6 +2156,8 @@ function renderUserBadge(){
 
 // enable/hide UI based on role
 function applyRoleUI(){
+  console.log('🔒 Applying role-based UI restrictions for role:', currentRole);
+  
   const newBtn = $('btnNew'); 
   if(newBtn) { 
     if(['admin','doctor','nurse','admission'].includes(currentRole)) {
@@ -2207,32 +2209,40 @@ function applyRoleUI(){
     });
     
   } else if(currentRole === 'bednav') {
-    // Bednav users have more restrictions - no admission or discharge planning tabs
-    const bednavRestrictedTabs = [
+    console.log('🚫 Applying BEDNAV restrictions - hiding all tabs except dashboard, departments, patient info');
+    // Bednav users have strict restrictions - only dashboard, departments, and patient info
+    const allTabs = [
       'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 
       'tab-labs', 'tab-meds', 'tab-messages', 'tab-vitals', 
       'tab-nurse', 'tab-doctor', 'tab-admission', 'tab-plan', 'tab-staff'
     ];
     
-    bednavRestrictedTabs.forEach(tabId => {
+    // Hide ALL tabs first
+    allTabs.forEach(tabId => {
       const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
       const tabPanel = document.getElementById(tabId);
       
       allTabBtns.forEach(btn => {
-        if(btn) btn.style.display = 'none';
+        if(btn) {
+          btn.style.display = 'none';
+          console.log(`🚫 Hiding tab button: ${tabId}`);
+        }
       });
       
       if(tabPanel) tabPanel.classList.add('hidden');
     });
     
-    // Show allowed tabs for bednav users
+    // Show ONLY allowed tabs for bednav users (dashboard, departments, patient info)
     const bednavAllowedTabs = ['tab-dashboard', 'tab-departments', 'tab-info'];
     bednavAllowedTabs.forEach(tabId => {
       const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
       const tabPanel = document.getElementById(tabId);
       
       allTabBtns.forEach(btn => {
-        if(btn) btn.style.display = '';
+        if(btn) {
+          btn.style.display = '';
+          console.log(`✅ Showing allowed tab: ${tabId}`);
+        }
       });
       
       if(tabPanel) tabPanel.classList.remove('hidden');
@@ -2247,7 +2257,7 @@ function applyRoleUI(){
       if(btn) btn.style.display = 'none';
     });
     if(planPanel) planPanel.classList.add('hidden');
-  } else {
+  } else if(currentRole !== 'bednav') {
     planTabBtns.forEach(btn => {
       if(btn) btn.style.display = '';
     });
@@ -2261,7 +2271,7 @@ function applyRoleUI(){
       if(btn) btn.style.display = 'none';
     });
     if(doctorPanel) doctorPanel.classList.add('hidden');
-  } else {
+  } else if(currentRole !== 'bednav') {
     doctorTabBtns.forEach(btn => {
       if(btn) btn.style.display = '';
     });
