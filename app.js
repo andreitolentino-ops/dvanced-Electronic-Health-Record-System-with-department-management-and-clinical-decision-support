@@ -1,5 +1,216 @@
 // app.js - Full application logic (updated to address top-priority fixes)
 
+// =============================================
+// ROLE-BASED ACCESS CONTROL SYSTEM
+// =============================================
+
+// User roles and their permissions
+const USER_ROLES = {
+  admin: {
+    name: 'Administrator',
+    permissions: ['all'], // Admin has access to everything
+    tabs: ['tab-dashboard', 'tab-departments', 'tab-info', 'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 'tab-labs', 'tab-meds', 'tab-messages', 'tab-vitals', 'tab-nurse', 'tab-doctor', 'tab-plan', 'tab-staff']
+  },
+  admission: {
+    name: 'Admission Staff',
+    permissions: ['departments', 'bed_management', 'patient_registration'],
+    tabs: ['tab-dashboard', 'tab-departments', 'tab-info'] // Can view departments, bed management, and basic patient info
+  },
+  bednav: {
+    name: 'Bed Navigator',
+    permissions: ['departments', 'bed_management'],
+    tabs: ['tab-dashboard', 'tab-departments'] // Same as admission but only departments and bed management
+  }
+};
+
+// Current user role (default to admin for now, can be set via login)
+let currentUserRole = localStorage.getItem('userRole') || 'admin';
+
+// Set user role
+function setUserRole(role) {
+  if (USER_ROLES[role]) {
+    currentUserRole = role;
+    localStorage.setItem('userRole', role);
+    applyRoleBasedAccess();
+    updateUserInterface();
+    console.log(`🔐 User role set to: ${USER_ROLES[role].name}`);
+  } else {
+    console.error('❌ Invalid user role:', role);
+  }
+}
+
+// Check if current user has permission for a specific tab
+function hasTabAccess(tabId) {
+  const userRole = USER_ROLES[currentUserRole];
+  if (!userRole) return false;
+  
+  // Admin has access to everything
+  if (userRole.permissions.includes('all')) return true;
+  
+  // Check specific tab permissions
+  return userRole.tabs.includes(tabId);
+}
+
+// Apply role-based access to navigation and tabs
+function applyRoleBasedAccess() {
+  console.log(`🔐 Applying access control for role: ${currentUserRole}`);
+  
+  // Get all navigation buttons
+  const navButtons = document.querySelectorAll('.navbtn');
+  
+  navButtons.forEach(button => {
+    const targetTab = button.dataset.target;
+    
+    if (hasTabAccess(targetTab)) {
+      // Show accessible tabs
+      button.style.display = '';
+      button.classList.remove('disabled');
+    } else {
+      // Hide restricted tabs
+      button.style.display = 'none';
+      button.classList.add('disabled');
+    }
+  });
+  
+  // Hide restricted tab content
+  const tabPanels = document.querySelectorAll('.panel');
+  tabPanels.forEach(panel => {
+    if (!hasTabAccess(panel.id)) {
+      panel.classList.add('hidden');
+    }
+  });
+  
+  // Redirect to dashboard if current tab is not accessible
+  const currentTab = document.querySelector('.panel:not(.hidden)');
+  if (currentTab && !hasTabAccess(currentTab.id)) {
+    showTab('tab-dashboard');
+  }
+}
+
+// Update user interface to show current role
+function updateUserInterface() {
+  const roleDisplay = document.getElementById('currentUserRole');
+  if (roleDisplay) {
+    const userRole = USER_ROLES[currentUserRole];
+    roleDisplay.textContent = userRole ? userRole.name : 'Unknown Role';
+  }
+  
+  // Update header if exists
+  const userInfo = document.querySelector('.user-info');
+  if (userInfo) {
+    userInfo.textContent = `Role: ${USER_ROLES[currentUserRole]?.name || 'Unknown'}`;
+  }
+  
+  // Show role-specific content
+  updateDashboardForRole();
+}
+
+// Update dashboard content based on user role
+function updateDashboardForRole() {
+  const dashboard = document.getElementById('tab-dashboard');
+  if (!dashboard) return;
+  
+  // Add role-specific widgets to dashboard
+  const roleSpecificContent = document.getElementById('roleSpecificContent');
+  if (roleSpecificContent) {
+    roleSpecificContent.remove();
+  }
+  
+  if (currentUserRole === 'admission' || currentUserRole === 'bednav') {
+    const admissionContent = document.createElement('div');
+    admissionContent.id = 'roleSpecificContent';
+    admissionContent.className = 'mt-6 grid grid-cols-1 md:grid-cols-2 gap-6';
+    admissionContent.innerHTML = `
+      <!-- Bed Management Widget -->
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+        <h3 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+          🛏️ Bed Management
+        </h3>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Total Beds:</span>
+            <span class="font-semibold">120</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Available Beds:</span>
+            <span class="font-semibold text-green-600">23</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Occupied Beds:</span>
+            <span class="font-semibold text-red-600">97</span>
+          </div>
+          <div class="mt-4">
+            <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              View Bed Status
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Department Status Widget -->
+      <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+        <h3 class="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+          🏥 Department Status
+        </h3>
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span>Emergency Department</span>
+            <span class="text-red-600 font-semibold">High</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span>ICU</span>
+            <span class="text-orange-600 font-semibold">Medium</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span>Medical Ward</span>
+            <span class="text-green-600 font-semibold">Normal</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span>Surgical Ward</span>
+            <span class="text-green-600 font-semibold">Normal</span>
+          </div>
+          <div class="mt-4">
+            <button class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              Department Details
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    dashboard.appendChild(admissionContent);
+  }
+}
+
+// Function to show a specific tab (useful for programmatic navigation)
+function showTab(tabId) {
+  const targetBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
+  if (targetBtn && hasTabAccess(tabId)) {
+    targetBtn.click();
+  } else if (!hasTabAccess(tabId)) {
+    console.warn(`🔐 Access denied to tab: ${tabId}`);
+    showToast('Access denied to this section', 'error');
+  }
+}
+
+// Add role selector event listener
+function addRoleSelector() {
+  const roleSelect = document.getElementById('roleSelect');
+  if (roleSelect) {
+    // Set current role in dropdown
+    roleSelect.value = currentUserRole;
+    
+    // Add event listener for role change
+    roleSelect.addEventListener('change', (e) => {
+      setUserRole(e.target.value);
+    });
+    
+    console.log('✅ Role selector initialized');
+  } else {
+    console.warn('⚠️ Role selector not found in DOM');
+  }
+}
+
 // Early global function declarations (before any other code)
 window.showMessagingTemplates = function() {
   console.log('📋 Templates function called');
@@ -3545,6 +3756,17 @@ let clinicalMessaging;
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 DOM loaded - initializing systems');
   
+  // Initialize role-based access control
+  try {
+    console.log('🔐 Initializing role-based access control...');
+    applyRoleBasedAccess();
+    updateUserInterface();
+    addRoleSelector();
+    console.log('✅ Role-based access control initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize role-based access control:', error);
+  }
+  
   // Initialize messaging system
   try {
     if (typeof ClinicalMessagingSystem !== 'undefined') {
@@ -6107,6 +6329,13 @@ if(document.getElementById('loginCancel')) document.getElementById('loginCancel'
 (function initNav(){
   const navbtns = qsa('.navbtn');
   function showPanel(id){
+    // Check role-based access before showing panel
+    if (!hasTabAccess(id)) {
+      console.warn(`🔐 Access denied to tab: ${id} for role: ${currentUserRole}`);
+      showToast(`Access denied: ${USER_ROLES[currentUserRole]?.name || 'Current role'} cannot access this section`, 'error');
+      return;
+    }
+    
     qsa('.panel').forEach(p => { if(p.id === id) p.classList.remove('hidden'); else p.classList.add('hidden'); });
     navbtns.forEach(b => {
       const active = b.dataset.target===id;
