@@ -65,6 +65,17 @@
             </div>
           </div>
         </div>
+        
+        <!-- Role Selector -->
+        <div class="role-selector flex items-center gap-2 text-sm bg-white/10 px-3 py-1 rounded">
+          <span class="text-slate-200 text-xs">Role:</span>
+          <select id="roleSelect" class="px-2 py-1 border rounded text-sm bg-white text-gray-800">
+            <option value="admin">Administrator</option>
+            <option value="admission">Admission Staff</option>
+            <option value="bednav">Bed Navigator</option>
+          </select>
+        </div>
+        
         <button id="btnNew" class="btn btn-primary" title="New patient">+ New</button>
         <button id="helpBtn" class="btn btn-ghost" title="Help & Documentation">❓</button>
         <button id="btnLogout" class="btn btn-ghost" title="Logout">Sign out</button>
@@ -3230,9 +3241,6 @@
               </button>
               <button type="button" id="credentialsBtn" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                 📜 Credentials
-              </button>
-              <button type="button" onclick="console.log('Staff System Check:', window.staffSystem); alert('Staff System: ' + (window.staffSystem ? 'LOADED' : 'NOT LOADED'))" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
-                🔧 Debug
               </button>
             </div>
             <div class="flex gap-2">
