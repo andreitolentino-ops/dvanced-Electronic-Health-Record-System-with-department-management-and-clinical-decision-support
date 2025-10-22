@@ -2170,55 +2170,101 @@ function applyRoleUI(){
   const limitedAccessTabs = [
     'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 
     'tab-labs', 'tab-meds', 'tab-messages', 'tab-vitals', 
-    'tab-nurse', 'tab-doctor', 'tab-plan', 'tab-staff'
+    'tab-nurse', 'tab-doctor', 'tab-staff'
   ];
   
-  if(restrictedRoles.includes(currentRole)) {
-    limitedAccessTabs.forEach(tabId => {
-      const tabBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
+  // Different restrictions for each role
+  if(currentRole === 'admission') {
+    // Admission users can see admission-specific tabs but not all clinical tabs
+    const admissionRestrictedTabs = [
+      'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 
+      'tab-labs', 'tab-meds', 'tab-messages', 'tab-vitals', 
+      'tab-nurse', 'tab-doctor', 'tab-staff'
+    ];
+    
+    admissionRestrictedTabs.forEach(tabId => {
+      const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
       const tabPanel = document.getElementById(tabId);
-      if(tabBtn) tabBtn.classList.add('hidden');
+      
+      allTabBtns.forEach(btn => {
+        if(btn) btn.style.display = 'none';
+      });
+      
       if(tabPanel) tabPanel.classList.add('hidden');
     });
     
-    // Show only allowed tabs for admission and bednav
-    const allowedTabs = ['tab-dashboard', 'tab-departments', 'tab-info'];
-    if(currentRole === 'admission') {
-      allowedTabs.push('tab-info'); // Admission can see patient info
-    }
-    
-    allowedTabs.forEach(tabId => {
-      const tabBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
+    // Show allowed tabs for admission users
+    const admissionAllowedTabs = ['tab-dashboard', 'tab-departments', 'tab-info', 'tab-admission', 'tab-plan'];
+    admissionAllowedTabs.forEach(tabId => {
+      const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
       const tabPanel = document.getElementById(tabId);
-      if(tabBtn) tabBtn.classList.remove('hidden');
+      
+      allTabBtns.forEach(btn => {
+        if(btn) btn.style.display = '';
+      });
+      
       if(tabPanel) tabPanel.classList.remove('hidden');
     });
-  } else {
-    // For other roles, show all tabs except role-specific restrictions
-    limitedAccessTabs.forEach(tabId => {
-      const tabBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
-      if(tabBtn) tabBtn.classList.remove('hidden');
+    
+  } else if(currentRole === 'bednav') {
+    // Bednav users have more restrictions - no admission or discharge planning tabs
+    const bednavRestrictedTabs = [
+      'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 
+      'tab-labs', 'tab-meds', 'tab-messages', 'tab-vitals', 
+      'tab-nurse', 'tab-doctor', 'tab-admission', 'tab-plan', 'tab-staff'
+    ];
+    
+    bednavRestrictedTabs.forEach(tabId => {
+      const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
+      const tabPanel = document.getElementById(tabId);
+      
+      allTabBtns.forEach(btn => {
+        if(btn) btn.style.display = 'none';
+      });
+      
+      if(tabPanel) tabPanel.classList.add('hidden');
+    });
+    
+    // Show allowed tabs for bednav users
+    const bednavAllowedTabs = ['tab-dashboard', 'tab-departments', 'tab-info'];
+    bednavAllowedTabs.forEach(tabId => {
+      const allTabBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
+      const tabPanel = document.getElementById(tabId);
+      
+      allTabBtns.forEach(btn => {
+        if(btn) btn.style.display = '';
+      });
+      
+      if(tabPanel) tabPanel.classList.remove('hidden');
     });
   }
   
   // Hide Treatment Plan tab from nurses and restricted roles - only doctors and admin can access it
-  const planTabBtn = document.querySelector('.navbtn[data-target="tab-assessment"]');
+  const planTabBtns = document.querySelectorAll('[data-target="tab-assessment"]');
   const planPanel = document.getElementById('tab-assessment');
   if(['nurse', 'guest', 'admission', 'bednav'].includes(currentRole)){
-    if(planTabBtn) planTabBtn.classList.add('hidden');
+    planTabBtns.forEach(btn => {
+      if(btn) btn.style.display = 'none';
+    });
     if(planPanel) planPanel.classList.add('hidden');
   } else {
-    if(planTabBtn) planTabBtn.classList.remove('hidden');
+    planTabBtns.forEach(btn => {
+      if(btn) btn.style.display = '';
+    });
   }
   
   // Hide Doctor Notes tab from nurses, guests, and restricted roles
-  const doctorTabBtn = document.querySelector('.navbtn[data-target="tab-doctor"]');
+  const doctorTabBtns = document.querySelectorAll('[data-target="tab-doctor"]');
   const doctorPanel = document.getElementById('tab-doctor');
   if(['nurse', 'guest', 'admission', 'bednav'].includes(currentRole)){
-    if(doctorTabBtn) doctorTabBtn.classList.add('hidden');
+    doctorTabBtns.forEach(btn => {
+      if(btn) btn.style.display = 'none';
+    });
     if(doctorPanel) doctorPanel.classList.add('hidden');
   } else {
-    if(doctorTabBtn) doctorTabBtn.classList.remove('hidden');
+    doctorTabBtns.forEach(btn => {
+      if(btn) btn.style.display = '';
+    });
   }
   
   // disable doctor save button for nurses and restricted roles
@@ -3649,8 +3695,15 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       console.error('❌ StaffManagementSystem class not found');
     }
+    
+    if (typeof PatientAdmissionSystem !== 'undefined') {
+      window.admissionSystem = new PatientAdmissionSystem();
+      console.log('✅ Patient admission system initialized');
+    } else {
+      console.error('❌ PatientAdmissionSystem class not found');
+    }
   } catch (error) {
-    console.error('❌ Failed to initialize staff system:', error);
+    console.error('❌ Failed to initialize systems:', error);
   }
 });
 
@@ -8977,9 +9030,254 @@ class StaffManagementSystem {
   }
 }
 
-// Global staff management functions
+// Patient Admission System
+class PatientAdmissionSystem {
+  constructor() {
+    this.admissions = [];
+    this.nextMRN = 1000001;
+    this.initializeUI();
+  }
+
+  initializeUI() {
+    // Register Patient button
+    const registerBtn = document.getElementById('registerPatientBtn');
+    if (registerBtn) {
+      registerBtn.addEventListener('click', () => this.registerPatient());
+    }
+
+    // Clear form button
+    const clearBtn = document.getElementById('clearAdmissionFormBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearForm());
+    }
+
+    // Preview button
+    const previewBtn = document.getElementById('previewAdmissionBtn');
+    if (previewBtn) {
+      previewBtn.addEventListener('click', () => this.previewRegistration());
+    }
+
+    // Auto-generate MRN
+    this.generateMRN();
+    
+    // Load existing admissions
+    this.loadAdmissions();
+  }
+
+  generateMRN() {
+    const mrnField = document.getElementById('admissionMRN');
+    if (mrnField) {
+      mrnField.value = `MRN-${this.nextMRN}`;
+    }
+  }
+
+  registerPatient() {
+    // Collect form data
+    const formData = {
+      mrn: document.getElementById('admissionMRN')?.value,
+      firstName: document.getElementById('admissionFirstName')?.value,
+      lastName: document.getElementById('admissionLastName')?.value,
+      dob: document.getElementById('admissionDOB')?.value,
+      gender: document.getElementById('admissionGender')?.value,
+      phone: document.getElementById('admissionPhone')?.value,
+      address: document.getElementById('admissionAddress')?.value,
+      city: document.getElementById('admissionCity')?.value,
+      emergencyContact: document.getElementById('admissionEmergencyContact')?.value,
+      emergencyPhone: document.getElementById('admissionEmergencyPhone')?.value,
+      admissionType: document.getElementById('admissionType')?.value,
+      department: document.getElementById('admissionDepartment')?.value,
+      physician: document.getElementById('admissionPhysician')?.value,
+      complaint: document.getElementById('admissionComplaint')?.value,
+      insurance: document.getElementById('admissionInsurance')?.value,
+      policyNumber: document.getElementById('admissionPolicyNumber')?.value,
+      admissionDate: new Date().toISOString(),
+      status: 'Active'
+    };
+
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'dob', 'gender', 'admissionType', 'department'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Add to admissions array
+    this.admissions.push(formData);
+    
+    // Save to localStorage
+    this.saveAdmissions();
+    
+    // Update admissions table
+    this.updateAdmissionsTable();
+    
+    // Clear form and generate new MRN
+    this.clearForm();
+    this.nextMRN++;
+    this.generateMRN();
+    
+    // Show success message
+    alert(`Patient ${formData.firstName} ${formData.lastName} successfully registered!`);
+  }
+
+  clearForm() {
+    const formFields = [
+      'admissionFirstName', 'admissionLastName', 'admissionDOB', 'admissionGender',
+      'admissionPhone', 'admissionAddress', 'admissionCity', 'admissionEmergencyContact',
+      'admissionEmergencyPhone', 'admissionType', 'admissionDepartment', 'admissionPhysician',
+      'admissionComplaint', 'admissionInsurance', 'admissionPolicyNumber'
+    ];
+
+    formFields.forEach(fieldId => {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.value = '';
+      }
+    });
+  }
+
+  previewRegistration() {
+    const formData = {
+      mrn: document.getElementById('admissionMRN')?.value,
+      firstName: document.getElementById('admissionFirstName')?.value,
+      lastName: document.getElementById('admissionLastName')?.value,
+      dob: document.getElementById('admissionDOB')?.value,
+      gender: document.getElementById('admissionGender')?.value,
+      phone: document.getElementById('admissionPhone')?.value,
+      department: document.getElementById('admissionDepartment')?.value,
+      admissionType: document.getElementById('admissionType')?.value,
+      complaint: document.getElementById('admissionComplaint')?.value
+    };
+
+    const preview = `
+      Patient Registration Preview:
+      
+      MRN: ${formData.mrn}
+      Name: ${formData.firstName} ${formData.lastName}
+      DOB: ${formData.dob}
+      Gender: ${formData.gender}
+      Phone: ${formData.phone}
+      Department: ${formData.department}
+      Admission Type: ${formData.admissionType}
+      Chief Complaint: ${formData.complaint}
+    `;
+
+    alert(preview);
+  }
+
+  loadAdmissions() {
+    const saved = localStorage.getItem('patientAdmissions');
+    if (saved) {
+      this.admissions = JSON.parse(saved);
+      this.updateAdmissionsTable();
+      
+      // Update next MRN
+      if (this.admissions.length > 0) {
+        const lastMRN = Math.max(...this.admissions.map(admission => 
+          parseInt(admission.mrn.replace('MRN-', ''))
+        ));
+        this.nextMRN = lastMRN + 1;
+      }
+    }
+  }
+
+  saveAdmissions() {
+    localStorage.setItem('patientAdmissions', JSON.stringify(this.admissions));
+  }
+
+  updateAdmissionsTable() {
+    const tbody = document.getElementById('recentAdmissionsTable');
+    if (!tbody) return;
+
+    // Get recent admissions (last 10)
+    const recentAdmissions = this.admissions.slice(-10).reverse();
+
+    tbody.innerHTML = recentAdmissions.map(admission => `
+      <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admission.mrn}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admission.firstName} ${admission.lastName}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admission.dob}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${admission.department}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(admission.admissionDate).toLocaleDateString()}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            admission.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+          }">
+            ${admission.status}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button onclick="window.admissionSystem.viewPatient('${admission.mrn}')" class="text-blue-600 hover:text-blue-900 mr-3">View</button>
+          <button onclick="window.admissionSystem.editPatient('${admission.mrn}')" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  viewPatient(mrn) {
+    const patient = this.admissions.find(admission => admission.mrn === mrn);
+    if (patient) {
+      const details = `
+        Patient Details:
+        
+        MRN: ${patient.mrn}
+        Name: ${patient.firstName} ${patient.lastName}
+        DOB: ${patient.dob}
+        Gender: ${patient.gender}
+        Phone: ${patient.phone}
+        Address: ${patient.address}, ${patient.city}
+        Emergency Contact: ${patient.emergencyContact} (${patient.emergencyPhone})
+        
+        Admission Details:
+        Type: ${patient.admissionType}
+        Department: ${patient.department}
+        Physician: ${patient.physician}
+        Date: ${new Date(patient.admissionDate).toLocaleDateString()}
+        Status: ${patient.status}
+        
+        Chief Complaint: ${patient.complaint}
+        
+        Insurance: ${patient.insurance}
+        Policy: ${patient.policyNumber}
+      `;
+      alert(details);
+    }
+  }
+
+  editPatient(mrn) {
+    const patient = this.admissions.find(admission => admission.mrn === mrn);
+    if (patient) {
+      // Populate form with patient data
+      document.getElementById('admissionMRN').value = patient.mrn;
+      document.getElementById('admissionFirstName').value = patient.firstName;
+      document.getElementById('admissionLastName').value = patient.lastName;
+      document.getElementById('admissionDOB').value = patient.dob;
+      document.getElementById('admissionGender').value = patient.gender;
+      document.getElementById('admissionPhone').value = patient.phone || '';
+      document.getElementById('admissionAddress').value = patient.address || '';
+      document.getElementById('admissionCity').value = patient.city || '';
+      document.getElementById('admissionEmergencyContact').value = patient.emergencyContact || '';
+      document.getElementById('admissionEmergencyPhone').value = patient.emergencyPhone || '';
+      document.getElementById('admissionType').value = patient.admissionType;
+      document.getElementById('admissionDepartment').value = patient.department;
+      document.getElementById('admissionPhysician').value = patient.physician || '';
+      document.getElementById('admissionComplaint').value = patient.complaint || '';
+      document.getElementById('admissionInsurance').value = patient.insurance || '';
+      document.getElementById('admissionPolicyNumber').value = patient.policyNumber || '';
+      
+      // Switch to admission tab
+      const admissionTab = document.querySelector('[data-target="tab-admission"]');
+      if (admissionTab) {
+        admissionTab.click();
+      }
+    }
+  }
+}
+
+// Global functions for Patient Admission System
 window.showAddStaffModal = function() {
   if (window.staffSystem) {
     window.staffSystem.showAddStaffModal();
   }
-};
+}
