@@ -2156,8 +2156,6 @@ function renderUserBadge(){
 
 // enable/hide UI based on role
 function applyRoleUI(){
-  console.log('🔒 Applying role-based UI restrictions for role:', currentRole);
-  
   const newBtn = $('btnNew'); 
   if(newBtn) { 
     if(['admin','doctor','nurse','admission'].includes(currentRole)) {
@@ -2209,7 +2207,6 @@ function applyRoleUI(){
     });
     
   } else if(currentRole === 'bednav') {
-    console.log('🚫 Applying BEDNAV restrictions - hiding all tabs except dashboard, departments, patient info');
     // Bednav users have strict restrictions - only dashboard, departments, and patient info
     const allTabs = [
       'tab-id', 'tab-history', 'tab-physical', 'tab-assessment', 
@@ -2225,7 +2222,6 @@ function applyRoleUI(){
       allTabBtns.forEach(btn => {
         if(btn) {
           btn.style.display = 'none';
-          console.log(`🚫 Hiding tab button: ${tabId}`);
         }
       });
       
@@ -2241,7 +2237,6 @@ function applyRoleUI(){
       allTabBtns.forEach(btn => {
         if(btn) {
           btn.style.display = '';
-          console.log(`✅ Showing allowed tab: ${tabId}`);
         }
       });
       
@@ -3701,14 +3696,12 @@ document.addEventListener('DOMContentLoaded', function() {
   try {
     if (typeof StaffManagementSystem !== 'undefined') {
       window.staffSystem = new StaffManagementSystem();
-      console.log('✅ Staff management system initialized');
     } else {
       console.error('❌ StaffManagementSystem class not found');
     }
     
     if (typeof PatientAdmissionSystem !== 'undefined') {
       window.admissionSystem = new PatientAdmissionSystem();
-      console.log('✅ Patient admission system initialized');
     } else {
       console.error('❌ PatientAdmissionSystem class not found');
     }
