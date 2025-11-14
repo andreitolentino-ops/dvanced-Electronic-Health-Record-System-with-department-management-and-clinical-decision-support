@@ -19,7 +19,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="One Care System">
 </head>
-<body class="bg-slate-50 text-slate-700 min-h-screen antialiased transition-colors duration-500">
+<body class="bg-slate-50 text-slate-700 min-h-screen antialiased transition-colors duration-500 top-nav-enabled">
 
   <!-- App header: logo, breadcrumb, search, actions -->
   <header class="app-header w-full py-4 px-6 bg-white/70 glass border-b sticky top-0 z-40">
@@ -67,6 +67,30 @@
       </div>
     </div>
   </header>
+
+  <!-- Top Navigation (tabs above content) -->
+  <div class="top-nav-wrap">
+    <div class="top-nav-container">
+      <nav class="top-nav" id="topNav" aria-label="Primary">
+        <button type="button" data-target="tab-dashboard" title="Dashboard" aria-label="Dashboard" class="navbtn icon-btn"><span class="nav-icon">🏠</span></button>
+        <button type="button" data-target="tab-departments" title="Departments & Beds" aria-label="Departments & Beds" class="navbtn icon-btn"><span class="nav-icon">🏥</span></button>
+        <button type="button" data-target="tab-info" title="Patient Information" aria-label="Patient Information" class="navbtn icon-btn"><span class="nav-icon">👤</span></button>
+        <button type="button" data-target="tab-id" title="Identification & Insurance" aria-label="Identification & Insurance" class="navbtn icon-btn"><span class="nav-icon">🪪</span></button>
+        <button type="button" data-target="tab-history" title="Medical History" aria-label="Medical History" class="navbtn icon-btn"><span class="nav-icon">📋</span></button>
+        <button type="button" data-target="tab-physical" title="Physical Assessment" aria-label="Physical Assessment" class="navbtn icon-btn"><span class="nav-icon">👩‍⚕️</span></button>
+        <button type="button" data-target="tab-assessment" title="Treatment Plan" aria-label="Treatment Plan" class="navbtn icon-btn"><span class="nav-icon">📋</span></button>
+        <button type="button" data-target="tab-labs" title="Laboratory & Diagnostics" aria-label="Laboratory & Diagnostics" class="navbtn icon-btn"><span class="nav-icon">🧪</span></button>
+        <button type="button" data-target="tab-meds" title="Medication & IV Order" aria-label="Medication & IV Order" class="navbtn icon-btn"><span class="nav-icon">💊</span></button>
+        <button type="button" data-target="tab-messages" title="Clinical Messages & Alerts" aria-label="Clinical Messages & Alerts" class="navbtn icon-btn"><span class="nav-icon">💬</span></button>
+        <button type="button" data-target="tab-vitals" title="Vitals & Monitoring" aria-label="Vitals & Monitoring" class="navbtn icon-btn"><span class="nav-icon">❤️</span></button>
+        <button type="button" data-target="tab-nurse" title="Nurse Notes (FDAR)" aria-label="Nurse Notes" class="navbtn icon-btn"><span class="nav-icon">👩‍⚕️</span></button>
+        <button type="button" data-target="tab-doctor" title="Doctor Notes" aria-label="Doctor Notes" class="navbtn icon-btn"><span class="nav-icon">👨‍⚕️</span></button>
+        <button type="button" data-target="tab-admission" title="Patient Admission/Registration" aria-label="Patient Admission" class="navbtn icon-btn"><span class="nav-icon">🏥</span></button>
+        <button type="button" data-target="tab-plan" title="Discharge Plan" aria-label="Discharge Plan" class="navbtn icon-btn"><span class="nav-icon">📑</span></button>
+        <button type="button" data-target="tab-staff" title="Staff Management" aria-label="Staff Management" class="navbtn icon-btn"><span class="nav-icon">👥</span></button>
+      </nav>
+    </div>
+  </div>
 
   <main class="pt-4 px-6 pb-12">
     <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
