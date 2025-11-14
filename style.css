@@ -220,6 +220,22 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Sticky Sidebar Tabs */
+/* Keep the sidebar tabs visible while scrolling and allow internal scroll if tall */
+main .grid > aside .glass {
+  position: sticky;
+  top: 96px; /* roughly below the sticky header */
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+}
+
+@media (max-width: 768px) {
+  main .grid > aside .glass {
+    top: 72px;
+    max-height: calc(100vh - 86px);
+  }
+}
+
 #searchTop {
   background: white;
   border: 1px solid #e5e7eb;
