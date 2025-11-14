@@ -231,6 +231,13 @@ aside #mainNav {
   align-content: start;
 }
 
+/* Promote to 3 columns on wide screens for shorter height */
+@media (min-width: 1280px) {
+  aside #mainNav {
+    grid-template-columns: repeat(3, 40px);
+  }
+}
+
 aside #mainNav .navbtn.icon-btn {
   width: 36px;
   height: 36px;
@@ -276,6 +283,34 @@ aside #mainNav .navbtn[aria-current="true"]::after {
   height: 6px;
   border-radius: 50%;
   background: #10b981;
+}
+
+/* Clean tooltips using aria-label on hover/focus */
+aside #mainNav .navbtn::before {
+  content: attr(aria-label);
+  position: absolute;
+  left: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 40;
+}
+
+aside #mainNav .navbtn:hover::before,
+aside #mainNav .navbtn:focus::before,
+aside #mainNav .navbtn:focus-visible::before {
+  opacity: 1;
+  transform: translate(2px, -50%);
 }
 
 /* Sticky Sidebar Tabs */
