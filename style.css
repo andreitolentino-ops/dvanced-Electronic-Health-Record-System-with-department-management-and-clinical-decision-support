@@ -222,7 +222,13 @@ body {
 
 /* Compact Sidebar Tabs (fit all without scrolling) */
 aside #mainNav {
-  row-gap: 4px; /* tighter spacing than Tailwind gap-2 */
+  /* Two-column compact grid to reduce height (no internal scroll) */
+  display: grid;
+  grid-template-columns: repeat(2, 40px);
+  grid-auto-rows: 40px;
+  gap: 6px 8px;
+  justify-content: center;
+  align-content: start;
 }
 
 aside #mainNav .navbtn.icon-btn {
@@ -242,6 +248,7 @@ aside #mainNav .navbtn .sr-name {
 aside #mainNav .navbtn {
   background: white;
   border: 1px solid #e5e7eb;
+  position: relative;
 }
 
 aside #mainNav .navbtn:hover {
@@ -257,19 +264,34 @@ aside #mainNav .navbtn[aria-current="true"] {
   color: #065f46;
 }
 
+/* Small active dot indicator for clarity */
+aside #mainNav .navbtn.active::after,
+aside #mainNav .navbtn[aria-current="true"]::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
 /* Sticky Sidebar Tabs */
 /* Keep the sidebar tabs visible while scrolling and allow internal scroll if tall */
 main .grid > aside .glass {
   position: sticky;
   top: 96px; /* roughly below the sticky header */
-  max-height: calc(100vh - 110px);
-  overflow: auto;
+  /* remove internal scroll to keep tabs clean */
+  max-height: none;
+  overflow: visible;
 }
 
 @media (max-width: 768px) {
   main .grid > aside .glass {
     top: 72px;
-    max-height: calc(100vh - 86px);
+    max-height: none;
   }
 }
 
