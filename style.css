@@ -1050,12 +1050,12 @@ table.data-table td:last-child, table.data-table th:last-child { text-align: rig
   box-shadow: 0 8px 20px rgba(168, 85, 247, 0.2);
 }
 
-/* Hide sidebar navigation when using top nav */
-main .grid > aside {
+/* Hide sidebar navigation only when top-nav is explicitly enabled */
+body.top-nav-enabled main .grid > aside {
   display: none;
 }
 
-main .grid > section {
+body.top-nav-enabled main .grid > section {
   grid-column: 1 / -1;
 }
 
@@ -1123,11 +1123,12 @@ main .grid > section {
     font-size: 14px; 
   }
   
-  main .grid > aside { 
+  /* On small screens, default to showing the sidebar layout */
+  body:not(.top-nav-enabled) main .grid > aside { 
     display: block; 
   }
   
-  main .grid > section {
+  body:not(.top-nav-enabled) main .grid > section {
     grid-column: auto; 
   }
 }
