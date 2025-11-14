@@ -1420,11 +1420,10 @@ window.navigateToTab = function(tabId) {
 };
 
 // Keyboard navigation for sidebar tabs (arrow keys + Home/End)
-window.addEventListener('DOMContentLoaded', function() {
-  const nav = document.getElementById('mainNav');
-  if (!nav) return;
-  const getButtons = () => Array.from(nav.querySelectorAll('.navbtn'));
-  nav.addEventListener('keydown', (e) => {
+function setupNavKeyboard(navEl) {
+  if (!navEl) return;
+  const getButtons = () => Array.from(navEl.querySelectorAll('.navbtn'));
+  navEl.addEventListener('keydown', (e) => {
     const buttons = getButtons();
     const currentIndex = buttons.indexOf(document.activeElement);
     if (currentIndex === -1) return;
@@ -1455,6 +1454,11 @@ window.addEventListener('DOMContentLoaded', function() {
         break;
     }
   });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  setupNavKeyboard(document.getElementById('mainNav'));
+  setupNavKeyboard(document.getElementById('topNav'));
 });
 
 // Bed assignment modal functions
