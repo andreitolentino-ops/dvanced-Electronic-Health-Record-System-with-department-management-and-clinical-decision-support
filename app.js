@@ -1391,6 +1391,9 @@ window.navigateToTab = function(tabId) {
   const navBtn = document.querySelector(`.navbtn[data-target="${tabId}"]`);
   if (navBtn) {
     navBtn.click();
+    // ensure aria-current reflects active tab for a11y
+    document.querySelectorAll('.navbtn').forEach(btn => btn.removeAttribute('aria-current'));
+    navBtn.setAttribute('aria-current', 'true');
     return;
   }
   
@@ -1405,12 +1408,54 @@ window.navigateToTab = function(tabId) {
   
   // Update navigation buttons
   const allNavBtns = document.querySelectorAll('.navbtn');
-  allNavBtns.forEach(btn => btn.classList.remove('active'));
+  allNavBtns.forEach(btn => {
+    btn.classList.remove('active');
+    btn.removeAttribute('aria-current');
+  });
   
   if (navBtn) {
     navBtn.classList.add('active');
+    navBtn.setAttribute('aria-current', 'true');
   }
 };
+
+// Keyboard navigation for sidebar tabs (arrow keys + Home/End)
+window.addEventListener('DOMContentLoaded', function() {
+  const nav = document.getElementById('mainNav');
+  if (!nav) return;
+  const getButtons = () => Array.from(nav.querySelectorAll('.navbtn'));
+  nav.addEventListener('keydown', (e) => {
+    const buttons = getButtons();
+    const currentIndex = buttons.indexOf(document.activeElement);
+    if (currentIndex === -1) return;
+
+    const moveFocus = (idx) => {
+      const target = buttons[idx];
+      if (target) target.focus();
+    };
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        moveFocus(Math.min(currentIndex + 1, buttons.length - 1));
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        moveFocus(Math.max(currentIndex - 1, 0));
+        break;
+      case 'Home':
+        e.preventDefault();
+        moveFocus(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        moveFocus(buttons.length - 1);
+        break;
+    }
+  });
+});
 
 // Bed assignment modal functions
 function showBedAssignmentModal(departmentId = null) {
