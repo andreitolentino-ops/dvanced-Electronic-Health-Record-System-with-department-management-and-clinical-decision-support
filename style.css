@@ -951,13 +951,60 @@ textarea[name="vaccineHistory"] {
 
 
 
-/* Toasts */
-#toastContainer { right:18px; bottom:18px; left:auto; position:fixed; z-index:100; display:flex; flex-direction:column-reverse; gap:8px; }
-.toast-card { min-width: 220px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); color: white; padding:10px 14px; border-radius:12px; box-shadow: 0 12px 30px rgba(2,6,23,0.45); border-left:6px solid var(--accent); opacity:0; transform: translateY(8px) scale(.98); transition: opacity .4s ease, transform .4s cubic-bezier(.2,.9,.2,1), border-color .4s ease; }
-.toast-card.show { opacity:1; transform: translateY(0) scale(1); }
-.toast-card.success { border-left-color: rgba(34,197,94,0.9); }
-.toast-card.error { border-left-color: rgba(239,68,68,0.9); }
-.toast-card.info { border-left-color: rgba(14,165,233,0.95); }
+/* Accessible & High-Visibility Toasts */
+#toastContainer { position:fixed; top:18px; right:18px; z-index:120; display:flex; flex-direction:column; gap:12px; width:min(360px,90vw); pointer-events:none; }
+.toast-card { 
+  --toast-bg: #1e293b;
+  --toast-border: #334155;
+  --toast-icon-bg: rgba(255,255,255,0.12);
+  background: var(--toast-bg);
+  color:#f8fafc;
+  padding:14px 16px; 
+  border-radius:14px; 
+  box-shadow:0 12px 40px -4px rgba(2,6,23,0.55),0 0 0 1px rgba(255,255,255,0.04);
+  border:1px solid var(--toast-border);
+  display:flex; align-items:flex-start; gap:12px;
+  font-size:14px; line-height:1.35;
+  opacity:0; transform:translateY(-6px) scale(.97); 
+  transition:opacity .35s cubic-bezier(.2,.9,.2,1), transform .35s cubic-bezier(.2,.9,.2,1), background .4s ease;
+  pointer-events:auto;
+}
+.toast-card.show { opacity:1; transform:translateY(0) scale(1); }
+.toast-card:focus-visible { outline:3px solid #38bdf8; outline-offset:2px; }
+.toast-card .toast-icon { 
+  width:40px; height:40px; flex-shrink:0; 
+  border-radius:10px; display:flex; align-items:center; justify-content:center; 
+  font-size:20px; font-weight:600; background:var(--toast-icon-bg); 
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.toast-card .toast-content { flex:1; }
+.toast-card .toast-actions { display:flex; gap:4px; margin-top:8px; }
+.toast-card button.toast-close { 
+  background:transparent; border:none; color:rgba(255,255,255,0.85); 
+  cursor:pointer; font-size:18px; line-height:1; padding:2px 6px; border-radius:6px; 
+  transition:background .2s ease, color .2s ease; 
+}
+.toast-card button.toast-close:hover { background:rgba(255,255,255,0.12); }
+.toast-card.success { --toast-bg:#065f46; --toast-border:#047857; }
+.toast-card.error { --toast-bg:#7f1d1d; --toast-border:#991b1b; }
+.toast-card.critical { --toast-bg:#991b1b; --toast-border:#b91c1c; box-shadow:0 0 0 2px rgba(239,68,68,0.35),0 18px 50px -8px rgba(153,27,27,0.65); position:relative; }
+.toast-card.warning { --toast-bg:#92400e; --toast-border:#b45309; }
+.toast-card.info { --toast-bg:#0c4a6e; --toast-border:#075985; }
+.toast-card.success .toast-icon { background:rgba(16,185,129,.18); }
+.toast-card.error .toast-icon { background:rgba(239,68,68,.22); }
+.toast-card.critical .toast-icon { background:rgba(239,68,68,.35); animation:critical-pulse 1.2s infinite; }
+.toast-card.warning .toast-icon { background:rgba(245,158,11,.25); }
+.toast-card.info .toast-icon { background:rgba(14,165,233,.25); }
+.toast-card[role="alert"] { font-weight:500; }
+@media (prefers-reduced-motion: reduce){
+  .toast-card { transition:none; }
+  .toast-card.show { transform:none; }
+}
+@keyframes critical-pulse { 0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(239,68,68,0.6);} 50%{ transform:scale(1.06); box-shadow:0 0 0 6px rgba(239,68,68,0);} }
+/* Emphasis frame for critical clinical alerts */
+.critical-emphasis { position:relative; }
+.critical-emphasis::after { content:''; position:absolute; inset:0; border:2px solid rgba(220,38,38,0.35); border-radius:8px; pointer-events:none; animation:critical-border 1.4s linear infinite; }
+@keyframes critical-border { 0%{opacity:.9;} 50%{opacity:.3;} 100%{opacity:.9;} }
 
 /* Lottie small sizing */
 .lottie-sm { width:56px; height:56px; }
