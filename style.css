@@ -220,6 +220,43 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Compact Sidebar Tabs (fit all without scrolling) */
+aside #mainNav {
+  row-gap: 4px; /* tighter spacing than Tailwind gap-2 */
+}
+
+aside #mainNav .navbtn.icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 18px; /* emoji size */
+  border-radius: 10px;
+}
+
+/* Hide visible labels to save vertical space on all breakpoints */
+aside #mainNav .navbtn .sr-name {
+  display: none !important;
+}
+
+/* Subtle borders and hover for clean look */
+aside #mainNav .navbtn {
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+aside #mainNav .navbtn:hover {
+  background: #f8fafc;
+  border-color: #dbeafe;
+}
+
+/* Keep active state clear but minimal */
+aside #mainNav .navbtn.active,
+aside #mainNav .navbtn[aria-current="true"] {
+  background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(20,184,166,0.12));
+  border-color: rgba(16,185,129,0.35);
+  color: #065f46;
+}
+
 /* Sticky Sidebar Tabs */
 /* Keep the sidebar tabs visible while scrolling and allow internal scroll if tall */
 main .grid > aside .glass {
