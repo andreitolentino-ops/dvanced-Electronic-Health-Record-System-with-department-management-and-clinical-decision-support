@@ -209,21 +209,47 @@ function esc(s){ if(s===null||s===undefined) return ''; return String(s).replace
 
 // Unified toast implementation (consolidates the two previous implementations)
 // Usage: showToast('message', 'info'|'success'|'error', timeoutMs)
-function showToast(message, type='info', timeout=3500){
-  try{
-    const colors = { info: 'bg-sky-600', success: 'bg-emerald-600', error: 'bg-rose-600' };
-    const container = document.getElementById('toastContainer') || document.body;
+function showToast(message, type='info', timeout=5000){
+  try {
+    // Ensure container exists
+    let container = document.getElementById('toastContainer');
+    if(!container){
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      document.body.appendChild(container);
+    }
+    const icons = { success:'✅', error:'🚨', warning:'⚠️', info:'ℹ️', critical:'🛑' };
     const card = document.createElement('div');
     card.className = `toast-card ${type}`;
-    card.innerHTML = `<div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center">ℹ️</div><div style="flex:1">${esc(message)}</div><button aria-label="dismiss" style="background:transparent;border:none;color:rgba(255,255,255,0.9);font-weight:700">×</button></div>`;
-    (container).appendChild(card);
-    // show animation
-    requestAnimationFrame(()=> card.classList.add('show'));
-    // dismiss on click of X
-    card.querySelector('button')?.addEventListener('click', ()=> { card.classList.remove('show'); setTimeout(()=>card.remove(), 320); });
-    // auto remove after timeout
-    setTimeout(()=>{ card.classList.remove('show'); setTimeout(()=>card.remove(), 420); }, timeout);
-  }catch(e){ console.warn('showToast failed', e); }
+    card.setAttribute('role','alert');
+    card.setAttribute('aria-live','assertive');
+    card.setAttribute('aria-atomic','true');
+    card.tabIndex = 0; // focusable for screen readers & keyboard
+    card.innerHTML = `
+      <div class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</div>
+      <div class="toast-content">${esc(message)}</div>
+      <button class="toast-close" aria-label="Dismiss notification">×</button>
+    `;
+    container.appendChild(card);
+    requestAnimationFrame(()=>{
+      card.classList.add('show');
+      // Move focus only for error/critical to draw attention (avoid focus steal spam)
+      if(type === 'error' || type === 'critical') card.focus({ preventScroll:true });
+    });
+    // Close handling
+    const removeCard = () => {
+      card.classList.remove('show');
+      setTimeout(()=> card.remove(), 350);
+    };
+    card.querySelector('.toast-close')?.addEventListener('click', removeCard);
+    // Auto-dismiss (longer timeout for warnings/errors by default)
+    if(type !== 'critical') {
+      const effectiveTimeout = type === 'error' ? timeout + 3000 : (type === 'warning' ? timeout + 1500 : timeout);
+      setTimeout(removeCard, effectiveTimeout);
+    }
+    // Allow ESC key to dismiss last toast
+    card.addEventListener('keydown', (e)=> { if(e.key==='Escape'){ removeCard(); } });
+  } catch(e){ console.warn('showToast failed', e); }
 }
 // alias for backward compatibility with many callsites
 const toast = showToast;
@@ -2457,9 +2483,9 @@ function updateStats(){
   if($('pendingMeds')) $('pendingMeds').textContent = pendingMeds;
   if($('dueMeds')) $('dueMeds').textContent = dueMeds;
   
-  // Calculate alerts from patient data
+  // Calculate alerts from patient data (with severity metadata)
   let alertsCount = 0;
-  const alertsList = [];
+  const alertsList = []; // { message, level }
   
   patients.forEach(p => {
     // Check for critical vitals
@@ -2471,18 +2497,21 @@ function updateStats(){
       
       if(temp >= 39 || temp <= 35) {
         alertsCount++;
-        alertsList.push(`${p.name}: Critical temperature (${temp}°C)`);
+        alertsList.push({ message: `${p.name}: Critical temperature (${temp}°C)`, level: 'critical' });
       }
       if(spo2 < 90) {
         alertsCount++;
-        alertsList.push(`${p.name}: Low oxygen saturation (${spo2}%)`);
+        alertsList.push({ message: `${p.name}: Low oxygen saturation (${spo2}%)`, level: 'critical' });
+      } else if(spo2 < 94) {
+        alertsCount++;
+        alertsList.push({ message: `${p.name}: Mild hypoxemia (${spo2}%)`, level: 'warning' });
       }
     }
     
     // Check for allergies
     if(p.allergies && p.allergies.trim()) {
       alertsCount++;
-      alertsList.push(`${p.name}: Has documented allergies`);
+      alertsList.push({ message: `${p.name}: Has documented allergies`, level: 'info' });
     }
     
     // Check for overdue medications
@@ -2490,7 +2519,7 @@ function updateStats(){
       p.medOrders.forEach(med => {
         if(med.status === 'overdue' || med.missed) {
           alertsCount++;
-          alertsList.push(`${p.name}: Overdue medication - ${med.drug}`);
+          alertsList.push({ message: `${p.name}: Overdue medication - ${med.drug}`, level: 'warning' });
         }
       });
     }
@@ -2501,9 +2530,16 @@ function updateStats(){
   const alertsListEl = $('alertsList');
   if(alertsListEl) {
     if(alertsList.length > 0) {
-      alertsListEl.innerHTML = alertsList.slice(0, 5).map(alert => 
-        `<div class="text-sm p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 mb-1">${esc(alert)}</div>`
-      ).join('');
+      alertsListEl.innerHTML = alertsList.slice(0, 6).map(obj => {
+        const lvl = obj.level;
+        if(lvl === 'critical') {
+          return `<div class="clinical-alert critical critical-emphasis" role="alert" aria-live="assertive">🚨 <strong>CRITICAL:</strong> ${esc(obj.message)}</div>`;
+        }
+        if(lvl === 'warning') {
+          return `<div class="clinical-alert warning" role="alert" aria-live="polite">⚠️ <strong>Warning:</strong> ${esc(obj.message)}</div>`;
+        }
+        return `<div class="clinical-alert info" role="note" aria-live="polite">ℹ️ ${esc(obj.message)}</div>`;
+      }).join('');
     } else {
       alertsListEl.innerHTML = '<div class="text-sm text-slate-400 italic">No active alerts</div>';
     }
